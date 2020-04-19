@@ -131,9 +131,6 @@ class MyApp(App):
         self.btStart = gui.Button('START', width=100, height=30, margin='10px',style={'font-size': '16px', 'font-weight': 'bold','background-color': '#28B463'})
         self.btStart.onclick.do(self.on_btStart_pressed)
 
-
-
-
         self.btStop = gui.Button('STOP', width=100, height=30, margin='10px',style={'font-size': '16px', 'font-weight': 'bold','background-color': '#C0392B'})
         self.btStop.attributes["disabled"] = ""
         self.btStop.onclick.do(self.on_btStop_pressed)
@@ -143,7 +140,7 @@ class MyApp(App):
 
         self.lbl_spin = gui.Label('# of cycles', width=100, height=20, margin='5px')
         self.spin = gui.SpinBox(10, 1, 100, width=100, height=20, margin='10px')
-        self.spin.onchange.do(self.on_spin_change)
+        #self.spin.onchange.do(self.on_spin_change)
 
         self.subContainerRight_2.append([self.lbl_spin,self.spin])
 
@@ -151,57 +148,9 @@ class MyApp(App):
         self.statusBox = gui.TextInput(False,width=300, height=160, margin='1px')
 
         self.subContainerRight_3.append([self.lbl_status,self.statusBox])
+        subContainerRight.append([self.lbl_04,self.subContainerRight_1 ,self.subContainerRight_2, self.subContainerRight_3])
 
-
-        self.lbl = gui.Label('This is a LABEL!', width=200, height=30, margin='10px')
-
-        self.bt = gui.Button('Press me!', width=200, height=30, margin='10px')
-        # setting the listener for the onclick event of the button
-        self.bt.onclick.do(self.on_button_pressed)
-
-        #-------
-
-
-
-        self.txt = gui.TextInput(width=200, height=30, margin='10px')
-        self.txt.set_text('This is a TEXTAREA')
-        self.txt.onchange.do(self.on_text_area_change)
-
-
-
-        self.progress = gui.Progress(1, 100, width=200, height=5)
-
-        self.check = gui.CheckBoxLabel('Label checkbox', True, width=200, height=30, margin='10px')
-        self.check.onchange.do(self.on_check_change)
-
-        self.btInputDiag = gui.Button('Open InputDialog', width=200, height=30, margin='10px')
-        self.btInputDiag.onclick.do(self.open_input_dialog)
-
-        self.btFileDiag = gui.Button('File Selection Dialog', width=200, height=30, margin='10px')
-        self.btFileDiag.onclick.do(self.open_fileselection_dialog)
-
-        self.btUploadFile = gui.FileUploader('./', width=200, height=30, margin='10px')
-        self.btUploadFile.onsuccess.do(self.fileupload_on_success)
-        self.btUploadFile.onfailed.do(self.fileupload_on_failed)
-
-        items = ('One','Two','Thee','Four','Five')
-        self.listView = gui.ListView.new_from_list(items, width=300, height=120, margin='10px')
-        self.listView.onselection.do(self.list_view_on_selected)
-
-        self.dropDown = gui.DropDown.new_from_list(('DropDownItem 0', 'DropDownItem 1','DropDownItem 2','DropDownItem 3'),
-                                                   width=200, height=20, margin='10px')
-        self.dropDown.onchange.do(self.drop_down_changed)
-        self.dropDown.select_by_value('DropDownItem 0')
-
-        self.slider = gui.Slider(10, 0, 100, 5, width=200, height=20, margin='10px')
-        self.slider.onchange.do(self.slider_changed)
-
-        self.colorPicker = gui.ColorPicker('#ffbb00', width=200, height=20, margin='10px')
-        self.colorPicker.onchange.do(self.color_picker_changed)
-
-        self.date = gui.Date('2015-04-13', width=200, height=20, margin='10px')
-        self.date.onchange.do(self.date_changed)
-
+        #----------- Grafana pannels -----------------------------------------
         self.grafana_plot_01 = gui.Widget( _type='iframe', width=550, height=300, margin='10px')
         self.grafana_plot_01.attributes['src'] = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=2"
 
@@ -217,23 +166,6 @@ class MyApp(App):
         self.grafana_plot_02.attributes['height'] = '100%'
         self.grafana_plot_02.attributes['controls'] = 'true'
         self.grafana_plot_02.style['border'] = 'none'
-
-        self.tree = gui.TreeView(width='100%', height=300)
-        ti1 = gui.TreeItem("Item1")
-        ti2 = gui.TreeItem("Item2")
-        ti3 = gui.TreeItem("Item3")
-        subti1 = gui.TreeItem("Sub Item1")
-        subti2 = gui.TreeItem("Sub Item2")
-        subti3 = gui.TreeItem("Sub Item3")
-        subti4 = gui.TreeItem("Sub Item4")
-        subsubti1 = gui.TreeItem("Sub Sub Item1")
-        subsubti2 = gui.TreeItem("Sub Sub Item2")
-        subsubti3 = gui.TreeItem("Sub Sub Item3")
-        self.tree.append([ti1, ti2, ti3])
-        ti2.append([subti1, subti2, subti3, subti4])
-        subti4.append([subsubti1, subsubti2, subsubti3])
-
-        subContainerRight.append([self.lbl_04,self.subContainerRight_1 ,self.subContainerRight_2, self.subContainerRight_3])
 
 
 
@@ -270,15 +202,14 @@ class MyApp(App):
 
 
 
-
-        #--------------------------- Wrapping the containers -----------------------------------------
+        #--------------------------- Wrapping the subcontainers -----------------------------------------
         horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight])
 
         horizontalContainer_grafana.append([self.grafana_plot_01,self.grafana_plot_02])
 
 
         #--------------------------- TAB 1 -----------------------------------------
-        verticalContainer_tb1.append([horizontalContainer_logo, horizontalContainer,horizontalContainer_grafana])
+        verticalContainer_tb1.append([horizontalContainer_logo, horizontalContainer, horizontalContainer_grafana])
 
 
 
@@ -315,8 +246,6 @@ class MyApp(App):
         #this flag will be used to stop the display_counter Timer
         self.stop_flag = False
 
-        # returning the root widget
-        #return verticalContainer_tb1
 
         #===================================== TAB 3 =================================================
         self.lbl_placeHolder = gui.Label('Place holder content', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
@@ -336,8 +265,9 @@ class MyApp(App):
         tabBox.add_tab(verticalContainer_tb3, 'Advance', None)
         tabBox.add_tab(verticalContainer_tb4, 'About', None)
 
+        # returning the root widget
+        #return verticalContainer_tb1
         return tabBox
-
 
 
     #=============================== SLOT functions =====================================================
@@ -352,8 +282,6 @@ class MyApp(App):
                 self.subContainerMiddle_2.style['opacity'] = '0.4' #this is to give a disabled apparence
 
 
-
-
     def onchange_checkbox_ch(self, emitter, value):
         id=self.list_checkBox_ch.index(emitter)
         if value:
@@ -365,6 +293,29 @@ class MyApp(App):
             self.list_dropDown_ch[id].style['opacity'] = '0.4' #this is to give a disabled apparence
             self.list_textinput_ch[id].attributes["disabled"] = ""
 
+
+    def on_btStart_pressed(self, widget):
+        currentDT = datetime.datetime.now()
+        current_text=self.read_user_options()
+        print("process started!")
+        #current_text= self.statusBox.get_text()
+        self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- process started\n")
+        self.btStart.attributes["disabled"] = ""
+        del self.btStop.attributes["disabled"]
+        #--FIX ME
+        #self.subContainerRight_1.style['pointer-events'] = 'none'
+        #self.subContainerRight_1.style['opacity'] = '0.4' #this is to give a disabled apparence
+
+
+    def on_btStop_pressed(self, widget):
+        currentDT = datetime.datetime.now()
+        current_text= self.statusBox.get_text()
+        self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- process stopped!\n")
+        self.btStop.attributes["disabled"] = ""
+        del self.btStart.attributes["disabled"]
+        #--FIX ME
+        #del self.subContainerRight_1.style['pointer-events']
+        #del self.subContainerRight_1.style['opacity']
 
 
     def read_user_options(self):
@@ -382,184 +333,8 @@ class MyApp(App):
             #print('custom tests is running: '+str(total_selected_tests)+' tests')
 
         user_options = 'User options set:\n'+'-Cycles:'+ str(ncycle) +'\n-Available_chucks:'+str(list(map(int,availavle_chucks)))+'\n-Selected_test(s):'+selected_tests+'\n------\n'
-        #user_options = 'User options set:\n'+'-Cycles:'+ str(ncycle) +'\n-Available_chucks:'+str(list(map(int,availavle_chucks)))+'\n-Selected_test(s):'+'TEST LIST'+'\n------\n'
         return user_options
 
-    def menu_dialog_clicked(self, widget):
-        self.dialog = gui.GenericDialog(title='Dialog Box', message='Click Ok to transfer content to main page', width='500px')
-        self.dtextinput = gui.TextInput(width=200, height=30)
-        self.dtextinput.set_value('Initial Text')
-        self.dialog.add_field_with_label('dtextinput', 'Text Input', self.dtextinput)
-
-        self.dcheck = gui.CheckBox(False, width=200, height=30)
-        self.dialog.add_field_with_label('dcheck', 'Label Checkbox', self.dcheck)
-        values = ('Danny Young', 'Christine Holand', 'Lars Gordon', 'Roberto Robitaille')
-        self.dlistView = gui.ListView.new_from_list(values, width=200, height=120)
-        self.dialog.add_field_with_label('dlistView', 'Listview', self.dlistView)
-
-        self.ddropdown = gui.DropDown.new_from_list(('DropDownItem 0', 'DropDownItem 1','DropDownItem 2'), width=200, height=20)
-        self.dialog.add_field_with_label('ddropdown', 'Dropdown', self.ddropdown)
-
-        self.dspinbox = gui.SpinBox(min=0, max=5000, width=200, height=20)
-        self.dspinbox.set_value(10)
-        self.dialog.add_field_with_label('dspinbox', 'Spinbox', self.dspinbox)
-
-        self.dslider = gui.Slider(10, 0, 100, 5, width=200, height=20)
-        self.dspinbox.set_value(50)
-        self.dialog.add_field_with_label('dslider', 'Slider', self.dslider)
-
-        self.dcolor = gui.ColorPicker(width=200, height=20)
-        self.dcolor.set_value('#ffff00')
-        self.dialog.add_field_with_label('dcolor', 'Colour Picker', self.dcolor)
-
-        self.ddate = gui.Date(width=200, height=20)
-        self.ddate.set_value('2000-01-01')
-        self.dialog.add_field_with_label('ddate', 'Date', self.ddate)
-
-        self.dialog.confirm_dialog.do(self.dialog_confirm)
-        self.dialog.show(self)
-
-    def dialog_confirm(self, widget):
-        result = self.dialog.get_field('dtextinput').get_value()
-        self.txt.set_value(result)
-
-        result = self.dialog.get_field('dcheck').get_value()
-        self.check.set_value(result)
-
-        result = self.dialog.get_field('ddropdown').get_value()
-        self.dropDown.select_by_value(result)
-
-        result = self.dialog.get_field('dspinbox').get_value()
-        self.spin.set_value(result)
-
-        result = self.dialog.get_field('dslider').get_value()
-        self.slider.set_value(result)
-
-        result = self.dialog.get_field('dcolor').get_value()
-        self.colorPicker.set_value(result)
-
-        result = self.dialog.get_field('ddate').get_value()
-        self.date.set_value(result)
-
-        result = self.dialog.get_field('dlistView').get_value()
-        self.listView.select_by_value(result)
-
-    # listener function
-    def on_img_clicked(self, widget):
-        self.lbl.set_text('Image clicked!')
-
-    def on_table_row_click(self, table, row, item):
-        self.lbl.set_text('Table Item clicked: ' + item.get_text())
-
-    def on_button_pressed(self, widget):
-        self.lbl.set_text('Button pressed! ')
-        self.bt.set_text('Hi!')
-
-    def on_btStart_pressed(self, widget):
-        currentDT = datetime.datetime.now()
-        current_text=self.read_user_options()
-        print("process started!")
-        #current_text= self.statusBox.get_text()
-        self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- process started\n")
-        self.btStart.attributes["disabled"] = ""
-        del self.btStop.attributes["disabled"]
-        #self.subContainerRight_1.style['pointer-events'] = 'none'
-        #self.subContainerRight_1.style['opacity'] = '0.4' #this is to give a disabled apparence
-
-
-    def on_btStop_pressed(self, widget):
-        currentDT = datetime.datetime.now()
-        current_text= self.statusBox.get_text()
-        self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- process stopped!\n")
-        self.btStop.attributes["disabled"] = ""
-        del self.btStart.attributes["disabled"]
-        #del self.subContainerRight_1.style['pointer-events']
-        #del self.subContainerRight_1.style['opacity']
-
-
-
-
-    def on_text_area_change(self, widget, newValue):
-        self.lbl.set_text('Text Area value changed!')
-
-    def on_spin_change(self, widget, newValue):
-        self.lbl.set_text('SpinBox changed, new value: ' + str(newValue))
-
-    def on_check_change(self, widget, newValue):
-        self.lbl.set_text('CheckBox changed, new value: ' + str(newValue))
-
-    def open_input_dialog(self, widget):
-        self.inputDialog = gui.InputDialog('Input Dialog', 'Your name?',
-                                           initial_value='type here',
-                                           width=500, height=160)
-        self.inputDialog.confirm_value.do(
-            self.on_input_dialog_confirm)
-
-        # here is returned the Input Dialog widget, and it will be shown
-        self.inputDialog.show(self)
-
-    def on_input_dialog_confirm(self, widget, value):
-        self.lbl.set_text('Hello ' + value)
-
-    def open_fileselection_dialog(self, widget):
-        self.fileselectionDialog = gui.FileSelectionDialog('File Selection Dialog', 'Select files and folders', False,
-                                                           '.')
-        self.fileselectionDialog.confirm_value.do(
-            self.on_fileselection_dialog_confirm)
-
-        # here is returned the Input Dialog widget, and it will be shown
-        self.fileselectionDialog.show(self)
-
-    def on_fileselection_dialog_confirm(self, widget, filelist):
-        # a list() of filenames and folders is returned
-        self.lbl.set_text('Selected files: %s' % ','.join(filelist))
-        if len(filelist):
-            f = filelist[0]
-            # replace the last download link
-            fdownloader = gui.FileDownloader("download selected", f, width=200, height=30)
-            self.subContainerRight.append(fdownloader, key='file_downloader')
-
-    def list_view_on_selected(self, widget, selected_item_key):
-        """ The selection event of the listView, returns a key of the clicked event.
-            You can retrieve the item rapidly
-        """
-        self.lbl.set_text('List selection: ' + self.listView.children[selected_item_key].get_text())
-
-    def drop_down_changed(self, widget, value):
-        self.lbl.set_text('New Combo value: ' + value)
-
-    def slider_changed(self, widget, value):
-        self.lbl.set_text('New slider value: ' + str(value))
-
-    def color_picker_changed(self, widget, value):
-        self.lbl.set_text('New color value: ' + value)
-
-    def date_changed(self, widget, value):
-        self.lbl.set_text('New date value: ' + value)
-
-    def menu_save_clicked(self, widget):
-        self.lbl.set_text('Menu clicked: Save')
-
-    def menu_saveas_clicked(self, widget):
-        self.lbl.set_text('Menu clicked: Save As')
-
-    def menu_open_clicked(self, widget):
-        self.lbl.set_text('Menu clicked: Open')
-
-    def menu_view_clicked(self, widget):
-        self.lbl.set_text('Menu clicked: View')
-
-    def fileupload_on_success(self, widget, filename):
-        self.lbl.set_text('File upload success: ' + filename)
-
-    def fileupload_on_failed(self, widget, filename):
-        self.lbl.set_text('File upload failed: ' + filename)
-
-    def on_close(self):
-        """ Overloading App.on_close event to stop the Timer.
-        """
-        self.stop_flag = True
-        super(MyApp, self).on_close()
 
 
 if __name__ == "__main__":
