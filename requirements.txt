@@ -1,0 +1,3 @@
+remi
+influxdb
+numpy
