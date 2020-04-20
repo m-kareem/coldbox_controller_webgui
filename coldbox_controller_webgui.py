@@ -388,6 +388,7 @@ class MyApp(App):
     def on_btStop_pressed(self, widget):
         currentDT = datetime.datetime.now()
         current_text= self.statusBox.get_text()
+        print("process stopped!")
         self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- process stopped!\n")
         self.btStop.attributes["disabled"] = ""
         del self.btStart.attributes["disabled"]
@@ -418,5 +419,5 @@ class MyApp(App):
 if __name__ == "__main__":
     # starts the webserver
     # optional parameters
-    # start(MyApp,address='127.0.0.1', port=8081, multiple_instance=False,enable_file_cache=True, update_interval=0.1, start_browser=True)
+    #start(MyApp, debug=False, address='petra.phys.yorku.ca', port=5000, start_browser=False, multiple_instance=True, enable_file_cache=True)
     start(MyApp, debug=False, address='localhost', port=5000, start_browser=True, multiple_instance=True, enable_file_cache=True)
