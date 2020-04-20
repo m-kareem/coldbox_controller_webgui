@@ -35,9 +35,45 @@ class MyApp(App):
     def idle(self):
         #idle function called every update cycle
 
-        self.Sens_T_1.set_text('Temperatue[C]: ' + str(get_Temperatur()))
-        self.Sens_rH_1.set_text('Relative H%: ' + str(get_rH()))
-        self.Sens_DWP.set_text('DewPoint[C]: ' + str(dewpoint_approximation( get_Temperatur(),get_rH() )))
+        # filling ColdBox Ambient table in TAB 2
+        self.Sens_T_1.set_text(str(get_Temperatur()))
+        self.Sens_rH_1.set_text(str(get_rH()))
+        self.Sens_DWP.set_text(str(dewpoint_approximation( get_Temperatur(),get_rH() )))
+
+        self.table_amb.children['row0'].children['col2'].set_text(str(get_Temperatur()))
+        self.table_amb.children['row1'].children['col2'].set_text(str(get_rH()))
+        self.table_amb.children['row2'].children['col2'].set_text(str(dewpoint_approximation( get_Temperatur(),get_rH() )))
+        self.table_amb.children['row3'].children['col2'].set_text(str(get_Temperatur()))
+        self.table_amb.children['row4'].children['col2'].set_text(str(get_Temperatur()))
+        self.table_amb.children['row5'].children['col2'].set_text(str(get_Temperatur()))
+
+        # filling temperature table in TAB 2
+        self.table_t.children['row1'].children['col2'].set_text(str(get_Temperatur()))
+        self.table_t.children['row2'].children['col2'].set_text(str(get_Temperatur()))
+        self.table_t.children['row3'].children['col2'].set_text(str(get_Temperatur()))
+        self.table_t.children['row4'].children['col2'].set_text(str(get_Temperatur()))
+        self.table_t.children['row5'].children['col2'].set_text(str(get_Temperatur()))
+
+        self.table_t.children['row1'].children['col3'].set_text(str(get_rH()))
+        self.table_t.children['row2'].children['col3'].set_text(str(get_rH()))
+        self.table_t.children['row3'].children['col3'].set_text(str(get_rH()))
+        self.table_t.children['row4'].children['col3'].set_text(str(get_rH()))
+        self.table_t.children['row5'].children['col3'].set_text(str(get_rH()))
+
+        # filling Peltiers table in TAB 2
+        self.table_Plt.children['row1'].children['col2'].set_text(str(get_Temperatur()))
+        self.table_Plt.children['row2'].children['col2'].set_text(str(get_Temperatur()))
+        self.table_Plt.children['row3'].children['col2'].set_text(str(get_Temperatur()))
+        self.table_Plt.children['row4'].children['col2'].set_text(str(get_Temperatur()))
+        self.table_Plt.children['row5'].children['col2'].set_text(str(get_Temperatur()))
+
+        self.table_Plt.children['row1'].children['col3'].set_text(str(get_rH()))
+        self.table_Plt.children['row2'].children['col3'].set_text(str(get_rH()))
+        self.table_Plt.children['row3'].children['col3'].set_text(str(get_rH()))
+        self.table_Plt.children['row4'].children['col3'].set_text(str(get_rH()))
+        self.table_Plt.children['row5'].children['col3'].set_text(str(get_rH()))
+
+
 
 
     def main(self):
@@ -172,7 +208,7 @@ class MyApp(App):
         #-------------------------- Middle V Container ---------------------
         subContainerMiddle = gui.Container(width=400, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
         subContainerMiddle_1 = gui.Container(width=300, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.subContainerMiddle_2 = gui.Container(width=300, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left','border':'2px solid black'})
+        self.subContainerMiddle_2 = gui.Container(width=300, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left','border':'Sens solid black'})
 
 
         self.lbl_05 = gui.Label('Tests', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
@@ -216,39 +252,81 @@ class MyApp(App):
         #===================================== TAB 2 =================================================
         horizontalContainer_tb2 = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
 
-        #------ Left Container ---------
-        subContainerLeft_tb2 = gui.Container(width=400, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.lbl_temp = gui.Label('Temperature[C]', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.lbl_placeHolder = gui.Label('Place holder content', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold','color': 'red'})
 
-        subContainerLeft_tb2.append([self.lbl_temp])
+        # values to be coming from influxDB -- look in idle()
+        self.Sens_T_1 = gui.Label('',width=50, height=30, margin='10px')
+        self.Sens_rH_1 = gui.Label('',width=50, height=30, margin='10px')
+        self.Sens_DWP = gui.Label('',width=50, height=30, margin='10px')
+
+        #------ Left Container ---------
+        subContainerLeft_tb2 = gui.Container(width=300, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left','border':'0px solid black'})
+        self.lbl_temp = gui.Label('Temperature[C]', width=100, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
+
+
+        # Temperatues table
+        self.table_t = gui.Table(children={
+            'row0': gui.TableRow({'col1':'  #  ', 'col2':'Chuck', 'col3':'Module'}),
+            'row1': gui.TableRow({'col1':'1','col2':'', 'col3':''}),
+            'row2': gui.TableRow({'col1':'2','col2':'', 'col3':''}),
+            'row3': gui.TableRow({'col1':'3','col2':'', 'col3':''}),
+            'row4': gui.TableRow({'col1':'4','col2':'', 'col3':''}),
+            'row5': gui.TableRow({'col1':'5','col2':'', 'col3':''})
+            },
+            width=250, height=200, margin='10px auto')
+
+
+        subContainerLeft_tb2.append([self.lbl_temp, self.table_t])
 
         #------ Middle Container ---------
-        subContainerMiddle_tb2 = gui.Container(width=400, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.lbl_peltiers = gui.Label('Peltiers', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
+        subContainerMiddle_tb2 = gui.Container(width=300, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left','border':'0px solid black'})
+        self.lbl_peltiers = gui.Label('Peltiers', width=100, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
 
-        subContainerMiddle_tb2.append([self.lbl_peltiers])
+        # Peltiers I/V table
+        self.table_Plt = gui.Table(children={
+            'row0': gui.TableRow({'col1':'  #  ', 'col2':'Current[mA]', 'col3':'Voltage[V]'}),
+            'row1': gui.TableRow({'col1':'1','col2':'', 'col3':''}),
+            'row2': gui.TableRow({'col1':'2','col2':'', 'col3':''}),
+            'row3': gui.TableRow({'col1':'3','col2':'', 'col3':''}),
+            'row4': gui.TableRow({'col1':'4','col2':'', 'col3':''}),
+            'row5': gui.TableRow({'col1':'5','col2':'', 'col3':''})
+            },
+            width=250, height=200, margin='10px auto')
+
+        subContainerMiddle_tb2.append([self.lbl_peltiers,self.table_Plt])
 
         #------ Right Container ---------
         subContainerRight_tb2 = gui.Container(width=400, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
         self.lbl_Box = gui.Label('ColdBox Ambient', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
 
-        self.Sens_T_1 = gui.TextInput(width=200, height=30, margin='10px')
-        self.Sens_rH_1 = gui.TextInput(width=200, height=30, margin='10px')
-        self.Sens_DWP = gui.TextInput(width=200, height=30, margin='10px')
+
+        # Ambient table
+        self.table_amb = gui.Table(children={
+            'row0': gui.TableRow({'col1':'Relative H[%]', 'col2':''}),
+            'row1': gui.TableRow({'col1':'Temperature[C]','col2':''}),
+            'row2': gui.TableRow({'col1':'DewPoint[C]','col2':''}),
+            'row3': gui.TableRow({'col1':'Flow N2/DryAir[l/s]','col2':''}),
+            'row4': gui.TableRow({'col1':'Coolant temperature[C]','col2':''}),
+            'row5': gui.TableRow({'col1':'Flow Coolant[l/s]','col2':''})
+            },
+            width=250, height=200, margin='10px auto',style={'text-align': 'left'})
+
+        subContainerRight_tb2.append([self.lbl_Box,self.table_amb])
 
 
-        subContainerRight_tb2.append([self.lbl_Box,self.Sens_T_1,self.Sens_rH_1,self.Sens_DWP])
 
         horizontalContainer_tb2.append([subContainerLeft_tb2, subContainerMiddle_tb2, subContainerRight_tb2])
 
-        verticalContainer_tb2.append([horizontalContainer_logo, horizontalContainer_tb2, horizontalContainer_grafana])
+
+
+
+        verticalContainer_tb2.append([horizontalContainer_logo, self.lbl_placeHolder, horizontalContainer_tb2, horizontalContainer_grafana])
 
         #this flag will be used to stop the display_counter Timer
         self.stop_flag = False
 
 
         #===================================== TAB 3 =================================================
-        self.lbl_placeHolder = gui.Label('Place holder content', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
         verticalContainer_tb3.append([horizontalContainer_logo, self.lbl_placeHolder])
 
 
