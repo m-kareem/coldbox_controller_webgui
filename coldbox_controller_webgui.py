@@ -420,4 +420,4 @@ if __name__ == "__main__":
     # starts the webserver
     # optional parameters
     #start(MyApp, debug=False, address='petra.phys.yorku.ca', port=5000, start_browser=False, multiple_instance=True, enable_file_cache=True)
-    start(MyApp, debug=False, address='localhost', port=5000, start_browser=True, multiple_instance=True, enable_file_cache=True)
+    start(MyApp, debug=False, address='localhost', port=5000, start_browser=True, multiple_instance=False, enable_file_cache=True)
