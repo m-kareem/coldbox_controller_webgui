@@ -21,7 +21,10 @@ import numpy as np
 import os
 
 import time,datetime
+
 from influx_query import *
+import user_manager
+from user_manager import *
 
 
 
@@ -417,7 +420,6 @@ class MyApp(App):
 
 
 if __name__ == "__main__":
-    # starts the webserver
-    # optional parameters
+    # starts the webserver / optional parameters
     #start(MyApp, debug=False, address='petra.phys.yorku.ca', port=5000, start_browser=False, multiple_instance=True, enable_file_cache=True)
     start(MyApp, debug=False, address='localhost', port=5000, start_browser=True, multiple_instance=False, enable_file_cache=True)
