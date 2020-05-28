@@ -18,16 +18,26 @@ from RadioButton import *
 from threading import Timer
 from dewPoint import *
 import numpy as np
-import os
+import os, sys
+try:
+    from io import StringIO
+except:
+    from cStringIO import StringIO
 
 import time,datetime
 
 from influx_query import *
-import user_manager
-from user_manager import *
+#import user_manager
+#from user_manager import *
+
+stdout_string_io = StringIO()
+sys.stdout = sys.stderr = stdout_string_io
 
 
-
+#grafana_panel_1 = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=2"
+#grafana_panel_2 = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=5"
+grafana_panel_address_1 = "http://127.0.0.1:3000/d-solo/_t14jhkGk/test-dashboard?orgId=1&from=1590601150819&to=1590622750820&panelId=2"
+grafana_panel_address_2 = "http://127.0.0.1:3000/d-solo/_t14jhkGk/test-dashboard?orgId=1&from=1590601170420&to=1590622770420&panelId=3"
 
 #--------------------------------------------------------------
 class MyApp(App):
@@ -38,6 +48,13 @@ class MyApp(App):
     def idle(self):
         #idle function called every update cycle
 
+        # -- updating the logBox
+        stdout_string_io.seek(0)
+        lines = stdout_string_io.readlines()
+        lines.reverse()
+        self.stdout_LogBox.set_text("".join(lines))
+        '''
+        # -- updating the labels with realtime data
         # filling ColdBox Ambient table in TAB 2
         self.Sens_T_1.set_text(str(get_Temperatur()))
         self.Sens_rH_1.set_text(str(get_rH()))
@@ -76,7 +93,7 @@ class MyApp(App):
         self.table_Plt.children['row4'].children['col3'].set_text(str(get_rH()))
         self.table_Plt.children['row5'].children['col3'].set_text(str(get_rH()))
 
-
+        '''
 
 
     def main(self):
@@ -87,10 +104,10 @@ class MyApp(App):
     def construct_ui(self):
     #def main(self):
         # the margin 0px auto centers the main container
-        verticalContainer_tb1 = gui.Container(width=1200, margin='0px auto', style={'display': 'block', 'overflow': 'hidden'})
-        verticalContainer_tb2 = gui.Container(width=1200, margin='0px auto', style={'display': 'block', 'overflow': 'hidden'})
-        verticalContainer_tb3 = gui.Container(width=1200, margin='0px auto', style={'display': 'block', 'overflow': 'hidden'})
-        verticalContainer_tb4 = gui.Container(width=1200, margin='0px auto', style={'display': 'block', 'overflow': 'hidden'})
+        verticalContainer_tb1 = gui.Container(width=1500, margin='0px auto', style={'display': 'block', 'overflow': 'hidden'})
+        verticalContainer_tb2 = gui.Container(width=1500, margin='0px auto', style={'display': 'block', 'overflow': 'hidden'})
+        verticalContainer_tb3 = gui.Container(width=1500, margin='0px auto', style={'display': 'block', 'overflow': 'hidden'})
+        verticalContainer_tb4 = gui.Container(width=1500, margin='0px auto', style={'display': 'block', 'overflow': 'hidden'})
 
         horizontalContainer_logo = gui.Container(width='20%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
         horizontalContainer = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
@@ -154,64 +171,10 @@ class MyApp(App):
 
         subContainerLeft.append([subContainerLeft_1,subContainerLeft_2,subContainerLeft_3])
 
-
-
-        #-------------------------- Right V Container ---------------------
-        # the arguments are	width - height - layoutOrientationOrizontal
-        subContainerRight = gui.Container(width=400, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-
-        self.subContainerRight_1 = gui.Container(width=400, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.subContainerRight_2 = gui.Container(width=400, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.subContainerRight_3 = gui.Container(width=400, layout_orientation=gui.Container.LAYOUT_VERTICAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-
-        self.lbl_04 = gui.Label('Controles', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
-
-
-        self.btStart = gui.Button('START', width=100, height=30, margin='10px',style={'font-size': '16px', 'font-weight': 'bold','background-color': '#28B463'})
-        self.btStart.onclick.do(self.on_btStart_pressed)
-
-        self.btStop = gui.Button('STOP', width=100, height=30, margin='10px',style={'font-size': '16px', 'font-weight': 'bold','background-color': '#C0392B'})
-        self.btStop.attributes["disabled"] = ""
-        self.btStop.onclick.do(self.on_btStop_pressed)
-
-        self.subContainerRight_1.append([self.btStart,self.btStop])
-
-
-        self.lbl_spin = gui.Label('# of cycles', width=100, height=20, margin='5px')
-        self.spin = gui.SpinBox(10, 1, 100, width=100, height=20, margin='10px')
-        #self.spin.onchange.do(self.on_spin_change)
-
-        self.subContainerRight_2.append([self.lbl_spin,self.spin])
-
-        self.lbl_status = gui.Label('Status', width=200, height=30, margin='1px',style={'font-size': '15px', 'font-weight': 'bold'})
-        self.statusBox = gui.TextInput(False,width=300, height=160, margin='1px')
-
-        self.subContainerRight_3.append([self.lbl_status,self.statusBox])
-        subContainerRight.append([self.lbl_04,self.subContainerRight_1 ,self.subContainerRight_2, self.subContainerRight_3])
-
-        #----------- Grafana pannels -----------------------------------------
-        self.grafana_plot_01 = gui.Widget( _type='iframe', width=550, height=300, margin='10px')
-        self.grafana_plot_01.attributes['src'] = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=2"
-
-        self.grafana_plot_01.attributes['width'] = '100%'
-        self.grafana_plot_01.attributes['height'] = '100%'
-        self.grafana_plot_01.attributes['controls'] = 'true'
-        self.grafana_plot_01.style['border'] = 'none'
-
-        self.grafana_plot_02 = gui.Widget( _type='iframe', width=550, height=300, margin='10px')
-        self.grafana_plot_02.attributes['src'] = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=5"
-
-        self.grafana_plot_02.attributes['width'] = '100%'
-        self.grafana_plot_02.attributes['height'] = '100%'
-        self.grafana_plot_02.attributes['controls'] = 'true'
-        self.grafana_plot_02.style['border'] = 'none'
-
-
-
         #-------------------------- Middle V Container ---------------------
-        subContainerMiddle = gui.Container(width=400, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        subContainerMiddle_1 = gui.Container(width=300, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.subContainerMiddle_2 = gui.Container(width=300, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left','border':'Sens solid black'})
+        subContainerMiddle = gui.Container(width=250, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        subContainerMiddle_1 = gui.Container(width=250, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.subContainerMiddle_2 = gui.Container(width=250, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left','border':'Sens solid black'})
 
 
         self.lbl_05 = gui.Label('Tests', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
@@ -239,12 +202,75 @@ class MyApp(App):
 
         subContainerMiddle.append([subContainerMiddle_1,self.subContainerMiddle_2])
 
+        #-------------------------- Right V Container ---------------------
+        # the arguments are	width - height - layoutOrientationOrizontal
+        subContainerRight = gui.Container(width=300, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+
+        self.subContainerRight_1 = gui.Container(width=300, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.subContainerRight_2 = gui.Container(width=300, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.subContainerRight_3 = gui.Container(width=300, layout_orientation=gui.Container.LAYOUT_VERTICAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+
+        self.lbl_04 = gui.Label('Controles', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
+
+
+        self.btStart = gui.Button('START', width=100, height=30, margin='10px',style={'font-size': '16px', 'font-weight': 'bold','background-color': '#28B463'})
+        self.btStart.onclick.do(self.on_btStart_pressed)
+
+        self.btStop = gui.Button('STOP', width=100, height=30, margin='10px',style={'font-size': '16px', 'font-weight': 'bold','background-color': '#C0392B'})
+        self.btStop.attributes["disabled"] = ""
+        self.btStop.onclick.do(self.on_btStop_pressed)
+
+        self.subContainerRight_1.append([self.btStart,self.btStop])
+
+
+        self.lbl_spin = gui.Label('# of cycles', width=100, height=20, margin='5px')
+        self.spin = gui.SpinBox(10, 1, 100, width=100, height=20, margin='10px')
+        #self.spin.onchange.do(self.on_spin_change)
+
+        self.subContainerRight_2.append([self.lbl_spin,self.spin])
+
+        self.lbl_status = gui.Label('Status', width=200, height=30, margin='1px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.statusBox = gui.TextInput(False,width=280, height=160, margin='1px')
+
+        self.subContainerRight_3.append([self.lbl_status,self.statusBox])
+        subContainerRight.append([self.lbl_04,self.subContainerRight_1 ,self.subContainerRight_2, self.subContainerRight_3])
+
+
+        #-------------------------- Log Container ---------------------
+        # the arguments are	width - height - layoutOrientationOrizontal
+        subContainerLog = gui.Container(width=380, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.subContainerLog_1 = gui.Container(width=380, layout_orientation=gui.Container.LAYOUT_VERTICAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+
+        self.lbl_LogBox = gui.Label('Log', width=200, height=30, margin='1px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.stdout_LogBox = gui.TextInput(False,width=380, height=295, margin='1px')
+
+        self.subContainerLog_1.append([self.lbl_LogBox, self.stdout_LogBox])
+        subContainerLog.append(self.subContainerLog_1)
+
+
+        #----------- Grafana pannels -----------------------------------------
+        self.grafana_panel_01 = gui.Widget( _type='iframe', width=650, height=300, margin='10px')
+        self.grafana_panel_01.attributes['src'] = grafana_panel_address_1
+
+
+        self.grafana_panel_01.attributes['width'] = '100%'
+        self.grafana_panel_01.attributes['height'] = '100%'
+        self.grafana_panel_01.attributes['controls'] = 'true'
+        self.grafana_panel_01.style['border'] = 'none'
+
+        self.grafana_panel_02 = gui.Widget( _type='iframe', width=650, height=300, margin='10px')
+        self.grafana_panel_02.attributes['src'] = grafana_panel_address_2
+
+        self.grafana_panel_02.attributes['width'] = '100%'
+        self.grafana_panel_02.attributes['height'] = '100%'
+        self.grafana_panel_02.attributes['controls'] = 'true'
+        self.grafana_panel_02.style['border'] = 'none'
 
 
         #--------------------------- Wrapping the subcontainers -----------------------------------------
-        horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight])
+        horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight, subContainerLog])
 
-        horizontalContainer_grafana.append([self.grafana_plot_01,self.grafana_plot_02])
+        horizontalContainer_grafana.append([self.grafana_panel_01,self.grafana_panel_02])
 
 
         #--------------------------- TAB 1 -----------------------------------------
