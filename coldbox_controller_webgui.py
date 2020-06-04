@@ -30,14 +30,15 @@ from influx_query import *
 #import user_manager
 #from user_manager import *
 
+
 stdout_string_io = StringIO()
 sys.stdout = sys.stderr = stdout_string_io
 
 
-#grafana_panel_1 = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=2"
-#grafana_panel_2 = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=5"
-grafana_panel_address_1 = "http://127.0.0.1:3000/d-solo/_t14jhkGk/test-dashboard?orgId=1&from=1590601150819&to=1590622750820&panelId=2"
-grafana_panel_address_2 = "http://127.0.0.1:3000/d-solo/_t14jhkGk/test-dashboard?orgId=1&from=1590601170420&to=1590622770420&panelId=3"
+grafana_panel_address_1 = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=2"
+grafana_panel_address_2 = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=5"
+#grafana_panel_address_1 = "http://127.0.0.1:3000/d-solo/_t14jhkGk/test-dashboard?orgId=1&from=1590601150819&to=1590622750820&panelId=2"
+#grafana_panel_address_2 = "http://127.0.0.1:3000/d-solo/_t14jhkGk/test-dashboard?orgId=1&from=1590601170420&to=1590622770420&panelId=3"
 
 #--------------------------------------------------------------
 class MyApp(App):
@@ -49,11 +50,14 @@ class MyApp(App):
         #idle function called every update cycle
 
         # -- updating the logBox
+
         stdout_string_io.seek(0)
         lines = stdout_string_io.readlines()
         lines.reverse()
         self.stdout_LogBox.set_text("".join(lines))
-        '''
+
+
+
         # -- updating the labels with realtime data
         # filling ColdBox Ambient table in TAB 2
         self.Sens_T_1.set_text(str(get_Temperatur()))
@@ -92,9 +96,6 @@ class MyApp(App):
         self.table_Plt.children['row3'].children['col3'].set_text(str(get_rH()))
         self.table_Plt.children['row4'].children['col3'].set_text(str(get_rH()))
         self.table_Plt.children['row5'].children['col3'].set_text(str(get_rH()))
-
-        '''
-
 
     def main(self):
         return MyApp.construct_ui(self)
