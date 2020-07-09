@@ -12,13 +12,22 @@
    limitations under the License.
 """
 
+'''
+Configuration file can be specified with option -c filename.conf
+Mohammad Kareem, 2020
+https://gitlab.cern.ch/mkareem/coldbox_controller_webgui
+'''
+
 import remi.gui as gui
 from remi import start, App
 from RadioButton import *
 from threading import Timer
+import configparser as conf
+import configreader
 from dewPoint import *
+import CBChelp
 import numpy as np
-import os, sys
+import os, sys, getopt
 try:
     from io import StringIO
 except:
@@ -31,8 +40,10 @@ from influx_query import *
 #from user_manager import *
 
 
+'''
 stdout_string_io = StringIO()
 sys.stdout = sys.stderr = stdout_string_io
+'''
 
 
 grafana_panel_address_1 = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=2"
@@ -43,19 +54,22 @@ grafana_panel_address_2 = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-m
 #--------------------------------------------------------------
 class MyApp(App):
     def __init__(self, *args):
+
         res_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), './res/')
         super(MyApp, self).__init__(*args, static_file_path={'my_res':res_path})
 
     def idle(self):
         #idle function called every update cycle
 
+        '''
         # -- updating the logBox
-
+        #self.stdout_string_io.seek(0)
+        #lines = self.stdout_string_io.readlines()
         stdout_string_io.seek(0)
         lines = stdout_string_io.readlines()
         lines.reverse()
         self.stdout_LogBox.set_text("".join(lines))
-
+        '''
 
 
         # -- updating the labels with realtime data
@@ -85,19 +99,23 @@ class MyApp(App):
         self.table_t.children['row5'].children['col3'].set_text(str(get_rH()))
 
         # filling Peltiers table in TAB 2
-        self.table_Plt.children['row1'].children['col2'].set_text(str(get_Temperatur()))
-        self.table_Plt.children['row2'].children['col2'].set_text(str(get_Temperatur()))
-        self.table_Plt.children['row3'].children['col2'].set_text(str(get_Temperatur()))
-        self.table_Plt.children['row4'].children['col2'].set_text(str(get_Temperatur()))
-        self.table_Plt.children['row5'].children['col2'].set_text(str(get_Temperatur()))
+        if (plt_field):
+            self.table_Plt.children['row1'].children['col2'].set_text(str(get_Temperatur()))
+            self.table_Plt.children['row2'].children['col2'].set_text(str(get_Temperatur()))
+            self.table_Plt.children['row3'].children['col2'].set_text(str(get_Temperatur()))
+            self.table_Plt.children['row4'].children['col2'].set_text(str(get_Temperatur()))
+            self.table_Plt.children['row5'].children['col2'].set_text(str(get_Temperatur()))
 
-        self.table_Plt.children['row1'].children['col3'].set_text(str(get_rH()))
-        self.table_Plt.children['row2'].children['col3'].set_text(str(get_rH()))
-        self.table_Plt.children['row3'].children['col3'].set_text(str(get_rH()))
-        self.table_Plt.children['row4'].children['col3'].set_text(str(get_rH()))
-        self.table_Plt.children['row5'].children['col3'].set_text(str(get_rH()))
+            self.table_Plt.children['row1'].children['col3'].set_text(str(get_rH()))
+            self.table_Plt.children['row2'].children['col3'].set_text(str(get_rH()))
+            self.table_Plt.children['row3'].children['col3'].set_text(str(get_rH()))
+            self.table_Plt.children['row4'].children['col3'].set_text(str(get_rH()))
+            self.table_Plt.children['row5'].children['col3'].set_text(str(get_rH()))
 
     def main(self):
+        #self.stdout_string_io = StringIO()
+        #sys.stdout = sys.stderr = self.stdout_string_io
+
         return MyApp.construct_ui(self)
 
 
@@ -136,8 +154,11 @@ class MyApp(App):
         self.checkBox_ch2 = gui.CheckBoxLabel('Chuck 2', False, width=70, height=20, margin='25px')
         self.checkBox_ch3 = gui.CheckBoxLabel('Chuck 3', False, width=70, height=20, margin='25px')
         self.checkBox_ch4 = gui.CheckBoxLabel('Chuck 4', False, width=70, height=20, margin='25px')
-        self.checkBox_ch5 = gui.CheckBoxLabel('Chuck 5', False, width=70, height=20, margin='25px')
-        self.list_checkBox_ch = [self.checkBox_ch1,self.checkBox_ch2,self.checkBox_ch3,self.checkBox_ch4,self.checkBox_ch5]
+        self.list_checkBox_ch = [self.checkBox_ch1,self.checkBox_ch2,self.checkBox_ch3,self.checkBox_ch4]
+        if n_chucks ==5:
+            self.checkBox_ch5 = gui.CheckBoxLabel('Chuck 5', False, width=70, height=20, margin='25px')
+            self.list_checkBox_ch.append(self.checkBox_ch5)
+
         for checkBox in self.list_checkBox_ch:
             checkBox.onchange.do(self.onchange_checkbox_ch)
 
@@ -147,8 +168,11 @@ class MyApp(App):
         self.dropDown_ch2 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='25px')
         self.dropDown_ch3 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='25px')
         self.dropDown_ch4 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='25px')
-        self.dropDown_ch5 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='25px')
-        self.list_dropDown_ch = [self.dropDown_ch1,self.dropDown_ch2,self.dropDown_ch3,self.dropDown_ch4,self.dropDown_ch5]
+        self.list_dropDown_ch = [self.dropDown_ch1,self.dropDown_ch2,self.dropDown_ch3,self.dropDown_ch4]
+        if n_chucks ==5:
+            self.dropDown_ch5 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='25px')
+            self.list_dropDown_ch.append(self.dropDown_ch5)
+
         for dropDown in self.list_dropDown_ch:
             dropDown.select_by_value('LS')
             dropDown.attributes["disabled"] = ""
@@ -160,8 +184,11 @@ class MyApp(App):
         self.textinput_ch2 = gui.TextInput(width=120, height=20,margin='25px')
         self.textinput_ch3 = gui.TextInput(width=120, height=20,margin='25px')
         self.textinput_ch4 = gui.TextInput(width=120, height=20,margin='25px')
-        self.textinput_ch5 = gui.TextInput(width=120, height=20,margin='25px')
-        self.list_textinput_ch = [self.textinput_ch1,self.textinput_ch2,self.textinput_ch3,self.textinput_ch4,self.textinput_ch5]
+        self.list_textinput_ch = [self.textinput_ch1,self.textinput_ch2,self.textinput_ch3,self.textinput_ch4]
+        if n_chucks ==5:
+            self.textinput_ch5 = gui.TextInput(width=120, height=20,margin='25px')
+            self.list_textinput_ch.append(self.textinput_ch5)
+
         for textinput in self.list_textinput_ch:
             textinput.set_value('20UXXYY#######')
             textinput.attributes["disabled"] = ""
@@ -271,7 +298,7 @@ class MyApp(App):
         #--------------------------- Wrapping the subcontainers -----------------------------------------
         horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight, subContainerLog])
 
-        horizontalContainer_grafana.append([self.grafana_panel_01,self.grafana_panel_02])
+        #horizontalContainer_grafana.append([self.grafana_panel_01,self.grafana_panel_02])
 
 
         #--------------------------- TAB 1 -----------------------------------------
@@ -309,21 +336,23 @@ class MyApp(App):
         subContainerLeft_tb2.append([self.lbl_temp, self.table_t])
 
         #------ Middle Container ---------
+
         subContainerMiddle_tb2 = gui.Container(width=300, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left','border':'0px solid black'})
-        self.lbl_peltiers = gui.Label('Peltiers', width=100, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
 
-        # Peltiers I/V table
-        self.table_Plt = gui.Table(children={
-            'row0': gui.TableRow({'col1':'  #  ', 'col2':'Current[mA]', 'col3':'Voltage[V]'}),
-            'row1': gui.TableRow({'col1':'1','col2':'', 'col3':''}),
-            'row2': gui.TableRow({'col1':'2','col2':'', 'col3':''}),
-            'row3': gui.TableRow({'col1':'3','col2':'', 'col3':''}),
-            'row4': gui.TableRow({'col1':'4','col2':'', 'col3':''}),
-            'row5': gui.TableRow({'col1':'5','col2':'', 'col3':''})
-            },
-            width=250, height=200, margin='10px auto')
+        if (plt_field):
+            self.lbl_peltiers = gui.Label('Peltiers', width=100, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
+            # Peltiers I/V table
+            self.table_Plt = gui.Table(children={
+                'row0': gui.TableRow({'col1':'  #  ', 'col2':'Current[mA]', 'col3':'Voltage[V]'}),
+                'row1': gui.TableRow({'col1':'1','col2':'', 'col3':''}),
+                'row2': gui.TableRow({'col1':'2','col2':'', 'col3':''}),
+                'row3': gui.TableRow({'col1':'3','col2':'', 'col3':''}),
+                'row4': gui.TableRow({'col1':'4','col2':'', 'col3':''}),
+                'row5': gui.TableRow({'col1':'5','col2':'', 'col3':''})
+                },
+                width=250, height=200, margin='10px auto')
 
-        subContainerMiddle_tb2.append([self.lbl_peltiers,self.table_Plt])
+            subContainerMiddle_tb2.append([self.lbl_peltiers,self.table_Plt])
 
         #------ Right Container ---------
         subContainerRight_tb2 = gui.Container(width=400, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
@@ -361,8 +390,10 @@ class MyApp(App):
 
 
         #===================================== TAB 4 =================================================
-        self.lbl_swName = gui.Label('ColdBox Controller V 0.1', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
-        verticalContainer_tb4.append([horizontalContainer_logo, self.lbl_swName])
+        self.lbl_swName = gui.Label('ColdBox Controller V 0.3', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.lbl_inst_name = gui.Label('Institute: '+inst_name , width=200, height=30, margin='5px')
+        verticalContainer_tb4.append([horizontalContainer_logo, self.lbl_swName, self.lbl_inst_name])
+
 
 
         #===================================== Wrapping all tabs together =================================================
@@ -429,9 +460,15 @@ class MyApp(App):
 
     def read_user_options(self):
         ncycle = self.spin.get_value()
-        availavle_chucks = [self.checkBox_ch1.get_value(),self.checkBox_ch2.get_value(),self.checkBox_ch3.get_value(),self.checkBox_ch4.get_value(),self.checkBox_ch5.get_value()]
+        availavle_chucks=[]
+
+        for chuck in self.list_checkBox_ch:
+            debugPrint('chuck.get_value(): '+str(chuck.get_value()))
+            availavle_chucks.append(int(chuck.get_value()) )
+        debugPrint('availavle_chucks: '+str(availavle_chucks))
+
         self.total_selected_chucks = np.sum(list(map(int,availavle_chucks)))
-        #print('total_selected_chucks: '+str(self.total_selected_chucks))
+        debugPrint('total_selected_chucks: '+str(self.total_selected_chucks))
 
         if self.radioButton_stTest.get_value():
             selected_tests = ' standard'
@@ -439,14 +476,82 @@ class MyApp(App):
             selected_tests_helper = [self.checkBox_t1.get_value(),self.checkBox_t2.get_value(),self.checkBox_t3.get_value(),self.checkBox_t4.get_value(),self.checkBox_t5.get_value(),self.checkBox_t6.get_value(),self.checkBox_t7.get_value()]
             selected_tests = str(list(map(int,selected_tests_helper)))
             self.total_selected_tests = np.sum(list(map(int,selected_tests_helper)))
-            #print('custom tests is running: '+str(total_selected_tests)+' tests')
+            debugPrint('custom test is running: '+str(self.total_selected_tests)+' tests')
 
         user_options = 'User options set:\n'+'-Cycles:'+ str(ncycle) +'\n-Available_chucks:'+str(list(map(int,availavle_chucks)))+'\n-Selected_test(s):'+selected_tests+'\n------\n'
         return user_options
 
+def debugPrint(*str):
+    if verbose:
+        print(bcolors.OKBLUE+'++DEBUG: ',str,bcolors.ENDC)
+
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 
 if __name__ == "__main__":
-    # starts the webserver / optional parameters
+    PORT=5000
+    verbose = False # set to Fals if you dont want to print debugging info
+    config = conf.ConfigParser()
+    configfile = 'default'
+
+    try:
+        options, remainder = getopt.getopt(
+        sys.argv[1:],
+        'c:p:vh',
+        ['config=',
+         'port=',
+         'verbose',
+         'help'
+         ])
+    except getopt.GetoptError as err:
+        print(bcolors.FAIL +'ERROR:', err, bcolors.ENDC)
+        print(bcolors.BOLD+ 'Usage: blah -c configFile'+ bcolors.ENDC)
+        sys.exit(1)
+
+    for opt, arg in options:
+        if opt in ('-h', '--help'):
+            CBChelp.CBC_help()
+            sys.exit(1)
+        if opt in ('-c', '--config'):
+            configfile = arg
+        elif opt in ('-v', '--verbose'):
+            verbose = True
+        elif opt in ('-p', '--port'):
+            PORT = int(arg)
+
+
+    debugPrint('ARGV   :', sys.argv[1:])
+    debugPrint('OPTIONS   :', options)
+
+    if not any('-c' in sublist for sublist in options):
+        print(bcolors.WARNING + "WARNING: GUI started without user config. Default configurations will be used." + bcolors.ENDC)
+
+    if os.path.isfile(configfile):
+        config.read(configfile)
+
+    inst_name, n_chucks, plt_field, gui_debug= configreader.read_conf(config)
+
+    debugPrint('port= '+str(PORT))
+    debugPrint('inst_name= '+inst_name)
+    debugPrint('n_chucks= '+str(n_chucks))
+    debugPrint('plt_fields= '+str(plt_field))
+
+    #-- checking number of chucks--
+    if not (n_chucks==5 or n_chucks==4):
+        print(bcolors.FAIL +'Number of chucks is not supported. Set n_chucks in config file to 4 or 5.' +bcolors.ENDC)
+        sys.exit(1)
+
+    #exit()
+
+    #--starts the webserver / optional parameters
     #start(MyApp, debug=False, address='petra.phys.yorku.ca', port=5000, start_browser=False, multiple_instance=True, enable_file_cache=True)
-    start(MyApp, debug=False, address='localhost', port=5000, start_browser=True, multiple_instance=False, enable_file_cache=True)
+    start(MyApp, debug=gui_debug, address='localhost', port=PORT, start_browser=True, multiple_instance=False, enable_file_cache=True)
