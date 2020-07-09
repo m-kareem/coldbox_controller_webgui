@@ -42,6 +42,9 @@ from influx_query import *
 
 grafana_panel_address_1 = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=2"
 grafana_panel_address_2 = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=5"
+grafana_interlock_address_1 = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=7"
+grafana_interlock_address_2 = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=6"
+
 #grafana_panel_address_1 = "http://127.0.0.1:3000/d-solo/_t14jhkGk/test-dashboard?orgId=1&from=1590601150819&to=1590622750820&panelId=2"
 #grafana_panel_address_2 = "http://127.0.0.1:3000/d-solo/_t14jhkGk/test-dashboard?orgId=1&from=1590601170420&to=1590622770420&panelId=3"
 
@@ -57,12 +60,12 @@ class MyApp(App):
 
 
         # -- updating the logBox
-        #'''
-        stdout_string_io.seek(0)
-        lines = stdout_string_io.readlines()
-        lines.reverse()
-        self.stdout_LogBox.set_text("".join(lines))
-        #'''
+        if not verbose:
+            stdout_string_io.seek(0)
+            lines = stdout_string_io.readlines()
+            lines.reverse()
+            self.stdout_LogBox.set_text("".join(lines))
+
 
 
         # -- updating the labels with realtime data
@@ -122,7 +125,8 @@ class MyApp(App):
 
         horizontalContainer_logo = gui.Container(width='20%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
         horizontalContainer = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
-        horizontalContainer_grafana = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
+        horizontalContainer_grafana_panels = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
+        horizontalContainer_grafana_status = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
 
 
         #--------------------------InfluxDB -----------------
@@ -200,15 +204,7 @@ class MyApp(App):
         self.lbl_05 = gui.Label('Tests', width=200, height=20, margin='15px',style={'font-size': '15px', 'font-weight': 'bold'})
         self.radioButton_stTest = RadioButtonWithLabel('Standard tests',True, 'groupTests', width=200, height=20, margin='10px')
         self.radioButton_cuTest = RadioButtonWithLabel('Custom tests',False, 'groupTests', width=200, height=20, margin='10px')
-        '''
-        self.checkBox_t1 = gui.CheckBoxLabel('Stobe Delay', False, width=100, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t2 = gui.CheckBoxLabel('Three Point Gain', False, width=130, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t3 = gui.CheckBoxLabel('Trimm Range', False, width=110, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t4 = gui.CheckBoxLabel('Three Point Gain part 2', False, width=180, height=20, margin='10px')
-        self.checkBox_t5 = gui.CheckBoxLabel('Response Curve', False, width=130, height=20, margin='10px')
-        self.checkBox_t6 = gui.CheckBoxLabel('Three Point Gain High Stats', False, width=210, height=20, margin='10px')
-        self.checkBox_t7 = gui.CheckBoxLabel('Noise Occupancy', False, width=140, height=20, margin='10px')
-        '''
+
         self.checkBox_t1 = gui.CheckBoxLabel('Stobe Delay', False, width=100, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
         self.checkBox_t2 = gui.CheckBoxLabel('Three Point Gain', False, width=140, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
         self.checkBox_t3 = gui.CheckBoxLabel('Trimm Range', False, width=110, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
@@ -279,8 +275,6 @@ class MyApp(App):
         #----------- Grafana pannels -----------------------------------------
         self.grafana_panel_01 = gui.Widget( _type='iframe', width=650, height=300, margin='10px')
         self.grafana_panel_01.attributes['src'] = grafana_panel_address_1
-
-
         self.grafana_panel_01.attributes['width'] = '100%'
         self.grafana_panel_01.attributes['height'] = '100%'
         self.grafana_panel_01.attributes['controls'] = 'true'
@@ -288,22 +282,48 @@ class MyApp(App):
 
         self.grafana_panel_02 = gui.Widget( _type='iframe', width=650, height=300, margin='10px')
         self.grafana_panel_02.attributes['src'] = grafana_panel_address_2
-
         self.grafana_panel_02.attributes['width'] = '100%'
         self.grafana_panel_02.attributes['height'] = '100%'
         self.grafana_panel_02.attributes['controls'] = 'true'
         self.grafana_panel_02.style['border'] = 'none'
 
 
+        interlock_cell_w= 140
+        interlock_cell_h= 80
+
+        self.grafana_inter_01 = gui.Widget( _type='iframe', width=interlock_cell_w, height=interlock_cell_h, margin='10px')
+        self.grafana_inter_01.attributes['src'] = grafana_interlock_address_1
+
+        self.grafana_inter_02 = gui.Widget( _type='iframe', width=interlock_cell_w, height=interlock_cell_h, margin='10px')
+        self.grafana_inter_02.attributes['src'] = grafana_interlock_address_2
+
+        self.grafana_inter_03 = gui.Widget( _type='iframe', width=interlock_cell_w, height=interlock_cell_h, margin='10px')
+        self.grafana_inter_03.attributes['src'] = grafana_interlock_address_1
+
+        self.grafana_inter_04 = gui.Widget( _type='iframe', width=interlock_cell_w, height=interlock_cell_h, margin='10px')
+        self.grafana_inter_04.attributes['src'] = grafana_interlock_address_2
+
+
+        self.list_grafana_inter = [self.grafana_inter_01, self.grafana_inter_02, self.grafana_inter_03, self.grafana_inter_04]
+
+        for interlock in self.list_grafana_inter:
+            interlock.attributes['width'] = '100%'
+            interlock.attributes['height'] = '100%'
+            interlock.attributes['controls'] = 'true'
+            interlock.style['border'] = 'none'
+
+
+
         #--------------------------- Wrapping the subcontainers -----------------------------------------
         horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight, subContainerLog])
 
-        horizontalContainer_grafana.append([self.grafana_panel_01,self.grafana_panel_02])
+        horizontalContainer_grafana_panels.append([self.grafana_panel_01,self.grafana_panel_02])
+        horizontalContainer_grafana_status.append([self.list_grafana_inter])
+
 
 
         #--------------------------- TAB 1 -----------------------------------------
-        verticalContainer_tb1.append([horizontalContainer_logo, horizontalContainer, horizontalContainer_grafana])
-
+        verticalContainer_tb1.append([horizontalContainer_logo, horizontalContainer, horizontalContainer_grafana_panels])
 
 
         #===================================== TAB 2 =================================================
@@ -318,21 +338,10 @@ class MyApp(App):
 
         #------ Left Container ---------
         subContainerLeft_tb2 = gui.Container(width=300, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left','border':'0px solid black'})
-        self.lbl_temp = gui.Label('Temperature[C]', width=100, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.lbl_temp = gui.Label('Temperature[C]', width=200, height=20, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
 
 
         # Temperatues table
-        '''
-        self.table_t = gui.Table(children={
-            'row0': gui.TableRow({'col1':'  #  ', 'col2':'Chuck', 'col3':'Module'}),
-            'row1': gui.TableRow({'col1':'1','col2':'', 'col3':''}),
-            'row2': gui.TableRow({'col1':'2','col2':'', 'col3':''}),
-            'row3': gui.TableRow({'col1':'3','col2':'', 'col3':''}),
-            'row4': gui.TableRow({'col1':'4','col2':'', 'col3':''}),
-            'row5': gui.TableRow({'col1':'5','col2':'', 'col3':''})
-            },
-            width=250, height=200, margin='10px auto')
-        '''
         self.table_t = gui.Table(children={
             'row0': gui.TableRow({'col1':'  #  ', 'col2':'Chuck', 'col3':'Module'}),
             'row1': gui.TableRow({'col1':'1','col2':'', 'col3':''}),
@@ -341,11 +350,8 @@ class MyApp(App):
             'row4': gui.TableRow({'col1':'4','col2':'', 'col3':''})
             },
             width=250, height=200, margin='10px auto')
-
         if n_chucks==5:
             self.table_t.add_child('row5', gui.TableRow({'col1':'5','col2':'', 'col3':''}) )
-
-
 
         subContainerLeft_tb2.append([self.lbl_temp, self.table_t])
 
@@ -354,7 +360,7 @@ class MyApp(App):
         subContainerMiddle_tb2 = gui.Container(width=300, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left','border':'0px solid black'})
 
         if (plt_field):
-            self.lbl_peltiers = gui.Label('Peltiers', width=100, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
+            self.lbl_peltiers = gui.Label('Peltiers', width=200, height=20, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
             # Peltiers I/V table
             self.table_Plt = gui.Table(children={
                 'row0': gui.TableRow({'col1':'  #  ', 'col2':'Current[mA]', 'col3':'Voltage[V]'}),
@@ -370,7 +376,7 @@ class MyApp(App):
 
         #------ Right Container ---------
         subContainerRight_tb2 = gui.Container(width=400, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.lbl_Box = gui.Label('ColdBox Ambient', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.lbl_Box = gui.Label('ColdBox Ambient', width=200, height=20, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
 
 
         # Ambient table
@@ -393,7 +399,7 @@ class MyApp(App):
 
 
 
-        verticalContainer_tb2.append([horizontalContainer_logo, self.lbl_placeHolder, horizontalContainer_tb2, horizontalContainer_grafana])
+        verticalContainer_tb2.append([horizontalContainer_logo, self.lbl_placeHolder, horizontalContainer_tb2, horizontalContainer_grafana_status, horizontalContainer_grafana_panels])
 
         #this flag will be used to stop the display_counter Timer
         self.stop_flag = False
@@ -566,8 +572,9 @@ if __name__ == "__main__":
 
     #exit()
 
-    stdout_string_io = StringIO()
-    sys.stdout = sys.stderr = stdout_string_io
+    if not verbose:
+        stdout_string_io = StringIO()
+        sys.stdout = sys.stderr = stdout_string_io
 
     #--starts the webserver / optional parameters
     #start(MyApp, debug=gui_debug, address='petra.phys.yorku.ca', port=PORT, start_browser=False, multiple_instance=True, enable_file_cache=True)
