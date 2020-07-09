@@ -40,12 +40,6 @@ from influx_query import *
 #from user_manager import *
 
 
-'''
-stdout_string_io = StringIO()
-sys.stdout = sys.stderr = stdout_string_io
-'''
-
-
 grafana_panel_address_1 = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=2"
 grafana_panel_address_2 = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=5"
 #grafana_panel_address_1 = "http://127.0.0.1:3000/d-solo/_t14jhkGk/test-dashboard?orgId=1&from=1590601150819&to=1590622750820&panelId=2"
@@ -61,15 +55,14 @@ class MyApp(App):
     def idle(self):
         #idle function called every update cycle
 
-        '''
+
         # -- updating the logBox
-        #self.stdout_string_io.seek(0)
-        #lines = self.stdout_string_io.readlines()
+        #'''
         stdout_string_io.seek(0)
         lines = stdout_string_io.readlines()
         lines.reverse()
         self.stdout_LogBox.set_text("".join(lines))
-        '''
+        #'''
 
 
         # -- updating the labels with realtime data
@@ -90,13 +83,15 @@ class MyApp(App):
         self.table_t.children['row2'].children['col2'].set_text(str(get_Temperatur()))
         self.table_t.children['row3'].children['col2'].set_text(str(get_Temperatur()))
         self.table_t.children['row4'].children['col2'].set_text(str(get_Temperatur()))
-        self.table_t.children['row5'].children['col2'].set_text(str(get_Temperatur()))
+        if n_chucks==5:
+            self.table_t.children['row5'].children['col2'].set_text(str(get_Temperatur()))
 
         self.table_t.children['row1'].children['col3'].set_text(str(get_rH()))
         self.table_t.children['row2'].children['col3'].set_text(str(get_rH()))
         self.table_t.children['row3'].children['col3'].set_text(str(get_rH()))
         self.table_t.children['row4'].children['col3'].set_text(str(get_rH()))
-        self.table_t.children['row5'].children['col3'].set_text(str(get_rH()))
+        if n_chucks==5:
+            self.table_t.children['row5'].children['col3'].set_text(str(get_rH()))
 
         # filling Peltiers table in TAB 2
         if (plt_field):
@@ -113,9 +108,6 @@ class MyApp(App):
             self.table_Plt.children['row5'].children['col3'].set_text(str(get_rH()))
 
     def main(self):
-        #self.stdout_string_io = StringIO()
-        #sys.stdout = sys.stderr = self.stdout_string_io
-
         return MyApp.construct_ui(self)
 
 
@@ -298,7 +290,7 @@ class MyApp(App):
         #--------------------------- Wrapping the subcontainers -----------------------------------------
         horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight, subContainerLog])
 
-        #horizontalContainer_grafana.append([self.grafana_panel_01,self.grafana_panel_02])
+        horizontalContainer_grafana.append([self.grafana_panel_01,self.grafana_panel_02])
 
 
         #--------------------------- TAB 1 -----------------------------------------
@@ -322,6 +314,7 @@ class MyApp(App):
 
 
         # Temperatues table
+        '''
         self.table_t = gui.Table(children={
             'row0': gui.TableRow({'col1':'  #  ', 'col2':'Chuck', 'col3':'Module'}),
             'row1': gui.TableRow({'col1':'1','col2':'', 'col3':''}),
@@ -331,6 +324,19 @@ class MyApp(App):
             'row5': gui.TableRow({'col1':'5','col2':'', 'col3':''})
             },
             width=250, height=200, margin='10px auto')
+        '''
+        self.table_t = gui.Table(children={
+            'row0': gui.TableRow({'col1':'  #  ', 'col2':'Chuck', 'col3':'Module'}),
+            'row1': gui.TableRow({'col1':'1','col2':'', 'col3':''}),
+            'row2': gui.TableRow({'col1':'2','col2':'', 'col3':''}),
+            'row3': gui.TableRow({'col1':'3','col2':'', 'col3':''}),
+            'row4': gui.TableRow({'col1':'4','col2':'', 'col3':''})
+            },
+            width=250, height=200, margin='10px auto')
+
+        if n_chucks==5:
+            self.table_t.add_child('row5', gui.TableRow({'col1':'5','col2':'', 'col3':''}) )
+
 
 
         subContainerLeft_tb2.append([self.lbl_temp, self.table_t])
@@ -551,6 +557,9 @@ if __name__ == "__main__":
         sys.exit(1)
 
     #exit()
+
+    stdout_string_io = StringIO()
+    sys.stdout = sys.stderr = stdout_string_io
 
     #--starts the webserver / optional parameters
     #start(MyApp, debug=gui_debug, address='petra.phys.yorku.ca', port=PORT, start_browser=False, multiple_instance=True, enable_file_cache=True)
