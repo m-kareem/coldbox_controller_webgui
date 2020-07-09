@@ -577,5 +577,5 @@ if __name__ == "__main__":
         sys.stdout = sys.stderr = stdout_string_io
 
     #--starts the webserver / optional parameters
-    #start(MyApp, debug=gui_debug, address='petra.phys.yorku.ca', port=PORT, start_browser=False, multiple_instance=True, enable_file_cache=True)
-    start(MyApp, debug=gui_debug, address='localhost', port=PORT, start_browser=False, multiple_instance=False, enable_file_cache=True)
+    start(MyApp, debug=gui_debug, address='petra.phys.yorku.ca', port=PORT, start_browser=False, multiple_instance=True, enable_file_cache=True)
+    #start(MyApp, debug=gui_debug, address='localhost', port=PORT, start_browser=True, multiple_instance=False, enable_file_cache=True)
