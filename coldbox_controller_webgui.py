@@ -136,33 +136,33 @@ class MyApp(App):
 
         #-------------------------- Left V Container ---------------------
         subContainerLeft = gui.Container(width=400, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        subContainerLeft_1 = gui.Container(width=100, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        subContainerLeft_2 = gui.Container(width=100, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        subContainerLeft_3 = gui.Container(width=200, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        subContainerLeft_1 = gui.Container(width=100, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        subContainerLeft_2 = gui.Container(width=100, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        subContainerLeft_3 = gui.Container(width=200, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
 
 
-        self.lbl_01 = gui.Label('Availab chk.', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
-        self.checkBox_ch1 = gui.CheckBoxLabel('Chuck 1', False, width=70, height=20, margin='25px')
-        self.checkBox_ch2 = gui.CheckBoxLabel('Chuck 2', False, width=70, height=20, margin='25px')
-        self.checkBox_ch3 = gui.CheckBoxLabel('Chuck 3', False, width=70, height=20, margin='25px')
-        self.checkBox_ch4 = gui.CheckBoxLabel('Chuck 4', False, width=70, height=20, margin='25px')
+        self.lbl_01 = gui.Label('Availab chk.', width=200, height=20, margin='15px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.checkBox_ch1 = gui.CheckBoxLabel('Chuck 1', False, width=80, height=20, margin='15px')
+        self.checkBox_ch2 = gui.CheckBoxLabel('Chuck 2', False, width=80, height=20, margin='15px')
+        self.checkBox_ch3 = gui.CheckBoxLabel('Chuck 3', False, width=80, height=20, margin='15px')
+        self.checkBox_ch4 = gui.CheckBoxLabel('Chuck 4', False, width=80, height=20, margin='15px')
         self.list_checkBox_ch = [self.checkBox_ch1,self.checkBox_ch2,self.checkBox_ch3,self.checkBox_ch4]
         if n_chucks ==5:
-            self.checkBox_ch5 = gui.CheckBoxLabel('Chuck 5', False, width=70, height=20, margin='25px')
+            self.checkBox_ch5 = gui.CheckBoxLabel('Chuck 5', False, width=80, height=20, margin='15px')
             self.list_checkBox_ch.append(self.checkBox_ch5)
 
         for checkBox in self.list_checkBox_ch:
             checkBox.onchange.do(self.onchange_checkbox_ch)
 
 
-        self.lbl_02 = gui.Label('Module Flv.', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
-        self.dropDown_ch1 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='25px')
-        self.dropDown_ch2 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='25px')
-        self.dropDown_ch3 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='25px')
-        self.dropDown_ch4 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='25px')
+        self.lbl_02 = gui.Label('Module Flv.', width=200, height=20, margin='15px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.dropDown_ch1 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='15px')
+        self.dropDown_ch2 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='15px')
+        self.dropDown_ch3 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='15px')
+        self.dropDown_ch4 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='15px')
         self.list_dropDown_ch = [self.dropDown_ch1,self.dropDown_ch2,self.dropDown_ch3,self.dropDown_ch4]
         if n_chucks ==5:
-            self.dropDown_ch5 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='25px')
+            self.dropDown_ch5 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='15px')
             self.list_dropDown_ch.append(self.dropDown_ch5)
 
         for dropDown in self.list_dropDown_ch:
@@ -171,14 +171,14 @@ class MyApp(App):
             dropDown.style['opacity'] = '0.4' #this is to give a disabled apparence
 
 
-        self.lbl_03 = gui.Label('Serial #', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
-        self.textinput_ch1 = gui.TextInput(width=120, height=20,margin='25px')
-        self.textinput_ch2 = gui.TextInput(width=120, height=20,margin='25px')
-        self.textinput_ch3 = gui.TextInput(width=120, height=20,margin='25px')
-        self.textinput_ch4 = gui.TextInput(width=120, height=20,margin='25px')
+        self.lbl_03 = gui.Label('Serial #', width=200, height=20, margin='15px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.textinput_ch1 = gui.TextInput(width=120, height=20,margin='15px')
+        self.textinput_ch2 = gui.TextInput(width=120, height=20,margin='15px')
+        self.textinput_ch3 = gui.TextInput(width=120, height=20,margin='15px')
+        self.textinput_ch4 = gui.TextInput(width=120, height=20,margin='15px')
         self.list_textinput_ch = [self.textinput_ch1,self.textinput_ch2,self.textinput_ch3,self.textinput_ch4]
         if n_chucks ==5:
-            self.textinput_ch5 = gui.TextInput(width=120, height=20,margin='25px')
+            self.textinput_ch5 = gui.TextInput(width=120, height=20,margin='15px')
             self.list_textinput_ch.append(self.textinput_ch5)
 
         for textinput in self.list_textinput_ch:
@@ -193,21 +193,29 @@ class MyApp(App):
 
         #-------------------------- Middle V Container ---------------------
         subContainerMiddle = gui.Container(width=250, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        subContainerMiddle_1 = gui.Container(width=250, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.subContainerMiddle_2 = gui.Container(width=250, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left','border':'Sens solid black'})
+        subContainerMiddle_1 = gui.Container(width=250, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.subContainerMiddle_2 = gui.Container(width=250, layout_orientation=gui.Container.LAYOUT_VERTICAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left','border':'Sens solid black'})
 
 
-        self.lbl_05 = gui.Label('Tests', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.lbl_05 = gui.Label('Tests', width=200, height=20, margin='15px',style={'font-size': '15px', 'font-weight': 'bold'})
         self.radioButton_stTest = RadioButtonWithLabel('Standard tests',True, 'groupTests', width=200, height=20, margin='10px')
         self.radioButton_cuTest = RadioButtonWithLabel('Custom tests',False, 'groupTests', width=200, height=20, margin='10px')
-
-        self.checkBox_t1 = gui.CheckBoxLabel('Stobe Delay', False, width=100, height=20, margin='10px',style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t2 = gui.CheckBoxLabel('Three Point Gain', False, width=130, height=20, margin='10px',style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t3 = gui.CheckBoxLabel('Trimm Range', False, width=110, height=20, margin='10px',style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        '''
+        self.checkBox_t1 = gui.CheckBoxLabel('Stobe Delay', False, width=100, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.checkBox_t2 = gui.CheckBoxLabel('Three Point Gain', False, width=130, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.checkBox_t3 = gui.CheckBoxLabel('Trimm Range', False, width=110, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
         self.checkBox_t4 = gui.CheckBoxLabel('Three Point Gain part 2', False, width=180, height=20, margin='10px')
         self.checkBox_t5 = gui.CheckBoxLabel('Response Curve', False, width=130, height=20, margin='10px')
         self.checkBox_t6 = gui.CheckBoxLabel('Three Point Gain High Stats', False, width=210, height=20, margin='10px')
         self.checkBox_t7 = gui.CheckBoxLabel('Noise Occupancy', False, width=140, height=20, margin='10px')
+        '''
+        self.checkBox_t1 = gui.CheckBoxLabel('Stobe Delay', False, width=100, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.checkBox_t2 = gui.CheckBoxLabel('Three Point Gain', False, width=140, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.checkBox_t3 = gui.CheckBoxLabel('Trimm Range', False, width=110, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.checkBox_t4 = gui.CheckBoxLabel('Three Point Gain part 2', False, width=180, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.checkBox_t5 = gui.CheckBoxLabel('Response Curve', False, width=130, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.checkBox_t6 = gui.CheckBoxLabel('Three Point Gain High Stats', False, width=210, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.checkBox_t7 = gui.CheckBoxLabel('Noise Occupancy', False, width=140, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
 
         #subContainerMiddle_1.append([self.lbl_05, self.dropDown_tests])
         subContainerMiddle_1.append([self.lbl_05, self.radioButton_stTest, self.radioButton_cuTest])
@@ -563,4 +571,4 @@ if __name__ == "__main__":
 
     #--starts the webserver / optional parameters
     #start(MyApp, debug=gui_debug, address='petra.phys.yorku.ca', port=PORT, start_browser=False, multiple_instance=True, enable_file_cache=True)
-    start(MyApp, debug=gui_debug, address='localhost', port=PORT, start_browser=True, multiple_instance=False, enable_file_cache=True)
+    start(MyApp, debug=gui_debug, address='localhost', port=PORT, start_browser=False, multiple_instance=False, enable_file_cache=True)
