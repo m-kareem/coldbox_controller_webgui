@@ -1,4 +1,5 @@
 """
+   REMI library:
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
@@ -39,25 +40,15 @@ from influx_query import *
 #import user_manager
 #from user_manager import *
 
-
-grafana_panel_address_1 = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=2"
-grafana_panel_address_2 = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=5"
-grafana_interlock_address_1 = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=7"
-grafana_interlock_address_2 = "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=6"
-
-#grafana_panel_address_1 = "http://127.0.0.1:3000/d-solo/_t14jhkGk/test-dashboard?orgId=1&from=1590601150819&to=1590622750820&panelId=2"
-#grafana_panel_address_2 = "http://127.0.0.1:3000/d-solo/_t14jhkGk/test-dashboard?orgId=1&from=1590601170420&to=1590622770420&panelId=3"
-
 #--------------------------------------------------------------
-class MyApp(App):
+class ColdBoxGUI(App):
     def __init__(self, *args):
 
         res_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), './res/')
-        super(MyApp, self).__init__(*args, static_file_path={'my_res':res_path})
+        super(ColdBoxGUI, self).__init__(*args, static_file_path={'my_res':res_path})
 
     def idle(self):
         #idle function called every update cycle
-
 
         # -- updating the logBox
         if not verbose:
@@ -111,14 +102,14 @@ class MyApp(App):
             self.table_Plt.children['row5'].children['col3'].set_text(str(get_rH()))
 
     def main(self):
-        return MyApp.construct_ui(self)
+        return ColdBoxGUI.construct_ui(self)
 
 
     @staticmethod
     def construct_ui(self):
     #def main(self):
         # the margin 0px auto centers the main container
-        verticalContainer_tb1 = gui.Container(width=1500, margin='0px auto', style={'display': 'block', 'overflow': 'hidden'})
+        verticalContainer_tb1 = gui.Container(width=1400, margin='0px auto', style={'display': 'block', 'overflow': 'hidden'})
         verticalContainer_tb2 = gui.Container(width=1500, margin='0px auto', style={'display': 'block', 'overflow': 'hidden'})
         verticalContainer_tb3 = gui.Container(width=1500, margin='0px auto', style={'display': 'block', 'overflow': 'hidden'})
         verticalContainer_tb4 = gui.Container(width=1500, margin='0px auto', style={'display': 'block', 'overflow': 'hidden'})
@@ -126,7 +117,7 @@ class MyApp(App):
         horizontalContainer_logo = gui.Container(width='20%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
         horizontalContainer = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
         horizontalContainer_grafana_panels = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
-        horizontalContainer_grafana_status = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
+        horizontalContainer_grafana_intl = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
 
 
         #--------------------------InfluxDB -----------------
@@ -139,13 +130,13 @@ class MyApp(App):
 
 
         #-------------------------- Left V Container ---------------------
-        subContainerLeft = gui.Container(width=400, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        subContainerLeft_1 = gui.Container(width=100, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        subContainerLeft_2 = gui.Container(width=100, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        subContainerLeft = gui.Container(width=420, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        subContainerLeft_1 = gui.Container(width=110, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        subContainerLeft_2 = gui.Container(width=110, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
         subContainerLeft_3 = gui.Container(width=200, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
 
 
-        self.lbl_01 = gui.Label('Availab chk.', width=200, height=20, margin='15px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.lbl_01 = gui.Label('Available chk.', width=250, height=20, margin='20px',style={'font-size': '13px', 'font-weight': 'bold'})
         self.checkBox_ch1 = gui.CheckBoxLabel('Chuck 1', False, width=80, height=20, margin='15px')
         self.checkBox_ch2 = gui.CheckBoxLabel('Chuck 2', False, width=80, height=20, margin='15px')
         self.checkBox_ch3 = gui.CheckBoxLabel('Chuck 3', False, width=80, height=20, margin='15px')
@@ -159,7 +150,7 @@ class MyApp(App):
             checkBox.onchange.do(self.onchange_checkbox_ch)
 
 
-        self.lbl_02 = gui.Label('Module Flv.', width=200, height=20, margin='15px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.lbl_02 = gui.Label('Module Flv.', width=230, height=20, margin='20px',style={'font-size': '13px', 'font-weight': 'bold'})
         self.dropDown_ch1 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='15px')
         self.dropDown_ch2 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='15px')
         self.dropDown_ch3 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='15px')
@@ -175,7 +166,7 @@ class MyApp(App):
             dropDown.style['opacity'] = '0.4' #this is to give a disabled apparence
 
 
-        self.lbl_03 = gui.Label('Serial #', width=200, height=20, margin='15px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.lbl_03 = gui.Label('Serial #', width=200, height=20, margin='20px',style={'font-size': '13px', 'font-weight': 'bold'})
         self.textinput_ch1 = gui.TextInput(width=120, height=20,margin='15px')
         self.textinput_ch2 = gui.TextInput(width=120, height=20,margin='15px')
         self.textinput_ch3 = gui.TextInput(width=120, height=20,margin='15px')
@@ -202,16 +193,16 @@ class MyApp(App):
 
 
         self.lbl_05 = gui.Label('Tests', width=200, height=20, margin='15px',style={'font-size': '15px', 'font-weight': 'bold'})
-        self.radioButton_stTest = RadioButtonWithLabel('Standard tests',True, 'groupTests', width=200, height=20, margin='10px')
-        self.radioButton_cuTest = RadioButtonWithLabel('Custom tests',False, 'groupTests', width=200, height=20, margin='10px')
+        self.radioButton_stTest = RadioButtonWithLabel('Standard tests',True, 'groupTests', width=250, height=20, margin='10px')
+        self.radioButton_cuTest = RadioButtonWithLabel('Custom tests',False, 'groupTests', width=250, height=20, margin='10px')
 
-        self.checkBox_t1 = gui.CheckBoxLabel('Stobe Delay', False, width=100, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.checkBox_t1 = gui.CheckBoxLabel('Strobe Delay', False, width=110, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
         self.checkBox_t2 = gui.CheckBoxLabel('Three Point Gain', False, width=140, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t3 = gui.CheckBoxLabel('Trimm Range', False, width=110, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.checkBox_t3 = gui.CheckBoxLabel('Trim Range', False, width=105, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
         self.checkBox_t4 = gui.CheckBoxLabel('Three Point Gain part 2', False, width=180, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t5 = gui.CheckBoxLabel('Response Curve', False, width=130, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.checkBox_t5 = gui.CheckBoxLabel('Response Curve', False, width=135, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
         self.checkBox_t6 = gui.CheckBoxLabel('Three Point Gain High Stats', False, width=210, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t7 = gui.CheckBoxLabel('Noise Occupancy', False, width=140, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.checkBox_t7 = gui.CheckBoxLabel('Noise Occupancy', False, width=145, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
 
         #subContainerMiddle_1.append([self.lbl_05, self.dropDown_tests])
         subContainerMiddle_1.append([self.lbl_05, self.radioButton_stTest, self.radioButton_cuTest])
@@ -272,58 +263,39 @@ class MyApp(App):
         subContainerLog.append(self.subContainerLog_1)
 
 
-        #----------- Grafana pannels -----------------------------------------
-        self.grafana_panel_01 = gui.Widget( _type='iframe', width=650, height=300, margin='10px')
-        self.grafana_panel_01.attributes['src'] = grafana_panel_address_1
-        self.grafana_panel_01.attributes['width'] = '100%'
-        self.grafana_panel_01.attributes['height'] = '100%'
-        self.grafana_panel_01.attributes['controls'] = 'true'
-        self.grafana_panel_01.style['border'] = 'none'
-
-        self.grafana_panel_02 = gui.Widget( _type='iframe', width=650, height=300, margin='10px')
-        self.grafana_panel_02.attributes['src'] = grafana_panel_address_2
-        self.grafana_panel_02.attributes['width'] = '100%'
-        self.grafana_panel_02.attributes['height'] = '100%'
-        self.grafana_panel_02.attributes['controls'] = 'true'
-        self.grafana_panel_02.style['border'] = 'none'
+        #----------- Grafana pannels and interlocks -----------------------------------------
+        self.grafana_panel_list=[]
+        for panel in grf_panel_list:
+            self.grafana_panel= gui.Widget( _type='iframe', width=618, height=300, margin='10px')
+            self.grafana_panel.attributes['src'] = panel
+            self.grafana_panel.attributes['width'] = '100%'
+            self.grafana_panel.attributes['height'] = '100%'
+            self.grafana_panel.attributes['controls'] = 'true'
+            self.grafana_panel.style['border'] = 'none'
+            self.grafana_panel_list.append(self.grafana_panel)
 
 
-        interlock_cell_w= 140
-        interlock_cell_h= 80
-
-        self.grafana_inter_01 = gui.Widget( _type='iframe', width=interlock_cell_w, height=interlock_cell_h, margin='10px')
-        self.grafana_inter_01.attributes['src'] = grafana_interlock_address_1
-
-        self.grafana_inter_02 = gui.Widget( _type='iframe', width=interlock_cell_w, height=interlock_cell_h, margin='10px')
-        self.grafana_inter_02.attributes['src'] = grafana_interlock_address_2
-
-        self.grafana_inter_03 = gui.Widget( _type='iframe', width=interlock_cell_w, height=interlock_cell_h, margin='10px')
-        self.grafana_inter_03.attributes['src'] = grafana_interlock_address_1
-
-        self.grafana_inter_04 = gui.Widget( _type='iframe', width=interlock_cell_w, height=interlock_cell_h, margin='10px')
-        self.grafana_inter_04.attributes['src'] = grafana_interlock_address_2
-
-
-        self.list_grafana_inter = [self.grafana_inter_01, self.grafana_inter_02, self.grafana_inter_03, self.grafana_inter_04]
-
-        for interlock in self.list_grafana_inter:
-            interlock.attributes['width'] = '100%'
-            interlock.attributes['height'] = '100%'
-            interlock.attributes['controls'] = 'true'
-            interlock.style['border'] = 'none'
-
+        self.grafana_intl_list=[]
+        for intl in grf_intl_list:
+            self.grafana_inter = gui.Widget( _type='iframe', width=140, height=70, margin='10px')
+            self.grafana_inter.attributes['src'] = intl
+            self.grafana_inter.attributes['width'] = '100%'
+            self.grafana_inter.attributes['height'] = '100%'
+            self.grafana_inter.attributes['controls'] = 'true'
+            self.grafana_inter.style['border'] = 'none'
+            self.grafana_intl_list.append(self.grafana_inter)
 
 
         #--------------------------- Wrapping the subcontainers -----------------------------------------
         horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight, subContainerLog])
 
-        horizontalContainer_grafana_panels.append([self.grafana_panel_01,self.grafana_panel_02])
-        horizontalContainer_grafana_status.append([self.list_grafana_inter])
+        horizontalContainer_grafana_panels.append([self.grafana_panel_list])
+        horizontalContainer_grafana_intl.append([self.grafana_intl_list])
 
 
 
         #--------------------------- TAB 1 -----------------------------------------
-        verticalContainer_tb1.append([horizontalContainer_logo, horizontalContainer, horizontalContainer_grafana_panels])
+        verticalContainer_tb1.append([horizontalContainer_logo, horizontalContainer, horizontalContainer_grafana_intl, horizontalContainer_grafana_panels])
 
 
         #===================================== TAB 2 =================================================
@@ -399,7 +371,7 @@ class MyApp(App):
 
 
 
-        verticalContainer_tb2.append([horizontalContainer_logo, self.lbl_placeHolder, horizontalContainer_tb2, horizontalContainer_grafana_status, horizontalContainer_grafana_panels])
+        verticalContainer_tb2.append([horizontalContainer_logo, self.lbl_placeHolder, horizontalContainer_tb2])
 
         #this flag will be used to stop the display_counter Timer
         self.stop_flag = False
@@ -411,17 +383,17 @@ class MyApp(App):
 
         #===================================== TAB 4 =================================================
         self.lbl_swName = gui.Label('ColdBox Controller V 0.3', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
-        self.lbl_inst_name = gui.Label('Institute: '+inst_name , width=200, height=30, margin='5px')
-        verticalContainer_tb4.append([horizontalContainer_logo, self.lbl_swName, self.lbl_inst_name])
+        self.lbl_coldbox_type = gui.Label('ColdBox type: '+coldbox_type , width=200, height=30, margin='5px')
+        verticalContainer_tb4.append([horizontalContainer_logo, self.lbl_swName, self.lbl_coldbox_type])
 
 
 
         #===================================== Wrapping all tabs together =================================================
 
         tabBox = gui.TabBox(width='40%',style={'font-size': '16px', 'font-weight': 'bold','background-color': '#3498DB'})
-        tabBox.append(verticalContainer_tb1, 'Controles')
+        tabBox.append(verticalContainer_tb1, 'Controls')
         tabBox.add_tab(verticalContainer_tb2, 'Monitoring', None)
-        tabBox.add_tab(verticalContainer_tb3, 'Advance', None)
+        tabBox.add_tab(verticalContainer_tb3, 'Advanced', None)
         tabBox.add_tab(verticalContainer_tb4, 'About', None)
 
         # returning the root widget
@@ -557,13 +529,19 @@ if __name__ == "__main__":
 
     if os.path.isfile(configfile):
         config.read(configfile)
+    else:
+        print(bcolors.FAIL +'Config file does not exist.' +bcolors.ENDC)
+        sys.exit(1)
 
-    inst_name, n_chucks, plt_field, gui_debug= configreader.read_conf(config)
+    coldbox_type, n_chucks, plt_field, grf_panel_list, grf_intl_list, gui_debug= configreader.read_conf(config)
 
     debugPrint('port= '+str(PORT))
-    debugPrint('inst_name= '+inst_name)
+    debugPrint('coldbox_type= '+coldbox_type)
     debugPrint('n_chucks= '+str(n_chucks))
     debugPrint('plt_fields= '+str(plt_field))
+    debugPrint('grf_panel_list='+ str(grf_panel_list))
+    debugPrint('grf_intl_list='+ str(grf_intl_list))
+
 
     #-- checking number of chucks--
     if not (n_chucks==5 or n_chucks==4):
@@ -577,5 +555,5 @@ if __name__ == "__main__":
         sys.stdout = sys.stderr = stdout_string_io
 
     #--starts the webserver / optional parameters
-    start(MyApp, debug=gui_debug, address='petra.phys.yorku.ca', port=PORT, start_browser=False, multiple_instance=True, enable_file_cache=True)
-    #start(MyApp, debug=gui_debug, address='localhost', port=PORT, start_browser=True, multiple_instance=False, enable_file_cache=True)
+    #start(ColdBoxGUI, debug=gui_debug, address='petra.phys.yorku.ca', port=PORT, start_browser=False, multiple_instance=True, enable_file_cache=True)
+    start(ColdBoxGUI, debug=gui_debug, address='localhost', port=PORT, start_browser=True, multiple_instance=False, enable_file_cache=True)

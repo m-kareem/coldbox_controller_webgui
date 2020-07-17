@@ -1,15 +1,17 @@
 
 def read_conf(config):
-    inst_name = 'Default'
+    coldbox_type = 'Default'
     n_chucks = 5
     plt_field = True
     gui_debug = False
+    grf_panel_list=[]
+    grf_intl_list=[]
     # Read configuration file
     for sec in config.sections():
-        if sec == 'INSTITUTE':
+        if sec == 'COLDBOXTYPE':
             for param in config[sec]:
-                if param == 'inst_name':
-                    inst_name = config[sec][param]
+                if param == 'coldbox_type':
+                    coldbox_type = config[sec][param]
 
         if sec == 'CHUCKS':
             for param in config[sec]:
@@ -21,9 +23,17 @@ def read_conf(config):
                 if param == 'plt_field':
                     plt_field = (config[sec][param] == "True")
 
+
+        if sec == 'GRAFANA':
+            for param in config[sec]:
+                if param.startswith('panel'):
+                    grf_panel_list.append(config[sec][param])
+                elif param.startswith('intl'):
+                    grf_intl_list.append(config[sec][param])
+
         if sec == 'GUI':
             for param in config[sec]:
                 if param == 'debugging_mode':
                     gui_debug = (config[sec][param] == "True")
 
-    return inst_name, n_chucks, plt_field, gui_debug
+    return coldbox_type, n_chucks, plt_field, grf_panel_list, grf_intl_list, gui_debug
