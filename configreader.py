@@ -1,5 +1,6 @@
 
 def read_conf(config):
+    str_server = 'localhost'
     coldbox_type = 'Default'
     n_chucks = 5
     plt_field = True
@@ -8,6 +9,10 @@ def read_conf(config):
     grf_intl_list=[]
     # Read configuration file
     for sec in config.sections():
+        if sec == 'SERVER':
+            for param in config[sec]:
+                str_server = config[sec][param]
+
         if sec == 'COLDBOXTYPE':
             for param in config[sec]:
                 if param == 'coldbox_type':
@@ -36,4 +41,4 @@ def read_conf(config):
                 if param == 'debugging_mode':
                     gui_debug = (config[sec][param] == "True")
 
-    return coldbox_type, n_chucks, plt_field, grf_panel_list, grf_intl_list, gui_debug
+    return str_server, coldbox_type, n_chucks, plt_field, grf_panel_list, grf_intl_list, gui_debug

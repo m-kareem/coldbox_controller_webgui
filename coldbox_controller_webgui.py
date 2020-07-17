@@ -533,8 +533,9 @@ if __name__ == "__main__":
         print(bcolors.FAIL +'Config file does not exist.' +bcolors.ENDC)
         sys.exit(1)
 
-    coldbox_type, n_chucks, plt_field, grf_panel_list, grf_intl_list, gui_debug= configreader.read_conf(config)
+    str_server, coldbox_type, n_chucks, plt_field, grf_panel_list, grf_intl_list, gui_debug= configreader.read_conf(config)
 
+    debugPrint('server= '+str_server)
     debugPrint('port= '+str(PORT))
     debugPrint('coldbox_type= '+coldbox_type)
     debugPrint('n_chucks= '+str(n_chucks))
@@ -556,4 +557,4 @@ if __name__ == "__main__":
 
     #--starts the webserver / optional parameters
     #start(ColdBoxGUI, debug=gui_debug, address='petra.phys.yorku.ca', port=PORT, start_browser=False, multiple_instance=True, enable_file_cache=True)
-    start(ColdBoxGUI, debug=gui_debug, address='localhost', port=PORT, start_browser=True, multiple_instance=False, enable_file_cache=True)
+    start(ColdBoxGUI, debug=gui_debug, address=str_server, port=PORT, start_browser=True, multiple_instance=False, enable_file_cache=True)
