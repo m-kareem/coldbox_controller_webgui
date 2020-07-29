@@ -490,7 +490,6 @@ class bcolors:
 
 
 if __name__ == "__main__":
-    PORT=5000
     verbose = False # set to Fals if you dont want to print debugging info
     config = conf.ConfigParser()
     configfile = 'default'
@@ -517,8 +516,8 @@ if __name__ == "__main__":
             configfile = arg
         elif opt in ('-v', '--verbose'):
             verbose = True
-        elif opt in ('-p', '--port'):
-            PORT = int(arg)
+        #elif opt in ('-p', '--port'):  # moved to config file
+        #    PORT = int(arg)
 
 
     debugPrint('ARGV   :', sys.argv[1:])
@@ -527,15 +526,16 @@ if __name__ == "__main__":
     if not any('-c' in sublist for sublist in options):
         print(bcolors.WARNING + "WARNING: GUI started without user config. Default configurations will be used." + bcolors.ENDC)
 
-    if os.path.isfile(configfile):
-        config.read(configfile)
     else:
-        print(bcolors.FAIL +'Config file does not exist.' +bcolors.ENDC)
-        sys.exit(1)
+        if os.path.isfile(configfile):
+            config.read(configfile)
+        else:
+            print(bcolors.FAIL +'Config file does not exist.' +bcolors.ENDC)
+            sys.exit(1)
 
-    str_server, coldbox_type, n_chucks, plt_field, grf_panel_list, grf_intl_list, gui_debug= configreader.read_conf(config)
+    server_str, PORT, coldbox_type, n_chucks, plt_field, grf_panel_list, grf_intl_list, gui_debug= configreader.read_conf(config)
 
-    debugPrint('server= '+str_server)
+    debugPrint('server= '+server_str)
     debugPrint('port= '+str(PORT))
     debugPrint('coldbox_type= '+coldbox_type)
     debugPrint('n_chucks= '+str(n_chucks))
@@ -556,5 +556,5 @@ if __name__ == "__main__":
         sys.stdout = sys.stderr = stdout_string_io
 
     #--starts the webserver / optional parameters
-    #start(ColdBoxGUI, debug=gui_debug, address='petra.phys.yorku.ca', port=PORT, start_browser=False, multiple_instance=True, enable_file_cache=True)
-    start(ColdBoxGUI, debug=gui_debug, address=str_server, port=PORT, start_browser=True, multiple_instance=False, enable_file_cache=True)
+    #start(ColdBoxGUI, debug=gui_debug, address=server_str, port=PORT, start_browser=False, multiple_instance=True, enable_file_cache=False)
+    start(ColdBoxGUI, debug=gui_debug, address=server_str, port=PORT, start_browser=True, multiple_instance=False, enable_file_cache=False)

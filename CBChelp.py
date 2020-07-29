@@ -17,9 +17,10 @@ help = """
     Arguments:
     -c or --config <with file name>     Read GUI configurations from file.
     -v or --verbose                     Verbose printing
-    -p or --port                        Port number (default port: 5000)
+
     -h or --help                        Print Help (this message) and exit
     """
-
+    #-p or --port                        Port number (default port: 5000)
+    
 def CBC_help():
     print(bcolors.BOLD+ help+ bcolors.ENDC)
