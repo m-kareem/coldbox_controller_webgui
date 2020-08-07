@@ -1,30 +1,44 @@
 from influxdb import InfluxDBClient
 
-INFLUXDB_ADDRESS = 'petra.phys.yorku.ca'
-INFLUXDB_USER = 'admin'
-INFLUXDB_PASSWORD = ''
-INFLUXDB_DATABASE = 'YorkDB'
 
+def influx_init(config_influx):
+    dbClient = InfluxDBClient(
+            config_influx["influx_server"],
+            config_influx["influx_port"],
+            config_influx["influx_user"],
+            config_influx["influx_pass"],
+            None)
 
-dbClient = InfluxDBClient(INFLUXDB_ADDRESS, 8086, INFLUXDB_USER, INFLUXDB_PASSWORD, None)
-dbClient.switch_database(INFLUXDB_DATABASE)
-
-def get_rH():
-    ResultSet_rH = dbClient.query('SELECT * FROM rH GROUP BY * ORDER BY DESC LIMIT 1;')
-
-    rH_points = list(ResultSet_rH.get_points(measurement='rH', tags={'validity': 'true'}))
-    #print("rH: " + str(rH_points[0]['value']))
-    return round(rH_points[0]['value'],1)
+    dbClient.switch_database(config_influx["influx_database"])
+    return dbClient
 
 
 
-def get_Temperatur():
-    ResultSet_T = dbClient.query('SELECT * FROM T GROUP BY * ORDER BY DESC LIMIT 1;')
-    T_points = list(ResultSet_T.get_points(measurement='T', tags={'validity': 'true'}))
-    #print("temperatur: " + str(T_points[0]['value']))
-    return round(T_points[0]['value'],1)
+#--example of influxQL
+# >> SELECT * FROM "rH" WHERE "device" = 'esp32test_02' ORDER BY time DESC LIMIT 1
+#------------------------------
+
+def get_measurement(dbClient, _device, my_measurement):
+    ResultSet = dbClient.query('SELECT * FROM'+' '+my_measurement+ ' GROUP BY * ORDER BY time DESC LIMIT 1;')
+    points = list(ResultSet.get_points(measurement=my_measurement, tags={'device':_device ,'validity': 'true'}))
+    try:
+        #print(_device+" "+my_measurement+": " + str(points[0]['value']))
+        return round(points[0]['value'],1)
+    except IndexError:
+        print("list index out of range. Either the devise/measurement name does not exist in database, or has no value")
+        return None
+
 
 if __name__ == '__main__':
-    print('influxDB_query')
-    get_rH()
-    get_Temperatur()
+    print('--- influxDB_query ---')
+    #-- these configs are for test, when runniing this module individually.
+    config_influx = {
+        "influx_server": 'petra.phys.yorku.ca',
+        "influx_port": 8086,
+        "influx_user": 'admin',
+        "influx_pass": '',
+        "influx_database": 'YorkDB',
+    }
+    _dbClient = influx_init(config_influx)
+
+    print( get_measurement(_dbClient,'esp32test_01','T') )

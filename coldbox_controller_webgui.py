@@ -37,15 +37,17 @@ except:
 import time,datetime
 
 from influx_query import *
+
 #import user_manager
 #from user_manager import *
-
 #--------------------------------------------------------------
 class ColdBoxGUI(App):
     def __init__(self, *args):
 
         res_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), './res/')
         super(ColdBoxGUI, self).__init__(*args, static_file_path={'my_res':res_path})
+
+        self.dbClient= influx_init(config_influx)
 
     def idle(self):
         #idle function called every update cycle
@@ -58,48 +60,44 @@ class ColdBoxGUI(App):
             self.stdout_LogBox.set_text("".join(lines))
 
 
-
         # -- updating the labels with realtime data
-        # filling ColdBox Ambient table in TAB 2
-        self.Sens_T_1.set_text(str(get_Temperatur()))
-        self.Sens_rH_1.set_text(str(get_rH()))
-        self.Sens_DWP.set_text(str(dewpoint_approximation( get_Temperatur(),get_rH() )))
-
-        self.table_amb.children['row0'].children['col2'].set_text(str(get_Temperatur()))
-        self.table_amb.children['row1'].children['col2'].set_text(str(get_rH()))
-        self.table_amb.children['row2'].children['col2'].set_text(str(dewpoint_approximation( get_Temperatur(),get_rH() )))
-        self.table_amb.children['row3'].children['col2'].set_text(str(get_Temperatur()))
-        self.table_amb.children['row4'].children['col2'].set_text(str(get_Temperatur()))
-        self.table_amb.children['row5'].children['col2'].set_text(str(get_Temperatur()))
+        self.table_amb.children['row0'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_01','rH')))
+        self.table_amb.children['row1'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_01','T')))
+        self.table_amb.children['row2'].children['col2'].set_text(str(dewpoint_approximation( get_measurement(self.dbClient,'esp32test_01','T'), get_measurement(self.dbClient,'esp32test_01','rH') )))
+        self.table_amb.children['row3'].children['col2'].set_text(str(2*get_measurement(self.dbClient,'esp32test_02','T')))
+        self.table_amb.children['row4'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_02','T')))
+        self.table_amb.children['row5'].children['col2'].set_text(str(3*get_measurement(self.dbClient,'esp32test_02','T')))
 
         # filling temperature table in TAB 2
-        self.table_t.children['row1'].children['col2'].set_text(str(get_Temperatur()))
-        self.table_t.children['row2'].children['col2'].set_text(str(get_Temperatur()))
-        self.table_t.children['row3'].children['col2'].set_text(str(get_Temperatur()))
-        self.table_t.children['row4'].children['col2'].set_text(str(get_Temperatur()))
+        self.table_t.children['row1'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_01','T')))
+        self.table_t.children['row2'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_01','T')))
+        self.table_t.children['row3'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_01','T')))
+        self.table_t.children['row4'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_02','T')))
         if n_chucks==5:
-            self.table_t.children['row5'].children['col2'].set_text(str(get_Temperatur()))
+            self.table_t.children['row5'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_02','T')))
 
-        self.table_t.children['row1'].children['col3'].set_text(str(get_rH()))
-        self.table_t.children['row2'].children['col3'].set_text(str(get_rH()))
-        self.table_t.children['row3'].children['col3'].set_text(str(get_rH()))
-        self.table_t.children['row4'].children['col3'].set_text(str(get_rH()))
+        self.table_t.children['row1'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_01','rH')))
+        self.table_t.children['row2'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_01','rH')))
+        self.table_t.children['row3'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_01','rH')))
+        self.table_t.children['row4'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_02','rH')))
         if n_chucks==5:
-            self.table_t.children['row5'].children['col3'].set_text(str(get_rH()))
+            self.table_t.children['row5'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_02','rH')))
 
         # filling Peltiers table in TAB 2
         if (plt_field):
-            self.table_Plt.children['row1'].children['col2'].set_text(str(get_Temperatur()))
-            self.table_Plt.children['row2'].children['col2'].set_text(str(get_Temperatur()))
-            self.table_Plt.children['row3'].children['col2'].set_text(str(get_Temperatur()))
-            self.table_Plt.children['row4'].children['col2'].set_text(str(get_Temperatur()))
-            self.table_Plt.children['row5'].children['col2'].set_text(str(get_Temperatur()))
+            self.table_Plt.children['row1'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_01','T')))
+            self.table_Plt.children['row2'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_01','T')))
+            self.table_Plt.children['row3'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_01','T')))
+            self.table_Plt.children['row4'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_02','T')))
+            if n_chucks==5:
+                self.table_Plt.children['row5'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_02','T')))
 
-            self.table_Plt.children['row1'].children['col3'].set_text(str(get_rH()))
-            self.table_Plt.children['row2'].children['col3'].set_text(str(get_rH()))
-            self.table_Plt.children['row3'].children['col3'].set_text(str(get_rH()))
-            self.table_Plt.children['row4'].children['col3'].set_text(str(get_rH()))
-            self.table_Plt.children['row5'].children['col3'].set_text(str(get_rH()))
+            self.table_Plt.children['row1'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_01','rH')))
+            self.table_Plt.children['row2'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_01','rH')))
+            self.table_Plt.children['row3'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_01','rH')))
+            self.table_Plt.children['row4'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_02','rH')))
+            if n_chucks==5:
+                self.table_Plt.children['row5'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_02','rH')))
 
     def main(self):
         return ColdBoxGUI.construct_ui(self)
@@ -303,11 +301,6 @@ class ColdBoxGUI(App):
 
         self.lbl_placeHolder = gui.Label('Place holder content', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold','color': 'red'})
 
-        # values to be coming from influxDB -- look in idle()
-        self.Sens_T_1 = gui.Label('',width=50, height=30, margin='10px')
-        self.Sens_rH_1 = gui.Label('',width=50, height=30, margin='10px')
-        self.Sens_DWP = gui.Label('',width=50, height=30, margin='10px')
-
         #------ Left Container ---------
         subContainerLeft_tb2 = gui.Container(width=300, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left','border':'0px solid black'})
         self.lbl_temp = gui.Label('Temperature[C]', width=200, height=20, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
@@ -340,9 +333,10 @@ class ColdBoxGUI(App):
                 'row2': gui.TableRow({'col1':'2','col2':'', 'col3':''}),
                 'row3': gui.TableRow({'col1':'3','col2':'', 'col3':''}),
                 'row4': gui.TableRow({'col1':'4','col2':'', 'col3':''}),
-                'row5': gui.TableRow({'col1':'5','col2':'', 'col3':''})
                 },
                 width=250, height=200, margin='10px auto')
+            if n_chucks==5:
+                self.table_t.add_child('row5', gui.TableRow({'col1':'5','col2':'', 'col3':''}) )
 
             subContainerMiddle_tb2.append([self.lbl_peltiers,self.table_Plt])
 
@@ -533,16 +527,47 @@ if __name__ == "__main__":
             print(bcolors.FAIL +'Config file does not exist.' +bcolors.ENDC)
             sys.exit(1)
 
-    server_str, PORT, coldbox_type, n_chucks, plt_field, grf_panel_list, grf_intl_list, gui_debug= configreader.read_conf(config)
+    config_dic, config_influx = configreader.read_conf(config)
 
-    debugPrint('server= '+server_str)
-    debugPrint('port= '+str(PORT))
+    gui_server = config_dic["gui_server"]
+    gui_server_port = config_dic["gui_server_port"]
+    coldbox_type = config_dic["coldbox_type"]
+    n_chucks = config_dic["n_chucks"]
+    plt_field = config_dic["plt_field"]
+    grf_panel_list = config_dic["grf_panel_list"]
+    grf_intl_list = config_dic["grf_intl_list"]
+    gui_debug = config_dic["gui_debug"]
+    gui_start_browser = config_dic["gui_start_browser"]
+
+    INFLUXDB_ADDRESS = config_influx["influx_server"]
+    INFLUXDB_USER = config_influx["influx_user"]
+    INFLUXDB_PASSWORD = config_influx["influx_pass"]
+    INFLUXDB_PORT = config_influx["influx_port"]
+    INFLUXDB_DATABASE = config_influx["influx_database"]
+
+
+    gui_multiple_instance = config_dic["gui_multiple_instance"]
+    gui_enable_file_cache = config_dic["gui_enable_file_cache"]
+
+    debugPrint('server= '+gui_server)
+    debugPrint('port= '+str(gui_server_port))
+
+    debugPrint('influx_server= '+INFLUXDB_ADDRESS)
+    debugPrint('influx_user= '+INFLUXDB_USER)
+    debugPrint('influx_port= '+INFLUXDB_PORT)
+    debugPrint('influx_database= '+INFLUXDB_DATABASE)
+
     debugPrint('coldbox_type= '+coldbox_type)
     debugPrint('n_chucks= '+str(n_chucks))
     debugPrint('plt_fields= '+str(plt_field))
+
+    debugPrint('gui_debug= '+str(gui_debug))
+    debugPrint('gui_start_browser= '+str(gui_start_browser))
+    debugPrint('gui_multiple_instance= '+str(gui_multiple_instance))
+    debugPrint('gui_enable_file_cache= '+str(gui_enable_file_cache))
+
     debugPrint('grf_panel_list='+ str(grf_panel_list))
     debugPrint('grf_intl_list='+ str(grf_intl_list))
-
 
     #-- checking number of chucks--
     if not (n_chucks==5 or n_chucks==4):
@@ -556,5 +581,4 @@ if __name__ == "__main__":
         sys.stdout = sys.stderr = stdout_string_io
 
     #--starts the webserver / optional parameters
-    #start(ColdBoxGUI, debug=gui_debug, address=server_str, port=PORT, start_browser=False, multiple_instance=True, enable_file_cache=False)
-    start(ColdBoxGUI, debug=gui_debug, address=server_str, port=PORT, start_browser=True, multiple_instance=False, enable_file_cache=False)
+    start(ColdBoxGUI, debug=gui_debug, address=gui_server, port=gui_server_port, start_browser=gui_start_browser, multiple_instance=gui_multiple_instance, enable_file_cache=gui_enable_file_cache)
