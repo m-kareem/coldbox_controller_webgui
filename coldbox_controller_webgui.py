@@ -385,7 +385,7 @@ class ColdBoxGUI(App):
         #===================================== Wrapping all tabs together =================================================
 
         tabBox = gui.TabBox(width='40%',style={'font-size': '16px', 'font-weight': 'bold','background-color': '#3498DB'})
-        tabBox.append(verticalContainer_tb1, 'Controls')
+        tabBox.append(verticalContainer_tb1, 'Control Panel')
         tabBox.add_tab(verticalContainer_tb2, 'Monitoring', None)
         tabBox.add_tab(verticalContainer_tb3, 'Advanced', None)
         tabBox.add_tab(verticalContainer_tb4, 'About', None)
