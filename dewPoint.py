@@ -15,7 +15,7 @@ b = 237.7 # degC
 #RH=float(sys.argv[2])
 
 
-def dewpoint_approximation(T,RH):
+def get_dewpoint(T,RH):
 
     if RH != 0:
         Td = (b * gamma(T,RH)) / (a - gamma(T,RH))

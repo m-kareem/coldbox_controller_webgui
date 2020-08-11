@@ -61,43 +61,47 @@ class ColdBoxGUI(App):
 
 
         # -- updating the labels with realtime data
-        self.table_amb.children['row0'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_01','rH')))
-        self.table_amb.children['row1'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_01','T')))
-        self.table_amb.children['row2'].children['col2'].set_text(str(dewpoint_approximation( get_measurement(self.dbClient,'esp32test_01','T'), get_measurement(self.dbClient,'esp32test_01','rH') )))
-        self.table_amb.children['row3'].children['col2'].set_text(str(2*get_measurement(self.dbClient,'esp32test_02','T')))
-        self.table_amb.children['row4'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_02','T')))
-        self.table_amb.children['row5'].children['col2'].set_text(str(3*get_measurement(self.dbClient,'esp32test_02','T')))
+        self.table_amb.children['row0'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["CB_device_rH"],'rH')))
+        self.table_amb.children['row1'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["CB_device_T"],'T')))
+        self.table_amb.children['row2'].children['col2'].set_text(str(get_dewpoint(get_measurement(self.dbClient,config_device["CB_device_T"],'T'), get_measurement(self.dbClient,config_device["CB_device_rH"],'rH') )))
+        self.table_amb.children['row3'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["CB_device_N2flw"],'T')))
+        self.table_amb.children['row4'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["CB_device_Chiller_T"],'T')))
+        self.table_amb.children['row5'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["CB_device_Chiller_flw"],'T')))
 
         # filling temperature table in TAB 2
-        self.table_t.children['row1'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_01','T')))
-        self.table_t.children['row2'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_01','T')))
-        self.table_t.children['row3'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_01','T')))
-        self.table_t.children['row4'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_02','T')))
+        #--- chucks temperature
+        self.table_t.children['row1'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["ch_device_list"][0],'T')))
+        self.table_t.children['row2'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["ch_device_list"][1],'T')))
+        self.table_t.children['row3'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["ch_device_list"][2],'T')))
+        self.table_t.children['row4'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["ch_device_list"][3],'T')))
         if n_chucks==5:
-            self.table_t.children['row5'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_02','T')))
+            self.table_t.children['row5'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["ch_device_list"][4],'T')))
 
-        self.table_t.children['row1'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_01','rH')))
-        self.table_t.children['row2'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_01','rH')))
-        self.table_t.children['row3'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_01','rH')))
-        self.table_t.children['row4'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_02','rH')))
+        # --- Modules temperature
+        self.table_t.children['row1'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["mod_device_list"][0],'rH')))
+        self.table_t.children['row2'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["mod_device_list"][1],'rH')))
+        self.table_t.children['row3'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["mod_device_list"][2],'rH')))
+        self.table_t.children['row4'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["mod_device_list"][3],'rH')))
         if n_chucks==5:
-            self.table_t.children['row5'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_02','rH')))
+            self.table_t.children['row5'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["mod_device_list"][4],'rH')))
 
         # filling Peltiers table in TAB 2
         if (plt_field):
-            self.table_Plt.children['row1'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_01','T')))
-            self.table_Plt.children['row2'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_01','T')))
-            self.table_Plt.children['row3'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_01','T')))
-            self.table_Plt.children['row4'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_02','T')))
+            # -- current
+            self.table_Plt.children['row1'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["pltC_device_list"][0],'T')))
+            self.table_Plt.children['row2'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["pltC_device_list"][1],'T')))
+            self.table_Plt.children['row3'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["pltC_device_list"][2],'T')))
+            self.table_Plt.children['row4'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["pltC_device_list"][3],'T')))
             if n_chucks==5:
-                self.table_Plt.children['row5'].children['col2'].set_text(str(get_measurement(self.dbClient,'esp32test_02','T')))
+                self.table_Plt.children['row5'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["pltC_device_list"][4],'T')))
 
-            self.table_Plt.children['row1'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_01','rH')))
-            self.table_Plt.children['row2'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_01','rH')))
-            self.table_Plt.children['row3'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_01','rH')))
-            self.table_Plt.children['row4'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_02','rH')))
+            # -- voltage
+            self.table_Plt.children['row1'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["pltV_device_list"][0],'rH')))
+            self.table_Plt.children['row2'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["pltV_device_list"][1],'rH')))
+            self.table_Plt.children['row3'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["pltV_device_list"][2],'rH')))
+            self.table_Plt.children['row4'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["pltV_device_list"][3],'rH')))
             if n_chucks==5:
-                self.table_Plt.children['row5'].children['col3'].set_text(str(get_measurement(self.dbClient,'esp32test_02','rH')))
+                self.table_Plt.children['row5'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["pltV_device_list"][4],'rH')))
 
     def main(self):
         return ColdBoxGUI.construct_ui(self)
@@ -115,7 +119,7 @@ class ColdBoxGUI(App):
         horizontalContainer_logo = gui.Container(width='20%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
         horizontalContainer = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
         horizontalContainer_grafana_panels = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
-        horizontalContainer_grafana_intl = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
+        horizontalContainer_grafana_intrl = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
 
 
         #--------------------------InfluxDB -----------------
@@ -273,27 +277,27 @@ class ColdBoxGUI(App):
             self.grafana_panel_list.append(self.grafana_panel)
 
 
-        self.grafana_intl_list=[]
-        for intl in grf_intl_list:
+        self.grafana_intrl_list=[]
+        for intrl in grf_intrl_list:
             self.grafana_inter = gui.Widget( _type='iframe', width=140, height=70, margin='10px')
-            self.grafana_inter.attributes['src'] = intl
+            self.grafana_inter.attributes['src'] = intrl
             self.grafana_inter.attributes['width'] = '100%'
             self.grafana_inter.attributes['height'] = '100%'
             self.grafana_inter.attributes['controls'] = 'true'
             self.grafana_inter.style['border'] = 'none'
-            self.grafana_intl_list.append(self.grafana_inter)
+            self.grafana_intrl_list.append(self.grafana_inter)
 
 
         #--------------------------- Wrapping the subcontainers -----------------------------------------
         horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight, subContainerLog])
 
         horizontalContainer_grafana_panels.append([self.grafana_panel_list])
-        horizontalContainer_grafana_intl.append([self.grafana_intl_list])
+        horizontalContainer_grafana_intrl.append([self.grafana_intrl_list])
 
 
 
         #--------------------------- TAB 1 -----------------------------------------
-        verticalContainer_tb1.append([horizontalContainer_logo, horizontalContainer, horizontalContainer_grafana_intl, horizontalContainer_grafana_panels])
+        verticalContainer_tb1.append([horizontalContainer_logo, horizontalContainer, horizontalContainer_grafana_intrl, horizontalContainer_grafana_panels])
 
 
         #===================================== TAB 2 =================================================
@@ -527,7 +531,7 @@ if __name__ == "__main__":
             print(bcolors.FAIL +'Config file does not exist.' +bcolors.ENDC)
             sys.exit(1)
 
-    config_dic, config_influx = configreader.read_conf(config)
+    config_dic, config_influx, config_device = configreader.read_conf(config)
 
     gui_server = config_dic["gui_server"]
     gui_server_port = config_dic["gui_server_port"]
@@ -535,7 +539,7 @@ if __name__ == "__main__":
     n_chucks = config_dic["n_chucks"]
     plt_field = config_dic["plt_field"]
     grf_panel_list = config_dic["grf_panel_list"]
-    grf_intl_list = config_dic["grf_intl_list"]
+    grf_intrl_list = config_dic["grf_intrl_list"]
     gui_debug = config_dic["gui_debug"]
     gui_start_browser = config_dic["gui_start_browser"]
 
@@ -545,9 +549,18 @@ if __name__ == "__main__":
     INFLUXDB_PORT = config_influx["influx_port"]
     INFLUXDB_DATABASE = config_influx["influx_database"]
 
-
     gui_multiple_instance = config_dic["gui_multiple_instance"]
     gui_enable_file_cache = config_dic["gui_enable_file_cache"]
+
+    ch_device_list = config_device["ch_device_list"]
+    mod_device_list = config_device["mod_device_list"]
+    pltC_device_list = config_device["pltC_device_list"]
+    pltV_device_list = config_device["pltV_device_list"]
+    CB_device_rH = config_device["CB_device_rH"]
+    CB_device_T = config_device["CB_device_T"]
+    CB_device_N2flw = config_device["CB_device_N2flw"]
+    CB_device_Chiller_T = config_device["CB_device_Chiller_T"]
+    CB_device_Chiller_flw = config_device["CB_device_Chiller_flw"]
 
     debugPrint('server= '+gui_server)
     debugPrint('port= '+str(gui_server_port))
@@ -566,8 +579,12 @@ if __name__ == "__main__":
     debugPrint('gui_multiple_instance= '+str(gui_multiple_instance))
     debugPrint('gui_enable_file_cache= '+str(gui_enable_file_cache))
 
-    debugPrint('grf_panel_list='+ str(grf_panel_list))
-    debugPrint('grf_intl_list='+ str(grf_intl_list))
+    debugPrint('CB_device_Chiller_flw= '+CB_device_Chiller_flw)
+    debugPrint('pltV_device_list= '+str(pltV_device_list))
+
+
+    #debugPrint('grf_panel_list='+ str(grf_panel_list))
+    #debugPrint('grf_intrl_list='+ str(grf_intrl_list))
 
     #-- checking number of chucks--
     if not (n_chucks==5 or n_chucks==4):
