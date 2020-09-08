@@ -10,7 +10,8 @@ class bcolors:
 
 help = """
     -- ColdBox controller webGUI --
-    mohammad.kareem@cern.ch
+    Copyright (C) 2019-2020 CERN for the benefit of the ATLAS collaboration
+    Author: mohammad.kareem@cern.ch
 
     Usage: coldbox_controller_webgui.py [arguments]
 
@@ -21,6 +22,6 @@ help = """
     -h or --help                        Print Help (this message) and exit
     """
     #-p or --port                        Port number (default port: 5000)
-    
+
 def CBC_help():
     print(bcolors.BOLD+ help+ bcolors.ENDC)

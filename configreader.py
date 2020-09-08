@@ -9,6 +9,7 @@ def read_conf(config):
     influx_user = 'admin'
     influx_pass = ''
     influx_database ='defaultDB'
+    influx_measurement='TrH'
 
     coldbox_type = 'Default'
     n_chucks = 5
@@ -51,6 +52,8 @@ def read_conf(config):
                     influx_pass = config[sec][param]
                 elif param == 'influx_database':
                     influx_database = config[sec][param]
+                elif param == 'influx_measurement':
+                    influx_measurement = config[sec][param]
 
         if sec == 'COLDBOX':
             for param in config[sec]:
@@ -122,6 +125,7 @@ def read_conf(config):
             "influx_user": influx_user,
             "influx_pass": influx_pass,
             "influx_database": influx_database,
+            "influx_measurement": influx_measurement,
         }
 
         config_device ={

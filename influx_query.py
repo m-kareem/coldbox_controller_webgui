@@ -15,15 +15,15 @@ def influx_init(config_influx):
 
 
 #--example of influxQL
-# >> SELECT * FROM "rH" WHERE "device" = 'esp32test_02' ORDER BY time DESC LIMIT 1
+# >> SELECT T FROM "TrH" WHERE "device" = 'esp32test' ORDER BY time DESC LIMIT 1
 #------------------------------
-
-def get_measurement(dbClient, _device, my_measurement):
+def get_measurement(dbClient, my_device, my_measurement, my_field):
     ResultSet = dbClient.query('SELECT * FROM'+' '+my_measurement+ ' GROUP BY * ORDER BY time DESC LIMIT 1;')
-    points = list(ResultSet.get_points(measurement=my_measurement, tags={'device':_device ,'validity': 'true'}))
+    points = list(ResultSet.get_points(measurement=my_measurement, tags={'device':my_device ,'validity': 'true'}))
     try:
-        #print(_device+" "+my_measurement+": " + str(points[0]['value']))
-        return round(points[0]['value'],1)
+        #print(my_device+" "+my_field+": " + str(points[0][my_field]))
+        if points[0][my_field] is not None:
+            return round(points[0][my_field],1)
     except IndexError:
         print("list index out of range. Either the devise/measurement name does not exist in database, or has no value")
         return None
@@ -37,8 +37,9 @@ if __name__ == '__main__':
         "influx_port": 8086,
         "influx_user": 'admin',
         "influx_pass": '',
-        "influx_database": 'YorkDB',
+        "influx_database": 'ESP32test',
     }
     _dbClient = influx_init(config_influx)
 
-    print( get_measurement(_dbClient,'esp32test_01','T') )
+    print( get_measurement(_dbClient,'esp32test','TrH','rH') )
+    print( get_measurement(_dbClient,'esp32test','TrH','T') )

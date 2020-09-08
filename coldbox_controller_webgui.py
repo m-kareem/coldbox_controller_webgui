@@ -61,47 +61,47 @@ class ColdBoxGUI(App):
 
 
         # -- updating the labels with realtime data
-        self.table_amb.children['row0'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["CB_device_rH"],'rH')))
-        self.table_amb.children['row1'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["CB_device_T"],'T')))
-        self.table_amb.children['row2'].children['col2'].set_text(str(get_dewpoint(get_measurement(self.dbClient,config_device["CB_device_T"],'T'), get_measurement(self.dbClient,config_device["CB_device_rH"],'rH') )))
-        self.table_amb.children['row3'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["CB_device_N2flw"],'T')))
-        self.table_amb.children['row4'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["CB_device_Chiller_T"],'T')))
-        self.table_amb.children['row5'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["CB_device_Chiller_flw"],'T')))
+        self.table_amb.children['row0'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["CB_device_rH"],INFLUXDB_MEASUREMENT,'rH')))
+        self.table_amb.children['row1'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["CB_device_T"],INFLUXDB_MEASUREMENT,'T')))
+        self.table_amb.children['row2'].children['col2'].set_text(str(get_dewpoint(get_measurement(self.dbClient,config_device["CB_device_T"],INFLUXDB_MEASUREMENT,'T'), get_measurement(self.dbClient,config_device["CB_device_rH"],INFLUXDB_MEASUREMENT,'rH') )))
+        self.table_amb.children['row3'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["CB_device_N2flw"],INFLUXDB_MEASUREMENT,'T')))
+        self.table_amb.children['row4'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["CB_device_Chiller_T"],INFLUXDB_MEASUREMENT,'T')))
+        self.table_amb.children['row5'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["CB_device_Chiller_flw"],INFLUXDB_MEASUREMENT,'T')))
 
         # filling temperature table in TAB 2
         #--- chucks temperature
-        self.table_t.children['row1'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["ch_device_list"][0],'T')))
-        self.table_t.children['row2'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["ch_device_list"][1],'T')))
-        self.table_t.children['row3'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["ch_device_list"][2],'T')))
-        self.table_t.children['row4'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["ch_device_list"][3],'T')))
+        self.table_t.children['row1'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["ch_device_list"][0],INFLUXDB_MEASUREMENT,'T')))
+        self.table_t.children['row2'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["ch_device_list"][1],INFLUXDB_MEASUREMENT,'T')))
+        self.table_t.children['row3'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["ch_device_list"][2],INFLUXDB_MEASUREMENT,'T')))
+        self.table_t.children['row4'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["ch_device_list"][3],INFLUXDB_MEASUREMENT,'T')))
         if n_chucks==5:
-            self.table_t.children['row5'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["ch_device_list"][4],'T')))
+            self.table_t.children['row5'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["ch_device_list"][4],INFLUXDB_MEASUREMENT,'T')))
 
         # --- Modules temperature
-        self.table_t.children['row1'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["mod_device_list"][0],'rH')))
-        self.table_t.children['row2'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["mod_device_list"][1],'rH')))
-        self.table_t.children['row3'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["mod_device_list"][2],'rH')))
-        self.table_t.children['row4'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["mod_device_list"][3],'rH')))
+        self.table_t.children['row1'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["mod_device_list"][0],INFLUXDB_MEASUREMENT,'rH')))
+        self.table_t.children['row2'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["mod_device_list"][1],INFLUXDB_MEASUREMENT,'rH')))
+        self.table_t.children['row3'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["mod_device_list"][2],INFLUXDB_MEASUREMENT,'rH')))
+        self.table_t.children['row4'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["mod_device_list"][3],INFLUXDB_MEASUREMENT,'rH')))
         if n_chucks==5:
-            self.table_t.children['row5'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["mod_device_list"][4],'rH')))
+            self.table_t.children['row5'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["mod_device_list"][4],INFLUXDB_MEASUREMENT,'rH')))
 
         # filling Peltiers table in TAB 2
         if (plt_field):
             # -- current
-            self.table_Plt.children['row1'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["pltC_device_list"][0],'T')))
-            self.table_Plt.children['row2'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["pltC_device_list"][1],'T')))
-            self.table_Plt.children['row3'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["pltC_device_list"][2],'T')))
-            self.table_Plt.children['row4'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["pltC_device_list"][3],'T')))
+            self.table_Plt.children['row1'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["pltC_device_list"][0],INFLUXDB_MEASUREMENT,'T')))
+            self.table_Plt.children['row2'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["pltC_device_list"][1],INFLUXDB_MEASUREMENT,'T')))
+            self.table_Plt.children['row3'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["pltC_device_list"][2],INFLUXDB_MEASUREMENT,'T')))
+            self.table_Plt.children['row4'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["pltC_device_list"][3],INFLUXDB_MEASUREMENT,'T')))
             if n_chucks==5:
-                self.table_Plt.children['row5'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["pltC_device_list"][4],'T')))
+                self.table_Plt.children['row5'].children['col2'].set_text(str(get_measurement(self.dbClient,config_device["pltC_device_list"][4],INFLUXDB_MEASUREMENT,'T')))
 
             # -- voltage
-            self.table_Plt.children['row1'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["pltV_device_list"][0],'rH')))
-            self.table_Plt.children['row2'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["pltV_device_list"][1],'rH')))
-            self.table_Plt.children['row3'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["pltV_device_list"][2],'rH')))
-            self.table_Plt.children['row4'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["pltV_device_list"][3],'rH')))
+            self.table_Plt.children['row1'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["pltV_device_list"][0],INFLUXDB_MEASUREMENT,'rH')))
+            self.table_Plt.children['row2'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["pltV_device_list"][1],INFLUXDB_MEASUREMENT,'rH')))
+            self.table_Plt.children['row3'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["pltV_device_list"][2],INFLUXDB_MEASUREMENT,'rH')))
+            self.table_Plt.children['row4'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["pltV_device_list"][3],INFLUXDB_MEASUREMENT,'rH')))
             if n_chucks==5:
-                self.table_Plt.children['row5'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["pltV_device_list"][4],'rH')))
+                self.table_Plt.children['row5'].children['col3'].set_text(str(get_measurement(self.dbClient,config_device["pltV_device_list"][4],INFLUXDB_MEASUREMENT,'rH')))
 
     def main(self):
         return ColdBoxGUI.construct_ui(self)
@@ -548,6 +548,8 @@ if __name__ == "__main__":
     INFLUXDB_PASSWORD = config_influx["influx_pass"]
     INFLUXDB_PORT = config_influx["influx_port"]
     INFLUXDB_DATABASE = config_influx["influx_database"]
+    INFLUXDB_MEASUREMENT = config_influx["influx_measurement"]
+
 
     gui_multiple_instance = config_dic["gui_multiple_instance"]
     gui_enable_file_cache = config_dic["gui_enable_file_cache"]
@@ -569,6 +571,7 @@ if __name__ == "__main__":
     debugPrint('influx_user= '+INFLUXDB_USER)
     debugPrint('influx_port= '+INFLUXDB_PORT)
     debugPrint('influx_database= '+INFLUXDB_DATABASE)
+    debugPrint('influx_measurement= '+INFLUXDB_MEASUREMENT)
 
     debugPrint('coldbox_type= '+coldbox_type)
     debugPrint('n_chucks= '+str(n_chucks))
