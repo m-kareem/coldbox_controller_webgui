@@ -67,7 +67,7 @@ def read_conf(config):
 
         if sec == 'DEVICES':
             for param in config[sec]:
-                print("reading param: "+param)
+                #print("reading param: "+param)
                 if param.startswith('ch_'):
                     ch_device_list.append(config[sec][param])
                 elif param.startswith('mod_'):
@@ -105,7 +105,7 @@ def read_conf(config):
                 elif param == 'gui_enable_file_cache':
                     gui_enable_file_cache = (config[sec][param] == "True")
 
-        config_dic = {
+        config_gui = {
             "gui_server": gui_server,
             "gui_server_port": int(gui_server_port),
             "coldbox_type": coldbox_type,
@@ -140,4 +140,4 @@ def read_conf(config):
             "CB_device_Chiller_flw": CB_device_Chiller_flw,
         }
 
-    return config_dic, config_influx, config_device
+    return config_gui, config_influx, config_device

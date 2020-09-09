@@ -21,10 +21,8 @@ def get_dewpoint(T,RH):
     # constants
     a = 17.271
     b = 237.7 # degC
-    if (T is not None) and (RH is not None):
+    if (T is not None) and (RH is not None) and (RH != 0):
         gamma = (a * T / (b + T)) + np.log(RH/100.0)
-
-    if RH != 0:
         dp_aprox = (b * gamma) / (a - gamma)
     else:
         return -999

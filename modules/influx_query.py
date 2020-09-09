@@ -9,7 +9,7 @@ def influx_init(config_influx):
             config_influx["influx_pass"],
             None)
 
-    dbClient.switch_database(config_influx["influx_database"])
+    #dbClient.switch_database(config_influx["influx_database"])
     return dbClient
 
 
@@ -17,7 +17,8 @@ def influx_init(config_influx):
 #--example of influxQL
 # >> SELECT T FROM "TrH" WHERE "device" = 'esp32test' ORDER BY time DESC LIMIT 1
 #------------------------------
-def get_measurement(dbClient, my_device, my_measurement, my_field):
+def get_measurement(dbClient, dbName, my_device, my_measurement, my_field):
+    dbClient.switch_database(dbName)
     ResultSet = dbClient.query('SELECT * FROM'+' '+my_measurement+ ' GROUP BY * ORDER BY time DESC LIMIT 1;')
     points = list(ResultSet.get_points(measurement=my_measurement, tags={'device':my_device ,'validity': 'true'}))
     try:
@@ -40,6 +41,7 @@ if __name__ == '__main__':
         "influx_database": 'ESP32test',
     }
     _dbClient = influx_init(config_influx)
+    _dbName = config_influx["influx_database"]
 
-    print( get_measurement(_dbClient,'esp32test','TrH','rH') )
-    print( get_measurement(_dbClient,'esp32test','TrH','T') )
+    print( get_measurement(_dbClient,_dbName,'esp32test','TrH','rH') )
+    print( get_measurement(_dbClient,_dbName,'esp32test','TrH','T') )
