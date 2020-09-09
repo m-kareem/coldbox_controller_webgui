@@ -15,7 +15,7 @@ Installation
     `pip3 install -r requirements.txt`
 
 
-- to run the web-gui, execute `python coldbox_controller_webgui.py [-p PORT] -c configFile.conf [-v]`
+- to run the web-gui, execute `python3 coldbox_controller_webgui.py -c configFile.conf [-v]`
 
 
 To do next
