@@ -20,55 +20,33 @@ function openTab(evt, tabName) {
 }
 
 function loadMonitoringPanels() {
-  var listOfEmbedsLarge = [
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=2",
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=5",
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=2",
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=5",
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=2",
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=5"
-    ]
 
-  var listOfEmbedsSmall = [
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=9",
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=9",
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=9",
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=9",
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=9",
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=9",
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=9",
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=9",
+  var listOfEmbedsLarge = configData["listOfEmbedsLarge"];
+  var listOfEmbedsSmall = configData["listOfEmbedsSmall"];
 
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=6",
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=6",
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=6",
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=6",
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=6",
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=6",
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=6",
-      "http://petra.phys.yorku.ca/d-solo/mG6wuGvZk/yorklab-monitoring?orgId=1&refresh=2s&panelId=6"
-    ]
+  renderEmbeds(configData["listOfEmbedsTemperatures"]);
+  renderEmbeds(configData["listOfEmbedsHumidity"]);
+  renderEmbeds(configData["listOfEmbedsLarge"], "618px", "300px");
+}
 
-    for(link of listOfEmbedsSmall){
-      var ifrm = document.createElement("iframe");
-      ifrm.setAttribute("src", link);
-      ifrm.style.width = "140px";
-      ifrm.style.height = "70px";
-      ifrm.style.margin = "10px";
-      document.getElementById("ControlPanel").appendChild(ifrm);
-    }
+function renderEmbeds(listOfEmbeds, width = "140px", height = "70px"){
+  var div = document.createElement("div");
+  div.class = "row";
+  document.getElementById("ControlPanel").appendChild(div);
 
-    for(link of listOfEmbedsLarge){
-      var ifrm = document.createElement("iframe");
-      ifrm.setAttribute("src", link);
-      ifrm.style.width = "618px";
-      ifrm.style.height = "300px";
-      ifrm.style.margin = "10px";
-      document.getElementById("ControlPanel").appendChild(ifrm);
-    }
+  for(link of listOfEmbeds){
+    var ifrm = document.createElement("iframe");
+    ifrm.setAttribute("src", link);
+    ifrm.style.width = width;
+    ifrm.style.height = height;
+    ifrm.style.margin = "10px";
+    div.appendChild(ifrm);
+  }
 }
 
 function setupGUI(){
+  configData = JSON.parse(config);
+
   loadMonitoringPanels();
 
   setupModules();
