@@ -40,6 +40,11 @@ from modules.influx_query import *
 
 #import user_manager
 #from user_manager import *
+
+import modules.GUIlogger as GUIlogger
+from  modules.bcolors import bcolors
+
+
 #--------------------------------------------------------------
 class ColdBoxGUI(App):
     def __init__(self, *args):
@@ -426,9 +431,9 @@ class ColdBoxGUI(App):
     def on_btStart_pressed(self, widget):
         currentDT = datetime.datetime.now()
         current_text=self.read_user_options()
-        print("process started!")
+        logger.info(bcolors.OKGREEN+ "Thermocycling started!"+bcolors.ENDC)
         #current_text= self.statusBox.get_text()
-        self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- process started\n")
+        self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling started\n")
         self.btStart.attributes["disabled"] = ""
         del self.btStop.attributes["disabled"]
         #--FIX ME
@@ -439,8 +444,8 @@ class ColdBoxGUI(App):
     def on_btStop_pressed(self, widget):
         currentDT = datetime.datetime.now()
         current_text= self.statusBox.get_text()
-        print("process stopped!")
-        self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- process stopped!\n")
+        logger.info(bcolors.OKGREEN+ "Thermocycling stopped!"+bcolors.ENDC)
+        self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling stopped!\n")
         self.btStop.attributes["disabled"] = ""
         del self.btStart.attributes["disabled"]
         #--FIX ME
@@ -453,12 +458,11 @@ class ColdBoxGUI(App):
         availavle_chucks=[]
 
         for chuck in self.list_checkBox_ch:
-            debugPrint('chuck.get_value(): '+str(chuck.get_value()))
             availavle_chucks.append(int(chuck.get_value()) )
-        debugPrint('availavle_chucks: '+str(availavle_chucks))
+        logger.debug('availavle_chucks: '+str(availavle_chucks))
 
         self.total_selected_chucks = np.sum(list(map(int,availavle_chucks)))
-        debugPrint('total_selected_chucks: '+str(self.total_selected_chucks))
+        logger.debug('total_selected_chucks: '+str(self.total_selected_chucks))
 
         if self.radioButton_stTest.get_value():
             selected_tests = ' standard'
@@ -466,28 +470,15 @@ class ColdBoxGUI(App):
             selected_tests_helper = [self.checkBox_t1.get_value(),self.checkBox_t2.get_value(),self.checkBox_t3.get_value(),self.checkBox_t4.get_value(),self.checkBox_t5.get_value(),self.checkBox_t6.get_value(),self.checkBox_t7.get_value()]
             selected_tests = str(list(map(int,selected_tests_helper)))
             self.total_selected_tests = np.sum(list(map(int,selected_tests_helper)))
-            debugPrint('custom test is running: '+str(self.total_selected_tests)+' tests')
+            logger.debug('custom test is running: '+str(self.total_selected_tests)+' tests')
 
         user_options = 'User options set:\n'+'-Cycles:'+ str(ncycle) +'\n-Available_chucks:'+str(list(map(int,availavle_chucks)))+'\n-Selected_test(s):'+selected_tests+'\n------\n'
         return user_options
 
-def debugPrint(*str):
-    if verbose:
-        print(bcolors.OKBLUE+'++DEBUG: ',str,bcolors.ENDC)
-
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
 
 if __name__ == "__main__":
+    logger = GUIlogger.init_logger(__name__)
+    logger.info(bcolors.OKGREEN+"Starting ColdJig GUI"+bcolors.ENDC)
     verbose = False # set to Fals if you dont want to print debugging info
     config = conf.ConfigParser()
     configfile = 'default'
@@ -502,8 +493,7 @@ if __name__ == "__main__":
          'help'
          ])
     except getopt.GetoptError as err:
-        print(bcolors.FAIL +'ERROR:', err, bcolors.ENDC)
-        print(bcolors.BOLD+ 'Usage: blah -c configFile'+ bcolors.ENDC)
+        logger.error(bcolors.FAIL +'option requires argument.\n Usage: blah -c configFile \n Process terminated.'+ bcolors.ENDC)
         sys.exit(1)
 
     for opt, arg in options:
@@ -518,20 +508,23 @@ if __name__ == "__main__":
         #    PORT = int(arg)
 
 
-    debugPrint('ARGV   :', sys.argv[1:])
-    debugPrint('OPTIONS   :', options)
+    #logger.debug('ARGV   :', sys.argv[1:])
+    #logger.debug('OPTIONS   :', options)
 
     if not any('-c' in sublist for sublist in options):
-        print(bcolors.WARNING + "WARNING: GUI started without user config. Default configurations will be used." + bcolors.ENDC)
+        logger.error(bcolors.FAIL + "Attempt to start the GUI without user config.\n Process terminated." + bcolors.ENDC)
+        sys.exit(1)
 
     else:
         if os.path.isfile(configfile):
             config.read(configfile)
         else:
-            print(bcolors.FAIL +'Config file does not exist.' +bcolors.ENDC)
+            logger.error(bcolors.FAIL +'Config file does not exist. Process terminated.' +bcolors.ENDC)
             sys.exit(1)
 
+    logger.info(bcolors.OKGREEN+'Reading config file: '+configfile+bcolors.ENDC)
     config_gui, config_influx, config_device = configreader.read_conf(config)
+
 
     gui_server = config_gui["gui_server"]
     gui_server_port = config_gui["gui_server_port"]
@@ -564,36 +557,37 @@ if __name__ == "__main__":
     CB_device_Chiller_T = config_device["CB_device_Chiller_T"]
     CB_device_Chiller_flw = config_device["CB_device_Chiller_flw"]
 
-    debugPrint('server= '+gui_server)
-    debugPrint('port= '+str(gui_server_port))
 
-    debugPrint('influx_server= '+INFLUXDB_ADDRESS)
-    debugPrint('influx_user= '+INFLUXDB_USER)
-    debugPrint('influx_port= '+INFLUXDB_PORT)
-    debugPrint('influx_database= '+INFLUXDB_DATABASE)
-    debugPrint('influx_measurement= '+INFLUXDB_MEASUREMENT)
+    logger.debug('gui_server= '+gui_server)
+    logger.debug('gui_port= '+str(gui_server_port))
 
-    debugPrint('coldbox_type= '+coldbox_type)
-    debugPrint('n_chucks= '+str(n_chucks))
-    debugPrint('plt_fields= '+str(plt_field))
+    logger.debug('influx_server= '+INFLUXDB_ADDRESS)
+    logger.debug('influx_user= '+INFLUXDB_USER)
+    logger.debug('influx_port= '+INFLUXDB_PORT)
+    logger.debug('influx_database= '+INFLUXDB_DATABASE)
+    logger.debug('influx_measurement= '+INFLUXDB_MEASUREMENT)
 
-    debugPrint('gui_debug= '+str(gui_debug))
-    debugPrint('gui_start_browser= '+str(gui_start_browser))
-    debugPrint('gui_multiple_instance= '+str(gui_multiple_instance))
-    debugPrint('gui_enable_file_cache= '+str(gui_enable_file_cache))
+    logger.debug('coldbox_type= '+coldbox_type)
+    logger.debug('n_chucks= '+str(n_chucks))
+    logger.debug('plt_fields= '+str(plt_field))
 
-    debugPrint('CB_device_Chiller_flw= '+CB_device_Chiller_flw)
+    logger.debug('gui_debug= '+str(gui_debug))
+    logger.debug('gui_start_browser= '+str(gui_start_browser))
+    logger.debug('gui_multiple_instance= '+str(gui_multiple_instance))
+    logger.debug('gui_enable_file_cache= '+str(gui_enable_file_cache))
 
-    debugPrint('ch_device_list='+ str(ch_device_list))
-    debugPrint('mod_device_list='+ str(mod_device_list))
-    debugPrint('pltC_device_list='+ str(pltC_device_list))
-    debugPrint('pltV_device_list='+ str(pltV_device_list))
-    #debugPrint('grf_panel_list='+ str(grf_panel_list))
-    #debugPrint('grf_intrl_list='+ str(grf_intrl_list))
+    logger.debug('CB_device_Chiller_flw= '+CB_device_Chiller_flw)
+
+    logger.debug('ch_device_list='+ str(ch_device_list))
+    logger.debug('mod_device_list='+ str(mod_device_list))
+    logger.debug('pltC_device_list='+ str(pltC_device_list))
+    logger.debug('pltV_device_list='+ str(pltV_device_list))
+    #logger.debug('grf_panel_list='+ str(grf_panel_list))
+    #logger.debug('grf_intrl_list='+ str(grf_intrl_list))
 
     #-- checking number of chucks--
     if not (n_chucks==5 or n_chucks==4):
-        print(bcolors.FAIL +'Number of chucks is not supported. Set n_chucks in config file to 4 or 5.' +bcolors.ENDC)
+        logger.error(bcolors.FAIL +'Number of chucks is not supported. Set n_chucks in config file to 4 or 5.' +bcolors.ENDC)
         sys.exit(1)
 
     #exit()

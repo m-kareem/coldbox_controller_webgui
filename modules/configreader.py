@@ -1,4 +1,5 @@
-import logging
+import modules.GUIlogger as GUIlogger
+logger = GUIlogger.init_logger(__name__)
 
 def read_conf(config):
     # -- default vaues ---

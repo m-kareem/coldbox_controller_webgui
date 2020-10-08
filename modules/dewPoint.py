@@ -1,11 +1,11 @@
-
-# approximate dewPoint calculator
+# -- approximate dewPoint calculator
 
 import sys
 import math as np
 #from meteocalc import Temp, dew_point
 
-
+import modules.GUIlogger as GUIlogger
+logger = GUIlogger.init_logger(__name__)
 
 # sys.argv[0] is program name
 #T=float(sys.argv[1])
