@@ -1,6 +1,7 @@
 from influxdb import InfluxDBClient
 
-import modules.GUIlogger as GUIlogger
+#import modules.GUIlogger as GUIlogger
+import modules.GUIcoloredlogs as GUIlogger
 logger = GUIlogger.init_logger(__name__)
 
 def influx_init(config_influx):

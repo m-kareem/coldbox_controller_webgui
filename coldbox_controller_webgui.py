@@ -41,8 +41,9 @@ from modules.influx_query import *
 #import user_manager
 #from user_manager import *
 
-import modules.GUIlogger as GUIlogger
-from  modules.bcolors import bcolors
+#import modules.GUIlogger as GUIlogger
+import modules.GUIcoloredlogs as GUIlogger
+#from  modules.bcolors import bcolors
 
 
 #--------------------------------------------------------------
@@ -431,7 +432,7 @@ class ColdBoxGUI(App):
     def on_btStart_pressed(self, widget):
         currentDT = datetime.datetime.now()
         current_text=self.read_user_options()
-        logger.info(bcolors.OKGREEN+ "Thermocycling started!"+bcolors.ENDC)
+        logger.info("Thermocycling started!")
         #current_text= self.statusBox.get_text()
         self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling started\n")
         self.btStart.attributes["disabled"] = ""
@@ -444,7 +445,7 @@ class ColdBoxGUI(App):
     def on_btStop_pressed(self, widget):
         currentDT = datetime.datetime.now()
         current_text= self.statusBox.get_text()
-        logger.info(bcolors.OKGREEN+ "Thermocycling stopped!"+bcolors.ENDC)
+        logger.info("Thermocycling stopped!")
         self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling stopped!\n")
         self.btStop.attributes["disabled"] = ""
         del self.btStart.attributes["disabled"]
@@ -478,7 +479,8 @@ class ColdBoxGUI(App):
 
 if __name__ == "__main__":
     logger = GUIlogger.init_logger(__name__)
-    logger.info(bcolors.OKGREEN+"Starting ColdJig GUI"+bcolors.ENDC)
+    #logger.info(bcolors.OKGREEN+"Starting ColdJig GUI"+bcolors.ENDC)
+    logger.info("Starting ColdJig GUI")
     verbose = False # set to Fals if you dont want to print debugging info
     config = conf.ConfigParser()
     configfile = 'default'
@@ -493,7 +495,7 @@ if __name__ == "__main__":
          'help'
          ])
     except getopt.GetoptError as err:
-        logger.error(bcolors.FAIL +'option requires argument.\n Usage: blah -c configFile \n Process terminated.'+ bcolors.ENDC)
+        logger.error('option requires argument.\n Usage: blah -c configFile \n Process terminated.')
         sys.exit(1)
 
     for opt, arg in options:
@@ -504,25 +506,22 @@ if __name__ == "__main__":
             configfile = arg
         elif opt in ('-v', '--verbose'):
             verbose = True
-        #elif opt in ('-p', '--port'):  # moved to config file
-        #    PORT = int(arg)
-
-
-    #logger.debug('ARGV   :', sys.argv[1:])
-    #logger.debug('OPTIONS   :', options)
 
     if not any('-c' in sublist for sublist in options):
-        logger.error(bcolors.FAIL + "Attempt to start the GUI without user config.\n Process terminated." + bcolors.ENDC)
+        #logger.error(bcolors.FAIL + "Attempt to start the GUI without user config.\n Process terminated." + bcolors.ENDC)
+        logger.error("Attempt to start the GUI without user config.\n Process terminated.")
         sys.exit(1)
 
     else:
         if os.path.isfile(configfile):
             config.read(configfile)
         else:
-            logger.error(bcolors.FAIL +'Config file does not exist. Process terminated.' +bcolors.ENDC)
+            #logger.error(bcolors.FAIL +'Config file does not exist. Process terminated.' +bcolors.ENDC)
+            logger.error('Config file does not exist. Process terminated.')
             sys.exit(1)
 
-    logger.info(bcolors.OKGREEN+'Reading config file: '+configfile+bcolors.ENDC)
+    #logger.info(bcolors.OKGREEN+'Reading config file: '+configfile+bcolors.ENDC)
+    logger.info('Reading config file: '+configfile)
     config_gui, config_influx, config_device = configreader.read_conf(config)
 
 
@@ -535,6 +534,7 @@ if __name__ == "__main__":
     grf_intrl_list = config_gui["grf_intrl_list"]
     gui_debug = config_gui["gui_debug"]
     gui_start_browser = config_gui["gui_start_browser"]
+    #gui_logging_level = config_gui["gui_logging_level"]
 
     INFLUXDB_ADDRESS = config_influx["influx_server"]
     INFLUXDB_USER = config_influx["influx_user"]
@@ -572,6 +572,7 @@ if __name__ == "__main__":
     logger.debug('plt_fields= '+str(plt_field))
 
     logger.debug('gui_debug= '+str(gui_debug))
+    #logger.debug('gui_logging_level= '+str(gui_logging_level))
     logger.debug('gui_start_browser= '+str(gui_start_browser))
     logger.debug('gui_multiple_instance= '+str(gui_multiple_instance))
     logger.debug('gui_enable_file_cache= '+str(gui_enable_file_cache))
@@ -587,7 +588,8 @@ if __name__ == "__main__":
 
     #-- checking number of chucks--
     if not (n_chucks==5 or n_chucks==4):
-        logger.error(bcolors.FAIL +'Number of chucks is not supported. Set n_chucks in config file to 4 or 5.' +bcolors.ENDC)
+        #logger.error(bcolors.FAIL +'Number of chucks is not supported. Set n_chucks in config file to 4 or 5.' +bcolors.ENDC)
+        logger.error('Number of chucks is not supported. Set n_chucks in config file to 4 or 5.')
         sys.exit(1)
 
     #exit()
