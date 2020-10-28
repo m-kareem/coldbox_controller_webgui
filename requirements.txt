@@ -2,3 +2,4 @@ remi
 influxdb
 numpy
 pickle
+coloredlogs
