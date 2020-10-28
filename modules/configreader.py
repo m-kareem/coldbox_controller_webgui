@@ -1,4 +1,5 @@
-import logging
+import modules.GUIcoloredlogs as GUIlogger
+logger = GUIlogger.init_logger(__name__)
 
 def read_conf(config):
     # -- default vaues ---
@@ -29,6 +30,7 @@ def read_conf(config):
     gui_start_browser = True
     gui_multiple_instance = False
     gui_enable_file_cache = False
+    #gui_logging_level = 'INFO'
     # ------------------------
 
     grf_panel_list=[]
@@ -104,6 +106,8 @@ def read_conf(config):
                     gui_multiple_instance = (config[sec][param] == "True")
                 elif param == 'gui_enable_file_cache':
                     gui_enable_file_cache = (config[sec][param] == "True")
+                #elif param == 'gui_logging_level':
+                #    gui_logging_level = config[sec][param]
 
         config_gui = {
             "gui_server": gui_server,
@@ -117,6 +121,7 @@ def read_conf(config):
             "gui_start_browser": gui_start_browser,
             "gui_multiple_instance": gui_multiple_instance,
             "gui_enable_file_cache": gui_enable_file_cache,
+            #"gui_logging_level": gui_logging_level
         }
 
         config_influx = {
