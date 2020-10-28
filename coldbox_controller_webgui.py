@@ -45,6 +45,8 @@ from modules.influx_query import *
 import modules.GUIcoloredlogs as GUIlogger
 #from  modules.bcolors import bcolors
 
+import threading
+
 
 #--------------------------------------------------------------
 class ColdBoxGUI(App):
@@ -56,7 +58,7 @@ class ColdBoxGUI(App):
         self.dbClient= influx_init(config_influx)
 
     def idle(self):
-        #idle function called every update cycle
+        #idle function called every update cycle (e.g. update_interval=0.1 argument in 'start' function)
 
         # -- updating the logBox
         if not verbose:
@@ -65,49 +67,45 @@ class ColdBoxGUI(App):
             lines.reverse()
             self.stdout_LogBox.set_text("".join(lines))
 
+        # ======== updating tables in TAB 2 with realtime data
 
-        # -- updating the labels with realtime data
-        self.table_amb.children['row0'].children['col2'].set_text(str(get_measurement(self.dbClient, INFLUXDB_DATABASE,config_device["CB_device_rH"],INFLUXDB_MEASUREMENT,'rH')))
-        self.table_amb.children['row1'].children['col2'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_T"],INFLUXDB_MEASUREMENT,'T')))
-        self.table_amb.children['row2'].children['col2'].set_text(str(get_dewpoint(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_T"],INFLUXDB_MEASUREMENT,'T'), get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_rH"],INFLUXDB_MEASUREMENT,'rH') )))
-        self.table_amb.children['row3'].children['col2'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_N2flw"],INFLUXDB_MEASUREMENT,'T')))
-        self.table_amb.children['row4'].children['col2'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_Chiller_T"],INFLUXDB_MEASUREMENT,'T')))
-        self.table_amb.children['row5'].children['col2'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_Chiller_flw"],INFLUXDB_MEASUREMENT,'T')))
+        #--- chucks / Modules temperature
+        self.table_t.children['row1'].children['col2'].set_text(self.readout_table_t['row1_col2'])
+        self.table_t.children['row2'].children['col2'].set_text(self.readout_table_t['row2_col2'])
+        self.table_t.children['row3'].children['col2'].set_text(self.readout_table_t['row3_col2'])
+        self.table_t.children['row4'].children['col2'].set_text(self.readout_table_t['row4_col2'])
 
-        # filling temperature table in TAB 2
-        #--- chucks temperature
-        self.table_t.children['row1'].children['col2'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["ch_device_list"][0],INFLUXDB_MEASUREMENT,'T')))
-        self.table_t.children['row2'].children['col2'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["ch_device_list"][1],INFLUXDB_MEASUREMENT,'T')))
-        self.table_t.children['row3'].children['col2'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["ch_device_list"][2],INFLUXDB_MEASUREMENT,'T')))
-        self.table_t.children['row4'].children['col2'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["ch_device_list"][3],INFLUXDB_MEASUREMENT,'T')))
+        self.table_t.children['row1'].children['col3'].set_text(self.readout_table_t['row1_col3'])
+        self.table_t.children['row2'].children['col3'].set_text(self.readout_table_t['row2_col3'])
+        self.table_t.children['row3'].children['col3'].set_text(self.readout_table_t['row3_col3'])
+        self.table_t.children['row4'].children['col3'].set_text(self.readout_table_t['row4_col3'])
         if n_chucks==5:
-            self.table_t.children['row5'].children['col2'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["ch_device_list"][4],INFLUXDB_MEASUREMENT,'T')))
+            self.table_t.children['row5'].children['col2'].set_text(self.readout_table_t['row5_col2'])
+            self.table_t.children['row5'].children['col3'].set_text(self.readout_table_t['row5_col3'])
 
-        # --- Modules temperature
-        self.table_t.children['row1'].children['col3'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["mod_device_list"][0],INFLUXDB_MEASUREMENT,'rH')))
-        self.table_t.children['row2'].children['col3'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["mod_device_list"][1],INFLUXDB_MEASUREMENT,'rH')))
-        self.table_t.children['row3'].children['col3'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["mod_device_list"][2],INFLUXDB_MEASUREMENT,'rH')))
-        self.table_t.children['row4'].children['col3'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["mod_device_list"][3],INFLUXDB_MEASUREMENT,'rH')))
-        if n_chucks==5:
-            self.table_t.children['row5'].children['col3'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["mod_device_list"][4],INFLUXDB_MEASUREMENT,'rH')))
+        #----------- Ambient data
+        self.table_amb.children['row0'].children['col2'].set_text(self.readout_table_amb['row0_col2'])
+        self.table_amb.children['row1'].children['col2'].set_text(self.readout_table_amb['row1_col2'])
+        self.table_amb.children['row2'].children['col2'].set_text(self.readout_table_amb['row2_col2'])
+        self.table_amb.children['row3'].children['col2'].set_text(self.readout_table_amb['row3_col2'])
+        self.table_amb.children['row4'].children['col2'].set_text(self.readout_table_amb['row4_col2'])
+        self.table_amb.children['row5'].children['col2'].set_text(self.readout_table_amb['row5_col2'])
 
-        # filling Peltiers table in TAB 2
+        #--- current / voltage
         if (plt_field):
-            # -- current
-            self.table_Plt.children['row1'].children['col2'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltC_device_list"][0],INFLUXDB_MEASUREMENT,'T')))
-            self.table_Plt.children['row2'].children['col2'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltC_device_list"][1],INFLUXDB_MEASUREMENT,'T')))
-            self.table_Plt.children['row3'].children['col2'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltC_device_list"][2],INFLUXDB_MEASUREMENT,'T')))
-            self.table_Plt.children['row4'].children['col2'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltC_device_list"][3],INFLUXDB_MEASUREMENT,'T')))
-            if n_chucks==5:
-                self.table_Plt.children['row5'].children['col2'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltC_device_list"][4],INFLUXDB_MEASUREMENT,'T')))
+            self.table_Plt.children['row1'].children['col2'].set_text(self.readout_table_plt['row1_col2'])
+            self.table_Plt.children['row2'].children['col2'].set_text(self.readout_table_plt['row2_col2'])
+            self.table_Plt.children['row3'].children['col2'].set_text(self.readout_table_plt['row3_col2'])
+            self.table_Plt.children['row4'].children['col2'].set_text(self.readout_table_plt['row4_col2'])
 
-            # -- voltage
-            self.table_Plt.children['row1'].children['col3'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltV_device_list"][0],INFLUXDB_MEASUREMENT,'rH')))
-            self.table_Plt.children['row2'].children['col3'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltV_device_list"][1],INFLUXDB_MEASUREMENT,'rH')))
-            self.table_Plt.children['row3'].children['col3'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltV_device_list"][2],INFLUXDB_MEASUREMENT,'rH')))
-            self.table_Plt.children['row4'].children['col3'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltV_device_list"][3],INFLUXDB_MEASUREMENT,'rH')))
+            self.table_Plt.children['row1'].children['col3'].set_text(self.readout_table_plt['row1_col3'])
+            self.table_Plt.children['row2'].children['col3'].set_text(self.readout_table_plt['row2_col3'])
+            self.table_Plt.children['row3'].children['col3'].set_text(self.readout_table_plt['row3_col3'])
+            self.table_Plt.children['row4'].children['col3'].set_text(self.readout_table_plt['row4_col3'])
             if n_chucks==5:
-                self.table_Plt.children['row5'].children['col3'].set_text(str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltV_device_list"][4],INFLUXDB_MEASUREMENT,'rH')))
+                self.table_Plt.children['row5'].children['col2'].set_text(self.readout_table_plt['row5_col2'])
+                self.table_Plt.children['row5'].children['col3'].set_text(self.readout_table_plt['row5_col3'])
+
 
     def main(self):
         return ColdBoxGUI.construct_ui(self)
@@ -402,6 +400,23 @@ class ColdBoxGUI(App):
 
         # returning the root widget
         #return verticalContainer_tb1
+
+        #================== Thread management =============================================================================
+        self.thread_alive_flag = True
+        table_kys1=['row1_col2','row2_col2','row3_col2','row4_col2','row5_col2','row1_col3','row2_col3','row3_col3','row4_col3','row5_col3']
+        table_kys2=['row0_col2','row1_col2','row2_col2','row3_col2','row4_col2','row5_col2']
+        self.readout_table_t= dict.fromkeys(table_kys1,'None')
+        self.readout_table_plt = dict.fromkeys(table_kys1,'None')
+        self.readout_table_amb= dict.fromkeys(table_kys2,'None')
+
+        thread_table_t = threading.Thread(target=self.update_table_t)
+        thread_table_plt = threading.Thread(target=self.update_table_plt)
+        thread_table_amb = threading.Thread(target=self.update_table_amb)
+        thread_table_t.start()
+        thread_table_plt.start()
+        thread_table_amb.start()
+
+
         return tabBox
 
 
@@ -443,6 +458,11 @@ class ColdBoxGUI(App):
 
 
     def on_btStop_pressed(self, widget):
+        self.dialog = gui.GenericDialog(title='attempt to stop Thermocycling', message='Are you sure you want to terminate the Thermocycling?', width='500px')
+        self.dialog.confirm_dialog.do(self.Terminate_thermocycling)
+        self.dialog.show(self)
+
+    def Terminate_thermocycling(self, widget):
         currentDT = datetime.datetime.now()
         current_text= self.statusBox.get_text()
         logger.info("Thermocycling stopped!")
@@ -452,6 +472,7 @@ class ColdBoxGUI(App):
         #--FIX ME
         #del self.subContainerRight_1.style['pointer-events']
         #del self.subContainerRight_1.style['opacity']
+        self.notification_message("Thermocycling terminated!", "")
 
 
     def read_user_options(self):
@@ -475,6 +496,53 @@ class ColdBoxGUI(App):
 
         user_options = 'User options set:\n'+'-Cycles:'+ str(ncycle) +'\n-Available_chucks:'+str(list(map(int,availavle_chucks)))+'\n-Selected_test(s):'+selected_tests+'\n------\n'
         return user_options
+
+    def update_table_t(self):
+        while self.thread_alive_flag:
+            self.readout_table_t['row1_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["ch_device_list"][0],INFLUXDB_MEASUREMENT,'T'))
+            self.readout_table_t['row2_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["ch_device_list"][1],INFLUXDB_MEASUREMENT,'T'))
+            self.readout_table_t['row3_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["ch_device_list"][2],INFLUXDB_MEASUREMENT,'T'))
+            self.readout_table_t['row4_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["ch_device_list"][3],INFLUXDB_MEASUREMENT,'T'))
+
+            self.readout_table_t['row1_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["mod_device_list"][0],INFLUXDB_MEASUREMENT,'rH'))
+            self.readout_table_t['row2_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["mod_device_list"][1],INFLUXDB_MEASUREMENT,'rH'))
+            self.readout_table_t['row3_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["mod_device_list"][2],INFLUXDB_MEASUREMENT,'rH'))
+            self.readout_table_t['row4_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["mod_device_list"][3],INFLUXDB_MEASUREMENT,'rH'))
+            if n_chucks==5:
+                self.readout_table_t['row5_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["ch_device_list"][4],INFLUXDB_MEASUREMENT,'T'))
+                self.readout_table_t['row5_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["mod_device_list"][4],INFLUXDB_MEASUREMENT,'rH'))
+            time.sleep(5)
+
+    def update_table_plt(self):
+        while self.thread_alive_flag:
+            self.readout_table_plt['row1_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltC_device_list"][0],INFLUXDB_MEASUREMENT,'T'))
+            self.readout_table_plt['row2_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltC_device_list"][1],INFLUXDB_MEASUREMENT,'T'))
+            self.readout_table_plt['row3_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltC_device_list"][2],INFLUXDB_MEASUREMENT,'T'))
+            self.readout_table_plt['row4_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltC_device_list"][3],INFLUXDB_MEASUREMENT,'T'))
+
+            self.readout_table_plt['row1_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltV_device_list"][0],INFLUXDB_MEASUREMENT,'rH'))
+            self.readout_table_plt['row2_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltV_device_list"][1],INFLUXDB_MEASUREMENT,'rH'))
+            self.readout_table_plt['row3_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltV_device_list"][2],INFLUXDB_MEASUREMENT,'rH'))
+            self.readout_table_plt['row4_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltV_device_list"][3],INFLUXDB_MEASUREMENT,'rH'))
+            if n_chucks==5:
+                self.readout_table_plt['row5_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltC_device_list"][4],INFLUXDB_MEASUREMENT,'T'))
+                self.readout_table_plt['row5_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltV_device_list"][4],INFLUXDB_MEASUREMENT,'rH'))
+            time.sleep(5)
+
+
+    def update_table_amb(self):
+        while self.thread_alive_flag:
+            self.readout_table_amb['row0_col2']= str(get_measurement(self.dbClient, INFLUXDB_DATABASE,config_device["CB_device_rH"],INFLUXDB_MEASUREMENT,'rH'))
+            self.readout_table_amb['row1_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_T"],INFLUXDB_MEASUREMENT,'T'))
+            self.readout_table_amb['row2_col2']= str(get_dewpoint(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_T"],INFLUXDB_MEASUREMENT,'T'), get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_rH"],INFLUXDB_MEASUREMENT,'rH') ))
+            self.readout_table_amb['row3_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_N2flw"],INFLUXDB_MEASUREMENT,'T'))
+            self.readout_table_amb['row4_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_Chiller_T"],INFLUXDB_MEASUREMENT,'T'))
+            self.readout_table_amb['row5_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_Chiller_flw"],INFLUXDB_MEASUREMENT,'T'))
+            time.sleep(5)
+
+    def on_close(self):
+        self.thread_alive_flag = False
+        super(ColdBoxGUI, self).on_close()
 
 
 if __name__ == "__main__":
@@ -599,4 +667,5 @@ if __name__ == "__main__":
         sys.stdout = sys.stderr = stdout_string_io
 
     #--starts the webserver / optional parameters
+    #start(ColdBoxGUI, update_interval=0.5, debug=gui_debug, address=gui_server, port=gui_server_port, start_browser=gui_start_browser, multiple_instance=gui_multiple_instance, enable_file_cache=gui_enable_file_cache)
     start(ColdBoxGUI, debug=gui_debug, address=gui_server, port=gui_server_port, start_browser=gui_start_browser, multiple_instance=gui_multiple_instance, enable_file_cache=gui_enable_file_cache)
