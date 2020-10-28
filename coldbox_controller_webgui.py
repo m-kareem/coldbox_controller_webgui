@@ -292,16 +292,15 @@ class ColdBoxGUI(App):
             self.grafana_intrl_list.append(self.grafana_inter)
 
 
-        #--------------------------- Wrapping the subcontainers -----------------------------------------
-        horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight, subContainerLog])
-
         horizontalContainer_grafana_panels.append([self.grafana_panel_list])
         horizontalContainer_grafana_intrl.append([self.grafana_intrl_list])
 
+        #--------------------------- Wrapping the subcontainers -----------------------------------------
+        horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight, subContainerLog])
 
 
         #--------------------------- TAB 1 -----------------------------------------
-        verticalContainer_tb1.append([horizontalContainer_logo, horizontalContainer, horizontalContainer_grafana_intrl, horizontalContainer_grafana_panels])
+        verticalContainer_tb1.append([horizontalContainer_logo, horizontalContainer])
 
 
         #===================================== TAB 2 =================================================
@@ -401,6 +400,11 @@ class ColdBoxGUI(App):
         # returning the root widget
         #return verticalContainer_tb1
 
+        #=========================== Appending TabBox and Grafana plots to a vertical main container ======================
+
+        main_container = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
+        main_container.append([tabBox, horizontalContainer_grafana_intrl, horizontalContainer_grafana_panels])
+
         #================== Thread management =============================================================================
         self.thread_alive_flag = True
         table_kys1=['row1_col2','row2_col2','row3_col2','row4_col2','row5_col2','row1_col3','row2_col3','row3_col3','row4_col3','row5_col3']
@@ -417,7 +421,7 @@ class ColdBoxGUI(App):
         thread_table_amb.start()
 
 
-        return tabBox
+        return main_container
 
 
     #=============================== SLOT functions =====================================================
@@ -552,7 +556,7 @@ if __name__ == "__main__":
     verbose = False # set to Fals if you dont want to print debugging info
     config = conf.ConfigParser()
     configfile = 'default'
-
+    
     try:
         options, remainder = getopt.getopt(
         sys.argv[1:],
