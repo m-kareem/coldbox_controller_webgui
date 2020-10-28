@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title></title>
+    <link rel="stylesheet" href="style.css">
+    <script type="text/javascript" src="functions.js" charset="utf-8"></script>
+    <script type="text/javascript" src="config.json"></script>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+  </head>
+  <body onload="setupGUI()">
+    <!-- Tab links -->
+   <div class="tab">
+     <button class="tablinks" onclick="openTab(event, 'ControlPanel')">Control Panel</button>
+     <button class="tablinks" onclick="openTab(event, 'Monitoring')">Monitoring</button>
+     <button class="tablinks" onclick="openTab(event, 'Advanced')">Advanced</button>
+     <button class="tablinks" onclick="openTab(event, 'About')">About</button>
+   </div>
+
+   <!-- Tab content -->
+   <div id="ControlPanel" class="tabcontent">
+     <h3>Control Panel</h3>
+       <div class="row">
+         <div class="col-md-3">
+           <h4>Devices</h4>
+           <table class="table" id = "moduleTable">
+             <tr>
+               <th>Available chuck</th>
+               <th>Module flavour</th>
+               <th>Serial #</th>
+             </tr>
+
+           </table>
+         </div>
+
+         <div class="col-md-3">
+           <h4>Tests</h4>
+           <div class="radio">
+              <label>
+                <input type="radio" name="optionsRadios" id="standardTests" value="standardTests" checked onclick="toggleCustomTests()">
+                Standard tests
+              </label>
+            </div>
+            <div class="radio">
+              <label>
+                <input type="radio" name="optionsRadios" id="customTests" value="customTests" onclick="toggleCustomTests()">
+                Custom tests
+              </label>
+            </div>
+            <div id="customTestsArea" class="hidden">
+              <div id="testList">
+              </div>
+              <button class="btn btn-default" id="addButton" type="button">Add test</button>
+            </div>
+         </div>
+
+         <div class="col-md-3">
+           <h4>Controles</h4>
+           <button class="btn btn-success" onclick="startColdbox();" id="startButton">START</button>
+           <button class="btn btn-danger" disabled="disabled" onclick="stopColdbox();" id="stopButton">STOP</button>
+           <div class="input-group">
+              # of cycles
+              <select class="form-control" id="numberCycles">
+                <option>5</option>
+                <option>10</option>
+                <option>15</option>
+              </select>
+           </div>
+         </div>
+
+         <div class="col-md-3">
+           <h4>Log</h4>
+           <div class="bg-primary" style="max-height: 200px; overflow: auto!important;" id="logBox">
+           </div>
+         </div>
+       </div>
+       <div class="">
+
+       </div>
+
+   </div>
+
+   <div id="Monitoring" class="tabcontent">
+     <h3>Monitoring</h3>
+     <p>Paris is the capital of France.</p>
+   </div>
+
+   <div id="Advanced" class="tabcontent">
+     <h3>Advanced</h3>
+     <p>Tokyo is the capital of Japan.</p>
+   </div>
+
+   <div id="About" class="tabcontent">
+     <h3>About</h3>
+     <p>Written by Mahammad and Ben.</p>
+   </div>
+
+   <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+   <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ" crossorigin="anonymous"></script>
+   <!-- Include all compiled plugins (below), or include individual files as needed -->
+   <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+  </body>
+</html>
