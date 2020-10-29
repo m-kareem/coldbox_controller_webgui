@@ -33,7 +33,7 @@ class InputCheckable(gui.Input):
         self.set_value(status_on)
         self.attributes[gui.Widget.EVENT_ONCHANGE] = \
             "var params={};params['value']=document.getElementById('%(emitter_identifier)s').checked;" \
-            "sendCallbackParam('%(emitter_identifier)s','%(event_name)s',params);" % \
+            "remi.sendCallbackParam('%(emitter_identifier)s','%(event_name)s',params);" % \
             {'emitter_identifier': str(self.identifier), 'event_name': gui.Widget.EVENT_ONCHANGE}
 
     @gui.decorate_event
