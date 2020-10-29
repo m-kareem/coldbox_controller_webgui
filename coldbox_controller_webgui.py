@@ -3,9 +3,7 @@
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
-
        http://www.apache.org/licenses/LICENSE-2.0
-
    Unless required by applicable law or agreed to in writing, software
    distributed under the License is distributed on an "AS IS" BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -113,36 +111,40 @@ class ColdBoxGUI(App):
 
     @staticmethod
     def construct_ui(self):
-    #def main(self):
         # the margin 0px auto centers the main container
-        verticalContainer_tb1 = gui.Container(width=1400, margin='0px auto', style={'display': 'block', 'overflow': 'hidden'})
-        verticalContainer_tb2 = gui.Container(width=1500, margin='0px auto', style={'display': 'block', 'overflow': 'hidden'})
-        verticalContainer_tb3 = gui.Container(width=1500, margin='0px auto', style={'display': 'block', 'overflow': 'hidden'})
-        verticalContainer_tb4 = gui.Container(width=1500, margin='0px auto', style={'display': 'block', 'overflow': 'hidden'})
+        verticalContainer_tb1 = gui.VBox(width = "100%", height=550)
+        verticalContainer_tb2 = gui.VBox(width = "100%", height=550)
+        verticalContainer_tb3 = gui.VBox(width = "100%", height=550)
+        verticalContainer_tb4 = gui.VBox(width = "100%", height=550)
 
         horizontalContainer_logo = gui.Container(width='20%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
-        horizontalContainer = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
-        horizontalContainer_grafana_panels = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
-        horizontalContainer_grafana_intrl = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
+        horizontalContainer = gui.HBox(width = "95%")
 
+        horizontalContainer_grafana_intrl = gui.HBox(width = "100%")
+        horizontalContainer_grafana_intrl.style['justify-content'] ='flex-start'
+        horizontalContainer_grafana_intrl.style['align-items'] = 'flex-start'
+
+        horizontalContainer_grafana_panels = gui.HBox(width = "100%")
+        horizontalContainer_grafana_panels.style['justify-content'] ='flex-start'
+        horizontalContainer_grafana_panels.style['align-items'] = 'flex-start'
 
         #--------------------------InfluxDB -----------------
         self.dbClient = InfluxDBClient(INFLUXDB_ADDRESS, 8086, INFLUXDB_USER, INFLUXDB_PASSWORD, None)
-
 
         #--------logo Container ---------------
         self.img_logo = gui.Image('/my_res:ITKlogo.png', width=200, height=67)
         horizontalContainer_logo.append(self.img_logo)
 
 
+        #============================================= Tab 1 =============================================
         #-------------------------- Left V Container ---------------------
-        subContainerLeft = gui.Container(width=420, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        subContainerLeft_1 = gui.Container(width=110, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        subContainerLeft_2 = gui.Container(width=110, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        subContainerLeft_3 = gui.Container(width=200, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        subContainerLeft = gui.HBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
+        subContainerLeft_1 = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
+        subContainerLeft_2 = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
+        subContainerLeft_3 = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
 
 
-        self.lbl_01 = gui.Label('Available chk.', width=250, height=20, margin='20px',style={'font-size': '13px', 'font-weight': 'bold'})
+        self.lbl_01 = gui.Label('Available chk.', width=100, height=20, margin='20px',style={'font-size': '14px', 'font-weight': 'bold'})
         self.checkBox_ch1 = gui.CheckBoxLabel('Chuck 1', False, width=80, height=20, margin='15px')
         self.checkBox_ch2 = gui.CheckBoxLabel('Chuck 2', False, width=80, height=20, margin='15px')
         self.checkBox_ch3 = gui.CheckBoxLabel('Chuck 3', False, width=80, height=20, margin='15px')
@@ -156,7 +158,7 @@ class ColdBoxGUI(App):
             checkBox.onchange.do(self.onchange_checkbox_ch)
 
 
-        self.lbl_02 = gui.Label('Module Flv.', width=230, height=20, margin='20px',style={'font-size': '13px', 'font-weight': 'bold'})
+        self.lbl_02 = gui.Label('Module Flv.', width=100, height=20, margin='20px',style={'font-size': '14px', 'font-weight': 'bold'})
         self.dropDown_ch1 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='15px')
         self.dropDown_ch2 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='15px')
         self.dropDown_ch3 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='15px')
@@ -172,7 +174,7 @@ class ColdBoxGUI(App):
             dropDown.style['opacity'] = '0.4' #this is to give a disabled apparence
 
 
-        self.lbl_03 = gui.Label('Serial #', width=200, height=20, margin='20px',style={'font-size': '13px', 'font-weight': 'bold'})
+        self.lbl_03 = gui.Label('Serial #', width=100, height=20, margin='20px',style={'font-size': '14px', 'font-weight': 'bold'})
         self.textinput_ch1 = gui.TextInput(width=120, height=20,margin='15px')
         self.textinput_ch2 = gui.TextInput(width=120, height=20,margin='15px')
         self.textinput_ch3 = gui.TextInput(width=120, height=20,margin='15px')
@@ -190,33 +192,47 @@ class ColdBoxGUI(App):
         subContainerLeft_2.append([self.lbl_02, self.list_dropDown_ch])
         subContainerLeft_3.append([self.lbl_03, self.list_textinput_ch])
 
+        subContainerLeft_1.style['justify-content'] ='space-around'
+        subContainerLeft_1.style['align-items'] = 'flex-start'
+
+        subContainerLeft_2.style['justify-content'] ='space-around'
+        subContainerLeft_2.style['align-items'] = 'flex-start'
+
+        subContainerLeft_3.style['justify-content'] ='space-around'
+        subContainerLeft_3.style['align-items'] = 'flex-start'
+
         subContainerLeft.append([subContainerLeft_1,subContainerLeft_2,subContainerLeft_3])
+        subContainerLeft.style['justify-content'] ='space-around'
+        subContainerLeft.style['align-items'] = 'flex-start'
 
         #-------------------------- Middle V Container ---------------------
-        subContainerMiddle = gui.Container(width=250, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        subContainerMiddle_1 = gui.Container(width=250, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.subContainerMiddle_2 = gui.Container(width=250, layout_orientation=gui.Container.LAYOUT_VERTICAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left','border':'Sens solid black'})
-
+        subContainerMiddle = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'space-around'})
+        subContainerMiddle_1 = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'space-around'})
+        self.subContainerMiddle_2 = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'space-around'})
 
         self.lbl_05 = gui.Label('Tests', width=200, height=20, margin='15px',style={'font-size': '15px', 'font-weight': 'bold'})
         self.radioButton_stTest = RadioButtonWithLabel('Standard tests',True, 'groupTests', width=250, height=20, margin='10px')
         self.radioButton_cuTest = RadioButtonWithLabel('Custom tests',False, 'groupTests', width=250, height=20, margin='10px')
 
-        self.checkBox_t1 = gui.CheckBoxLabel('Strobe Delay', False, width=110, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t2 = gui.CheckBoxLabel('Three Point Gain', False, width=140, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t3 = gui.CheckBoxLabel('Trim Range', False, width=105, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t4 = gui.CheckBoxLabel('Three Point Gain part 2', False, width=180, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t5 = gui.CheckBoxLabel('Response Curve', False, width=135, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t6 = gui.CheckBoxLabel('Three Point Gain High Stats', False, width=210, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t7 = gui.CheckBoxLabel('Noise Occupancy', False, width=145, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.checkBox_t1 = gui.CheckBoxLabel('Strobe Delay', False, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.checkBox_t2 = gui.CheckBoxLabel('Three Point Gain', False, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.checkBox_t3 = gui.CheckBoxLabel('Trim Range', False, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.checkBox_t4 = gui.CheckBoxLabel('Three Point Gain part 2', False, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.checkBox_t5 = gui.CheckBoxLabel('Response Curve', False, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.checkBox_t6 = gui.CheckBoxLabel('Three Point Gain High Stats', False, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        self.checkBox_t7 = gui.CheckBoxLabel('Noise Occupancy', False, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
 
-        #subContainerMiddle_1.append([self.lbl_05, self.dropDown_tests])
         subContainerMiddle_1.append([self.lbl_05, self.radioButton_stTest, self.radioButton_cuTest])
         self.subContainerMiddle_2.append([self.checkBox_t1,self.checkBox_t2,self.checkBox_t3,self.checkBox_t4,self.checkBox_t5,self.checkBox_t6,self.checkBox_t7])
 
 
         self.subContainerMiddle_2.style['pointer-events'] = 'none'
         self.subContainerMiddle_2.style['opacity'] = '0.4' #this is to give a disabled apparence
+
+        subContainerMiddle_1.style['justify-content'] ='space-around'
+        subContainerMiddle_1.style['align-items'] = 'flex-start'
+        self.subContainerMiddle_2.style['justify-content'] ='space-around'
+        self.subContainerMiddle_2.style['align-items'] = 'flex-start'
 
         self.radioButton_stTest.onchange.do(self.radio_changed)
         self.radioButton_cuTest.onchange.do(self.radio_changed)
@@ -225,51 +241,171 @@ class ColdBoxGUI(App):
 
         #-------------------------- Right V Container ---------------------
         # the arguments are	width - height - layoutOrientationOrizontal
-        subContainerRight = gui.Container(width=300, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        subContainerRight = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
+        self.subContainerRight_1 = gui.HBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
+        self.subContainerRight_2 = gui.HBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
+        self.subContainerRight_3 = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
 
-        self.subContainerRight_1 = gui.Container(width=300, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.subContainerRight_2 = gui.Container(width=300, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.subContainerRight_3 = gui.Container(width=300, layout_orientation=gui.Container.LAYOUT_VERTICAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-
-        self.lbl_04 = gui.Label('Controles', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.lbl_04 = gui.Label('Controls', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
 
 
-        self.btStart = gui.Button('START', width=100, height=30, margin='10px',style={'font-size': '16px', 'font-weight': 'bold','background-color': '#28B463'})
+        self.btStart = gui.Button('START', width=100, height=30, margin='15px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#28B463'})
         self.btStart.onclick.do(self.on_btStart_pressed)
 
-        self.btStop = gui.Button('STOP', width=100, height=30, margin='10px',style={'font-size': '16px', 'font-weight': 'bold','background-color': '#C0392B'})
+        self.btStop = gui.Button('STOP', width=100, height=30, style={'font-size': '16px', 'font-weight': 'bold','background-color': '#C0392B'})
         self.btStop.attributes["disabled"] = ""
         self.btStop.onclick.do(self.on_btStop_pressed)
 
         self.subContainerRight_1.append([self.btStart,self.btStop])
+        self.subContainerRight_1.style['justify-content'] ='flex-start'
+        self.subContainerRight_1.style['align-items'] = 'center'
 
-
-        self.lbl_spin = gui.Label('# of cycles', width=100, height=20, margin='5px')
-        self.spin = gui.SpinBox(10, 1, 100, width=100, height=20, margin='10px')
+        self.lbl_spin = gui.Label('# of cycles', width=100, height=20, margin='15px')
+        self.spin = gui.SpinBox(10, 1, 100, width=100, height=20)
         #self.spin.onchange.do(self.on_spin_change)
 
         self.subContainerRight_2.append([self.lbl_spin,self.spin])
+        self.subContainerRight_2.style['justify-content'] ='flex-start'
+        self.subContainerRight_2.style['align-items'] = 'center'
 
-        self.lbl_status = gui.Label('Status', width=200, height=30, margin='1px',style={'font-size': '15px', 'font-weight': 'bold'})
-        self.statusBox = gui.TextInput(False,width=280, height=160, margin='1px')
+        self.lbl_status = gui.Label('Status', height=20, margin='1px', style={'font-size': '15px', 'font-weight': 'bold'})
+        self.statusBox = gui.TextInput(False,width=280, height=160)
 
         self.subContainerRight_3.append([self.lbl_status,self.statusBox])
         subContainerRight.append([self.lbl_04,self.subContainerRight_1 ,self.subContainerRight_2, self.subContainerRight_3])
+        self.subContainerRight_3.style['justify-content'] ='space-between'
+        self.subContainerRight_3.style['align-items'] = 'flex-start'
 
+        subContainerRight.style['justify-content'] ='space-around'
+        subContainerRight.style['align-items'] = 'flex-start'
 
         #-------------------------- Log Container ---------------------
         # the arguments are	width - height - layoutOrientationOrizontal
-        subContainerLog = gui.Container(width=380, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.subContainerLog_1 = gui.Container(width=380, layout_orientation=gui.Container.LAYOUT_VERTICAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
+        subContainerLog = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
+        self.subContainerLog_1 = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
 
-        self.lbl_LogBox = gui.Label('Log', width=200, height=30, margin='1px',style={'font-size': '15px', 'font-weight': 'bold'})
-        self.stdout_LogBox = gui.TextInput(False,width=380, height=295, margin='1px')
+        self.lbl_LogBox = gui.Label('Log', width=200, height=20, margin='1px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.stdout_LogBox = gui.TextInput(False,width=380, height=395, margin='1px')
 
         self.subContainerLog_1.append([self.lbl_LogBox, self.stdout_LogBox])
         subContainerLog.append(self.subContainerLog_1)
 
+        self.subContainerLog_1.style['justify-content'] ='space-around'
+        self.subContainerLog_1.style['align-items'] = 'flex-start'
 
-        #----------- Grafana pannels and interlocks -----------------------------------------
+        #- Wrapping the subcontainers
+        horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight, subContainerLog])
+        horizontalContainer.style['justify-content'] ='flex-start'
+        horizontalContainer.style['align-items'] = 'flex-start'
+
+
+        verticalContainer_tb1.append([horizontalContainer_logo, horizontalContainer])
+        verticalContainer_tb1.style['justify-content'] ='flex-start'
+        verticalContainer_tb1.style['align-items'] = 'flex-start'
+
+
+        #===================================== TAB 2 =================================================
+        horizontalContainer_tb2 = gui.HBox(width='70%')
+
+        self.lbl_placeHolder = gui.Label('Place holder content', width=200, height=30, margin='10px',style={'font-size': '15px', 'font-weight': 'bold','color': 'red'})
+
+        #------ Left Container ---------
+        subContainerLeft_tb2 = gui.VBox(width='100%')
+        self.lbl_temp = gui.Label('Temperature[C]', height=20, margin='10px', style={'font-size': '15px', 'font-weight': 'bold'})
+
+
+        # Temperatues table
+        self.table_t = gui.Table(children={
+            'row0': gui.TableRow({'col1':'  #  ', 'col2':'Chuck', 'col3':'Module'}),
+            'row1': gui.TableRow({'col1':'1','col2':'', 'col3':''}),
+            'row2': gui.TableRow({'col1':'2','col2':'', 'col3':''}),
+            'row3': gui.TableRow({'col1':'3','col2':'', 'col3':''}),
+            'row4': gui.TableRow({'col1':'4','col2':'', 'col3':''})
+            },
+            width=250, height=200)
+        if n_chucks==5:
+            self.table_t.add_child('row5', gui.TableRow({'col1':'5','col2':'', 'col3':''}) )
+
+        subContainerLeft_tb2.append([self.lbl_temp, self.table_t])
+        subContainerLeft_tb2.style['justify-content'] ='space-around'
+        subContainerLeft_tb2.style['align-items'] = 'flex-start'
+
+        #------ Middle Container ---------
+
+        #subContainerMiddle_tb2 = gui.Container(width=300, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left','border':'0px solid black'})
+        subContainerMiddle_tb2 = gui.VBox(width='100%')
+
+        if (plt_field):
+            self.lbl_peltiers = gui.Label('Peltiers', height=20, margin='10px', style={'font-size': '15px', 'font-weight': 'bold'})
+            # Peltiers I/V table
+            self.table_Plt = gui.Table(children={
+                'row0': gui.TableRow({'col1':'  #  ', 'col2':'Current[mA]', 'col3':'Voltage[V]'}),
+                'row1': gui.TableRow({'col1':'1','col2':'', 'col3':''}),
+                'row2': gui.TableRow({'col1':'2','col2':'', 'col3':''}),
+                'row3': gui.TableRow({'col1':'3','col2':'', 'col3':''}),
+                'row4': gui.TableRow({'col1':'4','col2':'', 'col3':''}),
+                },
+                width=250, height=200)
+            if n_chucks==5:
+                self.table_Plt.add_child('row5', gui.TableRow({'col1':'5','col2':'', 'col3':''}) )
+
+            subContainerMiddle_tb2.append([self.lbl_peltiers,self.table_Plt])
+            subContainerMiddle_tb2.style['justify-content'] ='space-around'
+            subContainerMiddle_tb2.style['align-items'] = 'flex-start'
+
+        #------ Right Container ---------
+        subContainerRight_tb2 = gui.VBox(width='100%')
+
+        self.lbl_Box = gui.Label('ColdBox Ambient', height=20, margin='10px', style={'font-size': '15px', 'font-weight': 'bold'})
+
+        # Ambient table
+        self.table_amb = gui.Table(children={
+            'row0': gui.TableRow({'col1':'Relative H[%]', 'col2':''}),
+            'row1': gui.TableRow({'col1':'Temperature[C]','col2':''}),
+            'row2': gui.TableRow({'col1':'DewPoint[C]','col2':''}),
+            'row3': gui.TableRow({'col1':'Flow N2/DryAir[l/s]','col2':''}),
+            'row4': gui.TableRow({'col1':'Coolant temperature[C]','col2':''}),
+            'row5': gui.TableRow({'col1':'Flow Coolant[l/s]','col2':''})
+            },
+            width=250, height=200, style={'text-align': 'left'})
+
+        subContainerRight_tb2.append([self.lbl_Box,self.table_amb])
+        subContainerRight_tb2.style['justify-content'] ='space-around'
+        subContainerRight_tb2.style['align-items'] = 'flex-start'
+
+        horizontalContainer_tb2.append([subContainerLeft_tb2, subContainerMiddle_tb2, subContainerRight_tb2])
+        horizontalContainer_tb2.style['justify-content'] ='space-around'
+        horizontalContainer_tb2.style['align-items'] = 'center'
+
+        verticalContainer_tb2.append([horizontalContainer_logo, self.lbl_placeHolder, horizontalContainer_tb2])
+        verticalContainer_tb2.style['justify-content'] ='space-around'
+        verticalContainer_tb2.style['align-items'] = 'center'
+
+        #this flag will be used to stop the display_counter Timer
+        self.stop_flag = False
+
+
+        #===================================== TAB 3 =================================================
+        verticalContainer_tb3.append([horizontalContainer_logo, self.lbl_placeHolder])
+        verticalContainer_tb3.style['justify-content'] ='flex-start'
+        verticalContainer_tb3.style['align-items'] = 'flex-start'
+
+
+
+        #===================================== TAB 4 =================================================
+        self.lbl_swName = gui.Label('ColdBox Controller V 0.5', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.lbl_coldbox_type = gui.Label('ColdBox type: '+coldbox_type , width=200, height=30, margin='5px')
+        verticalContainer_tb4.append([horizontalContainer_logo, self.lbl_swName, self.lbl_coldbox_type])
+
+        #===================================== Wrapping all tabs together =================================================
+        tabBox = gui.TabBox(width='100%',style={'align-items':'flex-start', 'justify-content':'flex-start','font-size': '16px', 'font-weight': 'bold','background-color': '#3498DB'})
+
+        tabBox.append(verticalContainer_tb1, 'Control Panel')
+        tabBox.add_tab(verticalContainer_tb2, 'Monitoring', None)
+        tabBox.add_tab(verticalContainer_tb3, 'Advanced', None)
+        tabBox.add_tab(verticalContainer_tb4, 'About', None)
+
+        #===================================== Grafana pannels and interlocks =====================================
         self.grafana_panel_list=[]
         for panel in grf_panel_list:
             self.grafana_panel= gui.Widget( _type='iframe', width=618, height=300, margin='10px')
@@ -291,115 +427,13 @@ class ColdBoxGUI(App):
             self.grafana_inter.style['border'] = 'none'
             self.grafana_intrl_list.append(self.grafana_inter)
 
-
-        #--------------------------- Wrapping the subcontainers -----------------------------------------
-        horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight, subContainerLog])
-
-        horizontalContainer_grafana_panels.append([self.grafana_panel_list])
         horizontalContainer_grafana_intrl.append([self.grafana_intrl_list])
+        horizontalContainer_grafana_panels.append([self.grafana_panel_list])
 
+        #=========================== Appending TabBox and Grafana plots to a vertical main container ======================
 
-
-        #--------------------------- TAB 1 -----------------------------------------
-        verticalContainer_tb1.append([horizontalContainer_logo, horizontalContainer, horizontalContainer_grafana_intrl, horizontalContainer_grafana_panels])
-
-
-        #===================================== TAB 2 =================================================
-        horizontalContainer_tb2 = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
-
-        self.lbl_placeHolder = gui.Label('Place holder content', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold','color': 'red'})
-
-        #------ Left Container ---------
-        subContainerLeft_tb2 = gui.Container(width=300, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left','border':'0px solid black'})
-        self.lbl_temp = gui.Label('Temperature[C]', width=200, height=20, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
-
-
-        # Temperatues table
-        self.table_t = gui.Table(children={
-            'row0': gui.TableRow({'col1':'  #  ', 'col2':'Chuck', 'col3':'Module'}),
-            'row1': gui.TableRow({'col1':'1','col2':'', 'col3':''}),
-            'row2': gui.TableRow({'col1':'2','col2':'', 'col3':''}),
-            'row3': gui.TableRow({'col1':'3','col2':'', 'col3':''}),
-            'row4': gui.TableRow({'col1':'4','col2':'', 'col3':''})
-            },
-            width=250, height=200, margin='10px auto')
-        if n_chucks==5:
-            self.table_t.add_child('row5', gui.TableRow({'col1':'5','col2':'', 'col3':''}) )
-
-        subContainerLeft_tb2.append([self.lbl_temp, self.table_t])
-
-        #------ Middle Container ---------
-
-        subContainerMiddle_tb2 = gui.Container(width=300, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left','border':'0px solid black'})
-
-        if (plt_field):
-            self.lbl_peltiers = gui.Label('Peltiers', width=200, height=20, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
-            # Peltiers I/V table
-            self.table_Plt = gui.Table(children={
-                'row0': gui.TableRow({'col1':'  #  ', 'col2':'Current[mA]', 'col3':'Voltage[V]'}),
-                'row1': gui.TableRow({'col1':'1','col2':'', 'col3':''}),
-                'row2': gui.TableRow({'col1':'2','col2':'', 'col3':''}),
-                'row3': gui.TableRow({'col1':'3','col2':'', 'col3':''}),
-                'row4': gui.TableRow({'col1':'4','col2':'', 'col3':''}),
-                },
-                width=250, height=200, margin='10px auto')
-            if n_chucks==5:
-                self.table_Plt.add_child('row5', gui.TableRow({'col1':'5','col2':'', 'col3':''}) )
-
-            subContainerMiddle_tb2.append([self.lbl_peltiers,self.table_Plt])
-
-        #------ Right Container ---------
-        subContainerRight_tb2 = gui.Container(width=400, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.lbl_Box = gui.Label('ColdBox Ambient', width=200, height=20, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
-
-
-        # Ambient table
-        self.table_amb = gui.Table(children={
-            'row0': gui.TableRow({'col1':'Relative H[%]', 'col2':''}),
-            'row1': gui.TableRow({'col1':'Temperature[C]','col2':''}),
-            'row2': gui.TableRow({'col1':'DewPoint[C]','col2':''}),
-            'row3': gui.TableRow({'col1':'Flow N2/DryAir[l/s]','col2':''}),
-            'row4': gui.TableRow({'col1':'Coolant temperature[C]','col2':''}),
-            'row5': gui.TableRow({'col1':'Flow Coolant[l/s]','col2':''})
-            },
-            width=250, height=200, margin='10px auto',style={'text-align': 'left'})
-
-        subContainerRight_tb2.append([self.lbl_Box,self.table_amb])
-
-
-
-        horizontalContainer_tb2.append([subContainerLeft_tb2, subContainerMiddle_tb2, subContainerRight_tb2])
-
-
-
-
-        verticalContainer_tb2.append([horizontalContainer_logo, self.lbl_placeHolder, horizontalContainer_tb2])
-
-        #this flag will be used to stop the display_counter Timer
-        self.stop_flag = False
-
-
-        #===================================== TAB 3 =================================================
-        verticalContainer_tb3.append([horizontalContainer_logo, self.lbl_placeHolder])
-
-
-        #===================================== TAB 4 =================================================
-        self.lbl_swName = gui.Label('ColdBox Controller V 0.3', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
-        self.lbl_coldbox_type = gui.Label('ColdBox type: '+coldbox_type , width=200, height=30, margin='5px')
-        verticalContainer_tb4.append([horizontalContainer_logo, self.lbl_swName, self.lbl_coldbox_type])
-
-
-
-        #===================================== Wrapping all tabs together =================================================
-
-        tabBox = gui.TabBox(width='40%',style={'font-size': '16px', 'font-weight': 'bold','background-color': '#3498DB'})
-        tabBox.append(verticalContainer_tb1, 'Control Panel')
-        tabBox.add_tab(verticalContainer_tb2, 'Monitoring', None)
-        tabBox.add_tab(verticalContainer_tb3, 'Advanced', None)
-        tabBox.add_tab(verticalContainer_tb4, 'About', None)
-
-        # returning the root widget
-        #return verticalContainer_tb1
+        main_container = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
+        main_container.append([tabBox, horizontalContainer_grafana_intrl, horizontalContainer_grafana_panels])
 
         #================== Thread management =============================================================================
         self.thread_alive_flag = True
@@ -416,8 +450,8 @@ class ColdBoxGUI(App):
         thread_table_plt.start()
         thread_table_amb.start()
 
-
-        return tabBox
+        # returning the root widget
+        return main_container
 
 
     #=============================== SLOT functions =====================================================
@@ -474,7 +508,6 @@ class ColdBoxGUI(App):
         #del self.subContainerRight_1.style['opacity']
         self.notification_message("Thermocycling terminated!", "")
 
-
     def read_user_options(self):
         ncycle = self.spin.get_value()
         availavle_chucks=[]
@@ -511,7 +544,7 @@ class ColdBoxGUI(App):
             if n_chucks==5:
                 self.readout_table_t['row5_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["ch_device_list"][4],INFLUXDB_MEASUREMENT,'T'))
                 self.readout_table_t['row5_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["mod_device_list"][4],INFLUXDB_MEASUREMENT,'rH'))
-            time.sleep(5)
+            time.sleep(1)
 
     def update_table_plt(self):
         while self.thread_alive_flag:
@@ -527,8 +560,7 @@ class ColdBoxGUI(App):
             if n_chucks==5:
                 self.readout_table_plt['row5_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltC_device_list"][4],INFLUXDB_MEASUREMENT,'T'))
                 self.readout_table_plt['row5_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltV_device_list"][4],INFLUXDB_MEASUREMENT,'rH'))
-            time.sleep(5)
-
+            time.sleep(1)
 
     def update_table_amb(self):
         while self.thread_alive_flag:
@@ -538,11 +570,12 @@ class ColdBoxGUI(App):
             self.readout_table_amb['row3_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_N2flw"],INFLUXDB_MEASUREMENT,'T'))
             self.readout_table_amb['row4_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_Chiller_T"],INFLUXDB_MEASUREMENT,'T'))
             self.readout_table_amb['row5_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_Chiller_flw"],INFLUXDB_MEASUREMENT,'T'))
-            time.sleep(5)
+            time.sleep(1)
 
     def on_close(self):
         self.thread_alive_flag = False
         super(ColdBoxGUI, self).on_close()
+
 
 
 if __name__ == "__main__":
