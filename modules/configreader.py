@@ -1,5 +1,8 @@
-import modules.GUIcoloredlogs as GUIlogger
-logger = GUIlogger.init_logger(__name__)
+import GUIlogging
+import GUIcoloredlogging
+
+logging = GUIlogging.init_logger(__name__)
+#logging = GUIcoloredlogging.init_logger(__name__)
 
 def read_conf(config):
     # -- default vaues ---

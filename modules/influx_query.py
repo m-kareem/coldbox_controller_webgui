@@ -1,8 +1,9 @@
 from influxdb import InfluxDBClient
+import GUIlogging
+import GUIcoloredlogging
 
-#import modules.GUIlogger as GUIlogger
-import modules.GUIcoloredlogs as GUIlogger
-logger = GUIlogger.init_logger(__name__)
+logging = GUIlogging.init_logger(__name__)
+#logging = GUIcoloredlogging.init_logger(__name__)
 
 def influx_init(config_influx):
     dbClient = InfluxDBClient(
@@ -25,11 +26,11 @@ def get_measurement(dbClient, dbName, my_device, my_measurement, my_field):
     ResultSet = dbClient.query('SELECT * FROM'+' '+my_measurement+ ' GROUP BY * ORDER BY time DESC LIMIT 1;')
     points = list(ResultSet.get_points(measurement=my_measurement, tags={'device':my_device ,'validity': 'true'}))
     try:
-        #logger.debug(my_device+" "+my_field+": " + str(points[0][my_field]))
+        #logging.debug(my_device+" "+my_field+": " + str(points[0][my_field]))
         if points[0][my_field] is not None:
             return round(points[0][my_field],1)
     except IndexError:
-        logger.error("list index out of range. Either the devise/measurement name does not exist in database, or has no value")
+        logging.error("list index out of range. Either the devise/measurement name does not exist in database, or has no value")
         return None
 
 

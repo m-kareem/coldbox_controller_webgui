@@ -35,13 +35,15 @@ except:
 import time,datetime
 
 from modules.influx_query import *
+sys.path.append('../')
+sys.path.append('../coldjiglib2')
+import coldjiglib2.coldjiglib as coldjiglib
 
 #import user_manager
 #from user_manager import *
 
-#import modules.GUIlogger as GUIlogger
-import modules.GUIcoloredlogs as GUIlogger
-#from  modules.bcolors import bcolors
+import GUIlogging
+import GUIcoloredlogging
 
 import threading
 
@@ -481,7 +483,7 @@ class ColdBoxGUI(App):
     def on_btStart_pressed(self, widget):
         currentDT = datetime.datetime.now()
         current_text=self.read_user_options()
-        logger.info("Thermocycling started!")
+        logging.info("Thermocycling started!")
         #current_text= self.statusBox.get_text()
         self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling started\n")
         self.btStart.attributes["disabled"] = ""
@@ -499,7 +501,7 @@ class ColdBoxGUI(App):
     def Terminate_thermocycling(self, widget):
         currentDT = datetime.datetime.now()
         current_text= self.statusBox.get_text()
-        logger.info("Thermocycling stopped!")
+        logging.info("Thermocycling stopped!")
         self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling stopped!\n")
         self.btStop.attributes["disabled"] = ""
         del self.btStart.attributes["disabled"]
@@ -514,10 +516,10 @@ class ColdBoxGUI(App):
 
         for chuck in self.list_checkBox_ch:
             availavle_chucks.append(int(chuck.get_value()) )
-        logger.debug('availavle_chucks: '+str(availavle_chucks))
+        logging.debug('availavle_chucks: '+str(availavle_chucks))
 
         self.total_selected_chucks = np.sum(list(map(int,availavle_chucks)))
-        logger.debug('total_selected_chucks: '+str(self.total_selected_chucks))
+        logging.debug('total_selected_chucks: '+str(self.total_selected_chucks))
 
         if self.radioButton_stTest.get_value():
             selected_tests = ' standard'
@@ -525,7 +527,7 @@ class ColdBoxGUI(App):
             selected_tests_helper = [self.checkBox_t1.get_value(),self.checkBox_t2.get_value(),self.checkBox_t3.get_value(),self.checkBox_t4.get_value(),self.checkBox_t5.get_value(),self.checkBox_t6.get_value(),self.checkBox_t7.get_value()]
             selected_tests = str(list(map(int,selected_tests_helper)))
             self.total_selected_tests = np.sum(list(map(int,selected_tests_helper)))
-            logger.debug('custom test is running: '+str(self.total_selected_tests)+' tests')
+            logging.debug('custom test is running: '+str(self.total_selected_tests)+' tests')
 
         user_options = 'User options set:\n'+'-Cycles:'+ str(ncycle) +'\n-Available_chucks:'+str(list(map(int,availavle_chucks)))+'\n-Selected_test(s):'+selected_tests+'\n------\n'
         return user_options
@@ -579,9 +581,10 @@ class ColdBoxGUI(App):
 
 
 if __name__ == "__main__":
-    logger = GUIlogger.init_logger(__name__)
-    #logger.info(bcolors.OKGREEN+"Starting ColdJig GUI"+bcolors.ENDC)
-    logger.info("Starting ColdJig GUI")
+    logging = GUIlogging.init_logger(__name__)
+    #logging = GUIcoloredlogging.init_logger(__name__)
+
+    logging.info("Starting ColdJig GUI")
     verbose = False # set to Fals if you dont want to print debugging info
     config = conf.ConfigParser()
     configfile = 'default'
@@ -596,7 +599,7 @@ if __name__ == "__main__":
          'help'
          ])
     except getopt.GetoptError as err:
-        logger.error('option requires argument.\n Usage: blah -c configFile \n Process terminated.')
+        logging.error('option requires argument.\n Usage: blah -c configFile \n Process terminated.')
         sys.exit(1)
 
     for opt, arg in options:
@@ -609,20 +612,20 @@ if __name__ == "__main__":
             verbose = True
 
     if not any('-c' in sublist for sublist in options):
-        #logger.error(bcolors.FAIL + "Attempt to start the GUI without user config.\n Process terminated." + bcolors.ENDC)
-        logger.error("Attempt to start the GUI without user config.\n Process terminated.")
+        #logging.error(bcolors.FAIL + "Attempt to start the GUI without user config.\n Process terminated." + bcolors.ENDC)
+        logging.error("Attempt to start the GUI without user config.\n Process terminated.")
         sys.exit(1)
 
     else:
         if os.path.isfile(configfile):
             config.read(configfile)
         else:
-            #logger.error(bcolors.FAIL +'Config file does not exist. Process terminated.' +bcolors.ENDC)
-            logger.error('Config file does not exist. Process terminated.')
+            #logging.error(bcolors.FAIL +'Config file does not exist. Process terminated.' +bcolors.ENDC)
+            logging.error('Config file does not exist. Process terminated.')
             sys.exit(1)
 
-    #logger.info(bcolors.OKGREEN+'Reading config file: '+configfile+bcolors.ENDC)
-    logger.info('Reading config file: '+configfile)
+    #logging.info(bcolors.OKGREEN+'Reading config file: '+configfile+bcolors.ENDC)
+    logging.info('Reading config file: '+configfile)
     config_gui, config_influx, config_device = configreader.read_conf(config)
 
 
@@ -659,38 +662,38 @@ if __name__ == "__main__":
     CB_device_Chiller_flw = config_device["CB_device_Chiller_flw"]
 
 
-    logger.debug('gui_server= '+gui_server)
-    logger.debug('gui_port= '+str(gui_server_port))
+    logging.debug('gui_server= '+gui_server)
+    logging.debug('gui_port= '+str(gui_server_port))
 
-    logger.debug('influx_server= '+INFLUXDB_ADDRESS)
-    logger.debug('influx_user= '+INFLUXDB_USER)
-    logger.debug('influx_port= '+INFLUXDB_PORT)
-    logger.debug('influx_database= '+INFLUXDB_DATABASE)
-    logger.debug('influx_measurement= '+INFLUXDB_MEASUREMENT)
+    logging.debug('influx_server= '+INFLUXDB_ADDRESS)
+    logging.debug('influx_user= '+INFLUXDB_USER)
+    logging.debug('influx_port= '+INFLUXDB_PORT)
+    logging.debug('influx_database= '+INFLUXDB_DATABASE)
+    logging.debug('influx_measurement= '+INFLUXDB_MEASUREMENT)
 
-    logger.debug('coldbox_type= '+coldbox_type)
-    logger.debug('n_chucks= '+str(n_chucks))
-    logger.debug('plt_fields= '+str(plt_field))
+    logging.debug('coldbox_type= '+coldbox_type)
+    logging.debug('n_chucks= '+str(n_chucks))
+    logging.debug('plt_fields= '+str(plt_field))
 
-    logger.debug('gui_debug= '+str(gui_debug))
-    #logger.debug('gui_logging_level= '+str(gui_logging_level))
-    logger.debug('gui_start_browser= '+str(gui_start_browser))
-    logger.debug('gui_multiple_instance= '+str(gui_multiple_instance))
-    logger.debug('gui_enable_file_cache= '+str(gui_enable_file_cache))
+    logging.debug('gui_debug= '+str(gui_debug))
+    #logging.debug('gui_logging_level= '+str(gui_logging_level))
+    logging.debug('gui_start_browser= '+str(gui_start_browser))
+    logging.debug('gui_multiple_instance= '+str(gui_multiple_instance))
+    logging.debug('gui_enable_file_cache= '+str(gui_enable_file_cache))
 
-    logger.debug('CB_device_Chiller_flw= '+CB_device_Chiller_flw)
+    logging.debug('CB_device_Chiller_flw= '+CB_device_Chiller_flw)
 
-    logger.debug('ch_device_list='+ str(ch_device_list))
-    logger.debug('mod_device_list='+ str(mod_device_list))
-    logger.debug('pltC_device_list='+ str(pltC_device_list))
-    logger.debug('pltV_device_list='+ str(pltV_device_list))
-    #logger.debug('grf_panel_list='+ str(grf_panel_list))
-    #logger.debug('grf_intrl_list='+ str(grf_intrl_list))
+    logging.debug('ch_device_list='+ str(ch_device_list))
+    logging.debug('mod_device_list='+ str(mod_device_list))
+    logging.debug('pltC_device_list='+ str(pltC_device_list))
+    logging.debug('pltV_device_list='+ str(pltV_device_list))
+    #logging.debug('grf_panel_list='+ str(grf_panel_list))
+    #logging.debug('grf_intrl_list='+ str(grf_intrl_list))
 
     #-- checking number of chucks--
     if not (n_chucks==5 or n_chucks==4):
-        #logger.error(bcolors.FAIL +'Number of chucks is not supported. Set n_chucks in config file to 4 or 5.' +bcolors.ENDC)
-        logger.error('Number of chucks is not supported. Set n_chucks in config file to 4 or 5.')
+        #logging.error(bcolors.FAIL +'Number of chucks is not supported. Set n_chucks in config file to 4 or 5.' +bcolors.ENDC)
+        logging.error('Number of chucks is not supported. Set n_chucks in config file to 4 or 5.')
         sys.exit(1)
 
     #exit()
@@ -698,6 +701,10 @@ if __name__ == "__main__":
     if not verbose:
         stdout_string_io = StringIO()
         sys.stdout = sys.stderr = stdout_string_io
+
+    #--- starts the coldJiglib
+    if(coldjiglib.start()):
+        logging.info("Welcome to ColdJigLib2 ...!")
 
     #--starts the webserver / optional parameters
     #start(ColdBoxGUI, update_interval=0.5, debug=gui_debug, address=gui_server, port=gui_server_port, start_browser=gui_start_browser, multiple_instance=gui_multiple_instance, enable_file_cache=gui_enable_file_cache)
