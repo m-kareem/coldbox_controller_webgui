@@ -35,9 +35,8 @@ except:
 import time,datetime
 
 from modules.influx_query import *
-sys.path.append('../')
-sys.path.append('../coldjiglib2')
-import coldjiglib2.coldjiglib as coldjiglib
+
+import coldjiglib
 
 #import user_manager
 #from user_manager import *
