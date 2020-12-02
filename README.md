@@ -8,7 +8,7 @@ http://petra.phys.yorku.ca:5000
 
 Installation
 ------------
-1. Copy/clone the coldjiglib2 libraries for: https://gitlab.cern.ch/ColdJigDCS/coldjiglib2.git in a
+1. Copy/clone the coldjiglib2 libraries for: https://gitlab.cern.ch/ColdJigDCS/coldjiglib2.git
 2. cd ../
 3. Copy/clone the source code to the server computer
 4. Install Python 3 and pip3 (if they are not already installed)
