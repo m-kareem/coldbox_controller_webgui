@@ -30,13 +30,20 @@ in macOS it is located in: /etc/grafana/grafana.ini
 
 find the following categories and uncomment the corresponding lines as follows:
 
-[security]
-# set to true if you want to allow browsers to render Grafana in a <frame>, <iframe>, <embed> or <object>. default is false.
-allow_embedding = true
+`[security]`
 
-[auth.anonymous]
-# enable anonymous access
-enabled = true
+`# set to true if you want to allow browsers to render Grafana in a <frame>, <iframe>, <embed> or <object>. default is false.`
+
+`allow_embedding = true`
+
+and
+
+`[auth.anonymous]`
+
+`# enable anonymous access`
+
+`enabled = true`
+
 
 After applying the modifications, you need to restart grafana service.
 
