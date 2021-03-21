@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 """
    REMI library:
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,12 +20,12 @@ https://gitlab.cern.ch/mkareem/coldbox_controller_webgui
 
 import remi.gui as gui
 from remi import start, App
-from modules.RadioButton import *
+from GUImodules.RadioButton import *
 from threading import Timer
 import configparser as conf
-import modules.configreader as configreader
-from modules.dewPoint import *
-import modules.CBChelp as CBChelp
+import GUImodules.configreader as configreader
+from GUImodules.dewPoint import *
+import GUImodules.CBChelp as CBChelp
 import numpy as np
 import os, sys, getopt
 try:
@@ -34,7 +35,7 @@ except:
 
 import time,datetime
 
-from modules.influx_query import *
+from GUImodules.influx_query import *
 
 import coldjiglib
 
@@ -42,9 +43,9 @@ import coldjiglib
 #from user_manager import *
 
 import GUIlogging
-import GUIcoloredlogging
 
 import threading
+
 
 
 #--------------------------------------------------------------
@@ -146,13 +147,13 @@ class ColdBoxGUI(App):
 
 
         self.lbl_01 = gui.Label('Available chk.', width=100, height=20, margin='20px',style={'font-size': '14px', 'font-weight': 'bold'})
-        self.checkBox_ch1 = gui.CheckBoxLabel('Chuck 1', False, width=80, height=20, margin='15px')
-        self.checkBox_ch2 = gui.CheckBoxLabel('Chuck 2', False, width=80, height=20, margin='15px')
-        self.checkBox_ch3 = gui.CheckBoxLabel('Chuck 3', False, width=80, height=20, margin='15px')
-        self.checkBox_ch4 = gui.CheckBoxLabel('Chuck 4', False, width=80, height=20, margin='15px')
+        self.checkBox_ch1 = gui.CheckBoxLabel('Chuck 1', False, width=85, height=20, margin='15px')
+        self.checkBox_ch2 = gui.CheckBoxLabel('Chuck 2', False, width=85, height=20, margin='15px')
+        self.checkBox_ch3 = gui.CheckBoxLabel('Chuck 3', False, width=85, height=20, margin='15px')
+        self.checkBox_ch4 = gui.CheckBoxLabel('Chuck 4', False, width=85, height=20, margin='15px')
         self.list_checkBox_ch = [self.checkBox_ch1,self.checkBox_ch2,self.checkBox_ch3,self.checkBox_ch4]
         if n_chucks ==5:
-            self.checkBox_ch5 = gui.CheckBoxLabel('Chuck 5', False, width=80, height=20, margin='15px')
+            self.checkBox_ch5 = gui.CheckBoxLabel('Chuck 5', False, width=85, height=20, margin='15px')
             self.list_checkBox_ch.append(self.checkBox_ch5)
 
         for checkBox in self.list_checkBox_ch:
@@ -160,13 +161,13 @@ class ColdBoxGUI(App):
 
 
         self.lbl_02 = gui.Label('Module Flv.', width=100, height=20, margin='20px',style={'font-size': '14px', 'font-weight': 'bold'})
-        self.dropDown_ch1 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='15px')
-        self.dropDown_ch2 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='15px')
-        self.dropDown_ch3 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='15px')
-        self.dropDown_ch4 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='15px')
+        self.dropDown_ch1 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=60, height=20, margin='15px')
+        self.dropDown_ch2 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=60, height=20, margin='15px')
+        self.dropDown_ch3 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=60, height=20, margin='15px')
+        self.dropDown_ch4 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=60, height=20, margin='15px')
         self.list_dropDown_ch = [self.dropDown_ch1,self.dropDown_ch2,self.dropDown_ch3,self.dropDown_ch4]
         if n_chucks ==5:
-            self.dropDown_ch5 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=50, height=20, margin='15px')
+            self.dropDown_ch5 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=60, height=20, margin='15px')
             self.list_dropDown_ch.append(self.dropDown_ch5)
 
         for dropDown in self.list_dropDown_ch:
@@ -176,13 +177,13 @@ class ColdBoxGUI(App):
 
 
         self.lbl_03 = gui.Label('Serial #', width=100, height=20, margin='20px',style={'font-size': '14px', 'font-weight': 'bold'})
-        self.textinput_ch1 = gui.TextInput(width=120, height=20,margin='15px')
-        self.textinput_ch2 = gui.TextInput(width=120, height=20,margin='15px')
-        self.textinput_ch3 = gui.TextInput(width=120, height=20,margin='15px')
-        self.textinput_ch4 = gui.TextInput(width=120, height=20,margin='15px')
+        self.textinput_ch1 = gui.TextInput(width=130, height=20,margin='15px')
+        self.textinput_ch2 = gui.TextInput(width=130, height=20,margin='15px')
+        self.textinput_ch3 = gui.TextInput(width=130, height=20,margin='15px')
+        self.textinput_ch4 = gui.TextInput(width=130, height=20,margin='15px')
         self.list_textinput_ch = [self.textinput_ch1,self.textinput_ch2,self.textinput_ch3,self.textinput_ch4]
         if n_chucks ==5:
-            self.textinput_ch5 = gui.TextInput(width=120, height=20,margin='15px')
+            self.textinput_ch5 = gui.TextInput(width=130, height=20,margin='15px')
             self.list_textinput_ch.append(self.textinput_ch5)
 
         for textinput in self.list_textinput_ch:
@@ -215,14 +216,13 @@ class ColdBoxGUI(App):
         self.radioButton_stTest = RadioButtonWithLabel('Standard tests',True, 'groupTests', width=250, height=20, margin='10px')
         self.radioButton_cuTest = RadioButtonWithLabel('Custom tests',False, 'groupTests', width=250, height=20, margin='10px')
 
-        self.checkBox_t1 = gui.CheckBoxLabel('Strobe Delay', False, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t2 = gui.CheckBoxLabel('Three Point Gain', False, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t3 = gui.CheckBoxLabel('Trim Range', False, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t4 = gui.CheckBoxLabel('Three Point Gain part 2', False, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t5 = gui.CheckBoxLabel('Response Curve', False, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t6 = gui.CheckBoxLabel('Three Point Gain High Stats', False, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-        self.checkBox_t7 = gui.CheckBoxLabel('Noise Occupancy', False, height=20, margin='10px',style={'font-size': '15px','display': 'block', 'overflow': 'auto', 'text-align': 'left'})
-
+        self.checkBox_t1 = gui.CheckBoxLabel('Strobe Delay', False,  height=20, margin='10px',style={'font-size': '15px','display': 'block',  'text-align': 'left'})
+        self.checkBox_t2 = gui.CheckBoxLabel('Three Point Gain', False,  height=20, margin='10px',style={'font-size': '15px','display': 'block',  'text-align': 'left'})
+        self.checkBox_t3 = gui.CheckBoxLabel('Trim Range', False,  height=20, margin='10px',style={'font-size': '15px','display': 'block',  'text-align': 'left'})
+        self.checkBox_t4 = gui.CheckBoxLabel('Three Point Gain part 2', False,  height=20, margin='10px',style={'font-size': '15px','display': 'block',  'text-align': 'left'})
+        self.checkBox_t5 = gui.CheckBoxLabel('Response Curve', False,  height=20, margin='10px',style={'font-size': '15px','display': 'block',  'text-align': 'left'})
+        self.checkBox_t6 = gui.CheckBoxLabel('Three Point Gain High Stats', False,  height=20, margin='10px',style={'font-size': '15px','display': 'block',  'text-align': 'left'})
+        self.checkBox_t7 = gui.CheckBoxLabel('Noise Occupancy', False,  height=20, margin='10px',style={'font-size': '15px','display': 'block',  'text-align': 'left'})
         subContainerMiddle_1.append([self.lbl_05, self.radioButton_stTest, self.radioButton_cuTest])
         self.subContainerMiddle_2.append([self.checkBox_t1,self.checkBox_t2,self.checkBox_t3,self.checkBox_t4,self.checkBox_t5,self.checkBox_t6,self.checkBox_t7])
 
@@ -482,6 +482,7 @@ class ColdBoxGUI(App):
     def on_btStart_pressed(self, widget):
         currentDT = datetime.datetime.now()
         current_text=self.read_user_options()
+        coldjiglib.start_thermal_cycle([1,2,3,4,5]) # should get list of available modules. Full list os hardcoded for now.
         logging.info("Thermocycling started!")
         #current_text= self.statusBox.get_text()
         self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling started\n")
@@ -500,6 +501,7 @@ class ColdBoxGUI(App):
     def Terminate_thermocycling(self, widget):
         currentDT = datetime.datetime.now()
         current_text= self.statusBox.get_text()
+        coldjiglib.stop_thermal_cycle()
         logging.info("Thermocycling stopped!")
         self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling stopped!\n")
         self.btStop.attributes["disabled"] = ""
