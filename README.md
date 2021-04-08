@@ -18,7 +18,9 @@ Installation
    b) In production:
     `pipenv install --ignore-pipfile`
 
-6. source setenv.sh
+6. Execute the following commands:
+   a) pipenv shell
+   b) source setenv.sh
 
 - to run the web-gui, execute `python3 coldbox_controller_webgui.py -c configFile.conf [-v]`
 
