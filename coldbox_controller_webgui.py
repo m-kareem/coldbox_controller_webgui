@@ -28,6 +28,7 @@ from GUImodules.dewPoint import *
 import GUImodules.CBChelp as CBChelp
 import numpy as np
 import os, sys, getopt
+import importlib
 try:
     from io import StringIO
 except:
@@ -37,7 +38,7 @@ import time,datetime
 
 from GUImodules.influx_query import *
 
-import coldjiglib
+#import coldjiglib
 
 #import user_manager
 #from user_manager import *
@@ -189,6 +190,8 @@ class ColdBoxGUI(App):
         for textinput in self.list_textinput_ch:
             textinput.set_value('20UXXYY#######')
             textinput.attributes["disabled"] = ""
+
+
 
         subContainerLeft_1.append([self.lbl_01, self.list_checkBox_ch])
         subContainerLeft_2.append([self.lbl_02, self.list_dropDown_ch])
@@ -387,9 +390,217 @@ class ColdBoxGUI(App):
 
 
         #===================================== TAB 3 =================================================
-        verticalContainer_tb3.append([horizontalContainer_logo, self.lbl_placeHolder])
-        verticalContainer_tb3.style['justify-content'] ='flex-start'
-        verticalContainer_tb3.style['align-items'] = 'flex-start'
+        self.lbl_warning = gui.Label('WARNING: thses options are compatible with BNL coldbox type only', width=600, height=30, margin='10px',style={'font-size': '15px', 'font-weight': 'bold','color': 'red'})
+        self.data_dict = coldjigcontroller.data_dict
+        #------------HV controls-----------
+        subContainerADV_HV = gui.GridBox(width = "20%", hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
+        #subContainerADV_HV.style['border'] = '3px solid rgba(0,0,0,.12)'
+
+        self.lbl_HV = gui.Label('High-Voltage', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
+
+        self.btHVon = gui.Button('ON', width=75, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#27AE60'})
+        self.btHVoff = gui.Button('OFF', width=75, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#E74C3C'})
+
+        self.lbl_textinput_HV0 = gui.Label('CH0', width=50, height=20, margin='5px',style={'font-size': '14px'})
+        self.lbl_textinput_HV1 = gui.Label('CH1', width=50, height=20, margin='5px',style={'font-size': '14px'})
+        self.lbl_textinput_HV2 = gui.Label('CH2', width=50, height=20, margin='5px',style={'font-size': '14px'})
+        self.lbl_textinput_HV3 = gui.Label('CH3', width=50, height=20, margin='5px',style={'font-size': '14px'})
+
+        self.textinput_HV0 = gui.TextInput(width=50, height=20,margin='5px')
+        self.textinput_HV1 = gui.TextInput(width=50, height=20,margin='5px')
+        self.textinput_HV2 = gui.TextInput(width=50, height=20,margin='5px')
+        self.textinput_HV3 = gui.TextInput(width=50, height=20,margin='5px')
+
+        self.list_textinput_HV = [self.textinput_HV0, self.textinput_HV1,self.textinput_HV2,self.textinput_HV3]
+        for textinput in self.list_textinput_HV:
+            textinput.set_value('0.00')
+
+        self.btHVon_1 = gui.Button('ON', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#27AE60'})
+        self.btHVon_2 = gui.Button('ON', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#27AE60'})
+        self.btHVon_3 = gui.Button('ON', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#27AE60'})
+        self.btHVon_0 = gui.Button('ON', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#27AE60'})
+
+        self.btHVoff_1 = gui.Button('OFF', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#E74C3C'})
+        self.btHVoff_2 = gui.Button('OFF', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#E74C3C'})
+        self.btHVoff_3 = gui.Button('OFF', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#E74C3C'})
+        self.btHVoff_0 = gui.Button('OFF', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#E74C3C'})
+
+        self.btHVset_1 = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#6495ED'})
+        self.btHVset_2 = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#6495ED'})
+        self.btHVset_3 = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#6495ED'})
+        self.btHVset_0 = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#6495ED'})
+
+
+        subContainerADV_HV.set_from_asciiart("""
+            |HV_label |HV_label| HV_on  | HV_off   |       | |
+            |         |ch0     | ch0_on | ch0_off | textinput_0| set_0 |
+            |         |ch1     | ch1_on | ch1_off | textinput_1| set_1 |
+            |         |ch2     | ch2_on | ch2_off | textinput_2| set_2 |
+            |         |ch3     | ch3_on | ch3_off | textinput_3| set_3 |
+            """, 10, 10)
+
+        subContainerADV_HV.append({'HV_label':self.lbl_HV, 'HV_on':self.btHVon ,'HV_off':self.btHVoff,
+                                    'ch0':self.lbl_textinput_HV0, 'ch0_on':self.btHVon_0 , 'ch0_off':self.btHVoff_0 ,'textinput_0': self.textinput_HV0, 'set_0':self.btHVset_0 ,
+                                    'ch1':self.lbl_textinput_HV1, 'ch1_on':self.btHVon_1 , 'ch1_off':self.btHVoff_1 ,'textinput_1': self.textinput_HV1, 'set_1':self.btHVset_1 ,
+                                    'ch2':self.lbl_textinput_HV2, 'ch2_on':self.btHVon_2 , 'ch2_off':self.btHVoff_2 ,'textinput_2': self.textinput_HV2, 'set_2':self.btHVset_2 ,
+                                    'ch3':self.lbl_textinput_HV3, 'ch3_on':self.btHVon_3 , 'ch3_off':self.btHVoff_3 ,'textinput_3': self.textinput_HV3, 'set_3':self.btHVset_3
+        })
+
+        self.btHVoff.attributes["disabled"] = ""
+        self.list_btHV = [self.btHVon_0,self.btHVon_1,self.btHVon_2,self.btHVon_3,self.btHVoff_0,self.btHVoff_1,self.btHVoff_2,self.btHVoff_3]
+        self.list_btHVon = [self.btHVon_0,self.btHVon_1,self.btHVon_2,self.btHVon_3]
+        self.list_btHVoff = [self.btHVoff_0,self.btHVoff_1,self.btHVoff_2,self.btHVoff_3]
+        self.list_btHVset = [self.btHVset_0,self.btHVset_1,self.btHVset_2,self.btHVset_3]
+
+        for bt in self.list_btHVon:
+            bt.attributes["disabled"] = ""
+        for bt in self.list_btHVoff:
+            bt.attributes["disabled"] = ""
+        for bt in self.list_btHVset:
+            bt.attributes["disabled"] = ""
+
+        self.btHVon.onclick.do(self.on_btHVon_pressed)
+        self.btHVoff.onclick.do(self.on_btHVoff_pressed)
+
+        self.list_btHVon[0].onclick.do(self.on_btHVon_0_pressed)
+        self.list_btHVon[1].onclick.do(self.on_btHVon_1_pressed)
+        self.list_btHVon[2].onclick.do(self.on_btHVon_2_pressed)
+        self.list_btHVon[3].onclick.do(self.on_btHVon_3_pressed)
+
+        self.list_btHVoff[0].onclick.do(self.on_btHVoff_0_pressed)
+        self.list_btHVoff[1].onclick.do(self.on_btHVoff_1_pressed)
+        self.list_btHVoff[2].onclick.do(self.on_btHVoff_2_pressed)
+        self.list_btHVoff[3].onclick.do(self.on_btHVoff_3_pressed)
+
+        self.list_btHVset[0].onclick.do(self.on_btHVset_0_pressed)
+        self.list_btHVset[1].onclick.do(self.on_btHVset_1_pressed)
+        self.list_btHVset[2].onclick.do(self.on_btHVset_2_pressed)
+        self.list_btHVset[3].onclick.do(self.on_btHVset_3_pressed)
+
+
+        #------------LV controls-----------
+        subContainerADV_LV1 = gui.GridBox(width = "15%",hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
+        subContainerADV_LV1.style['border-left'] = '3px solid rgba(0,0,0,.12)'
+
+        self.lbl_LV1 = gui.Label('Low-Voltage 1', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
+
+        self.btLV1on = gui.Button('ON', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#27AE60'})
+        self.btLV1off = gui.Button('OFF', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#E74C3C'})
+
+        self.lbl_textinput_LV1_0 = gui.Label('CH0', width=50, height=20, margin='5px',style={'font-size': '14px'})
+        self.lbl_textinput_LV1_1 = gui.Label('CH1', width=50, height=20, margin='5px',style={'font-size': '14px'})
+
+        self.textinput_LV1_0 = gui.TextInput(width=50, height=20,margin='5px')
+        self.textinput_LV1_1 = gui.TextInput(width=50, height=20,margin='5px')
+
+        self.list_textinput_LV1 = [self.textinput_LV1_0,self.textinput_LV1_1]
+        for textinput in self.list_textinput_LV1:
+            textinput.set_value('0.00')
+
+        self.btLV1set = gui.Button('SET', width=50, height=50, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#6495ED'})
+
+
+        subContainerADV_LV1.set_from_asciiart("""
+            |LV1_label| LV1_label | LV1_on       | LV1_off |
+            |         | ch1_1     | textinput1_1 | set_VL1 |
+            |         | ch1_2     | textinput1_2 | set_VL1 |
+            """, 10, 10)
+
+        subContainerADV_LV1.append({'LV1_label':self.lbl_LV1, 'LV1_on':self.btLV1on ,'LV1_off':self.btLV1off,
+                                    'ch1_1':self.lbl_textinput_LV1_0,'textinput1_1': self.textinput_LV1_0,
+                                    'ch1_2':self.lbl_textinput_LV1_1,'textinput1_2': self.textinput_LV1_1,
+                                    'set_VL1':self.btLV1set
+        })
+
+        self.btLV1off.attributes["disabled"] = ""
+        self.btLV1on.onclick.do(self.on_btLV1on_pressed)
+        self.btLV1off.onclick.do(self.on_btLV1off_pressed)
+        self.btLV1set.onclick.do(self.on_btLV1set_pressed)
+
+
+        subContainerADV_LV2 = gui.GridBox(width = "15%",hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
+        subContainerADV_LV2.style['border-left'] = '3px solid rgba(0,0,0,.12)'
+
+        self.lbl_LV2 = gui.Label('Low-Voltage 2', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
+
+        self.btLV2on = gui.Button('ON', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#27AE60'})
+        self.btLV2off = gui.Button('OFF', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#E74C3C'})
+
+        self.lbl_textinput_LV2_0 = gui.Label('CH0', width=50, height=20, margin='5px',style={'font-size': '14px'})
+        self.lbl_textinput_LV2_1 = gui.Label('CH1', width=50, height=20, margin='5px',style={'font-size': '14px'})
+
+        self.textinput_LV2_0 = gui.TextInput(width=50, height=20,margin='5px')
+        self.textinput_LV2_1 = gui.TextInput(width=50, height=20,margin='5px')
+
+        self.list_textinput_LV2 = [self.textinput_LV2_0,self.textinput_LV2_1]
+        for textinput in self.list_textinput_LV2:
+            textinput.set_value('0.00')
+
+        self.btLV2set = gui.Button('SET', width=50, height=50, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#6495ED'})
+
+
+
+
+        subContainerADV_LV2.set_from_asciiart("""
+            |LV2_label| LV2_label | LV2_on       | LV2_off |
+            |         | ch2_1     | textinput1_1 | set_LV2 |
+            |         | ch2_2     | textinput1_2 | set_LV2 |
+            """, 10, 10)
+
+        subContainerADV_LV2.append({'LV2_label':self.lbl_LV2, 'LV2_on':self.btLV2on ,'LV2_off':self.btLV2off,
+                                    'ch2_1':self.lbl_textinput_LV2_0,'textinput1_1': self.textinput_LV2_0,
+                                    'ch2_2':self.lbl_textinput_LV2_1,'textinput1_2': self.textinput_LV2_1,
+                                    'set_LV2':self.btLV2set
+        })
+        self.btLV2off.attributes["disabled"] = ""
+        self.btLV2on.onclick.do(self.on_btLV2on_pressed)
+        self.btLV2off.onclick.do(self.on_btLV2off_pressed)
+        self.btLV2set.onclick.do(self.on_btLV2set_pressed)
+
+        #------------Chiller controls-----------
+        subContainerADV_Chiller = gui.GridBox(width = "10%",hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
+        subContainerADV_Chiller.style['border-left'] = '3px solid rgba(0,0,0,.12)'
+
+        self.lbl_Chiller = gui.Label('Chiller', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
+
+        self.btChillerOn = gui.Button('ON', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#27AE60'})
+        self.btChillerOff = gui.Button('OFF', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#E74C3C'})
+
+        self.lbl_textinput_ChilT = gui.Label('T[C]', width=50, height=20, margin='5px',style={'font-size': '14px'})
+
+        self.textinput_ChilT = gui.TextInput(width=50, height=20,margin='5px')
+        self.textinput_ChilT.set_value('0.00')
+
+        self.btChilTset = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#6495ED'})
+
+        subContainerADV_Chiller.set_from_asciiart("""
+            |Chil_label| Chil_label | Chil_on         | Chil_off |
+            |          | Chil_T      | textinput_ChilT | set_ChilT |
+            """, 10, 10)
+
+        subContainerADV_Chiller.append({'Chil_label':self.lbl_Chiller, 'Chil_on':self.btChillerOn ,'Chil_off':self.btChillerOff,
+                                    'Chil_T':self.lbl_textinput_ChilT,'textinput_ChilT': self.textinput_ChilT,'set_ChilT':self.btChilTset
+        })
+
+        self.btChillerOff.attributes["disabled"] = ""
+        self.btChillerOn.onclick.do(self.on_btChillerOn_pressed)
+        self.btChillerOff.onclick.do(self.on_btChillerOff_pressed)
+        self.btChilTset.onclick.do(self.on_btChilTset_pressed)
+
+        '''
+        #------------Setting the values -----------
+        self.btAdvSet = gui.Button('SET', width="20%", height=30, margin='15px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#6495ED'})
+        self.btAdvSet.onclick.do(self.on_btAdvSet_pressed)
+        '''
+
+        subContainerADV = gui.HBox(width = "100%", hight = "100%", style={'align-items':'flex-start', 'justify-content':'space-around'})
+        subContainerADV.append([subContainerADV_HV, subContainerADV_LV1, subContainerADV_LV2,subContainerADV_Chiller])
+        #subContainerADV.append([subContainerADV_Chiller])
+
+        #- Wrapping the subcontainers
+        verticalContainer_tb3.append([horizontalContainer_logo, self.lbl_warning, subContainerADV ])
+        verticalContainer_tb3.style['justify-content'] ='space-around'
+        verticalContainer_tb3.style['align-items'] = 'center'
 
 
 
@@ -482,11 +693,20 @@ class ColdBoxGUI(App):
     def on_btStart_pressed(self, widget):
         currentDT = datetime.datetime.now()
         current_text=self.read_user_options()
-        coldjiglib.start_thermal_cycle([1,2,3,4,5]) # should get list of available modules. Full list os hardcoded for now.
+        coldjigcontroller.start_thermal_cycle([1,2,3,4,5]) # should get list of available modules. Full list is hardcoded for now.
         logging.info("Thermocycling started!")
         #current_text= self.statusBox.get_text()
         self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling started\n")
         self.btStart.attributes["disabled"] = ""
+        self.btAdvSet.attributes["disabled"] = ""
+        for textinput in self.list_textinput_HV:
+            textinput.attributes["disabled"] = ""
+        for textinput in self.list_textinput_LV1:
+            textinput.attributes["disabled"] = ""
+        for textinput in self.list_textinput_LV2:
+            textinput.attributes["disabled"] = ""
+        self.textinput_ChilT.attributes["disabled"] = ""
+
         del self.btStop.attributes["disabled"]
         #--FIX ME
         #self.subContainerRight_1.style['pointer-events'] = 'none'
@@ -498,14 +718,193 @@ class ColdBoxGUI(App):
         self.dialog.confirm_dialog.do(self.Terminate_thermocycling)
         self.dialog.show(self)
 
+    #--------- Advance buttons ----------
+    ###---- HV buttons --------------
+    def on_btHVon_pressed(self, widget):
+        self.btHVon.attributes["disabled"] = ""
+        del self.btHVoff.attributes["disabled"]
+        for bt in self.list_btHVon:
+            del bt.attributes["disabled"]
+        for bt in self.list_btHVset:
+            del bt.attributes["disabled"]
+        self.data_dict['Caen.state'] = 'ON'
+        logging.info("HV set to ON")
+
+    def on_btHVon_0_pressed(self, widget):
+        self.list_btHVon[0].attributes["disabled"] = ""
+        del self.list_btHVoff[0].attributes["disabled"]
+        self.data_dict['Caen.set_channel_0'] = 'ON'
+        logging.info("HV ch0 set to ON")
+
+
+    def on_btHVon_1_pressed(self, widget):
+        self.list_btHVon[1].attributes["disabled"] = ""
+        del self.list_btHVoff[1].attributes["disabled"]
+        self.data_dict['Caen.set_channel_1'] = 'ON'
+        logging.info("HV ch1 set to ON")
+
+    def on_btHVon_2_pressed(self, widget):
+        self.list_btHVon[2].attributes["disabled"] = ""
+        del self.list_btHVoff[2].attributes["disabled"]
+        self.data_dict['Caen.set_channel_2'] = 'ON'
+        logging.info("HV ch2 set to ON")
+
+    def on_btHVon_3_pressed(self, widget):
+        self.list_btHVon[3].attributes["disabled"] = ""
+        del self.list_btHVoff[3].attributes["disabled"]
+        self.data_dict['Caen.set_channel_3'] = 'ON'
+        logging.info("HV ch3 set to ON")
+
+    def on_btHVoff_0_pressed(self, widget):
+        self.list_btHVoff[0].attributes["disabled"] = ""
+        del self.list_btHVon[0].attributes["disabled"]
+        self.data_dict['Caen.set_channel_0'] = 'OFF'
+        logging.info("HV ch0 set to OFF")
+
+    def on_btHVoff_1_pressed(self, widget):
+        self.list_btHVoff[1].attributes["disabled"] = ""
+        del self.list_btHVon[1].attributes["disabled"]
+        self.data_dict['Caen.set_channel_1'] = 'OFF'
+        logging.info("HV ch1 set to OFF")
+
+    def on_btHVoff_2_pressed(self, widget):
+        self.list_btHVoff[2].attributes["disabled"] = ""
+        del self.list_btHVon[2].attributes["disabled"]
+        self.data_dict['Caen.set_channel_2'] = 'OFF'
+        logging.info("HV ch2 set to OFF")
+
+    def on_btHVoff_3_pressed(self, widget):
+        self.list_btHVoff[3].attributes["disabled"] = ""
+        del self.list_btHVon[3].attributes["disabled"]
+        self.data_dict['Caen.set_channel_3'] = 'OFF'
+        logging.info("HV ch3 set to OFF")
+
+    def on_btHVoff_pressed(self, widget):
+        self.btHVoff.attributes["disabled"] = ""
+        del self.btHVon.attributes["disabled"]
+        for bt in self.list_btHV:
+            bt.attributes["disabled"]= ""
+        for bt in self.list_btHVset:
+            bt.attributes["disabled"]= ""
+        self.data_dict['Caen.state'] = 'OFF'
+        logging.info("HV set to OFF")
+
+    def on_btHVset_0_pressed(self, widget):
+        HV_val=self.textinput_HV0.get_text()
+        self.data_dict['Caen.set_voltge_0'] = HV_val
+        logging.info("HV ch0 set to "+HV_val+" V")
+
+    def on_btHVset_1_pressed(self, widget):
+        HV_val=self.textinput_HV1.get_text()
+        self.data_dict['Caen.set_voltge_1'] = HV_val
+        logging.info("HV ch1 set to "+HV_val+" V")
+
+    def on_btHVset_2_pressed(self, widget):
+        HV_val=self.textinput_HV2.get_text()
+        self.data_dict['Caen.set_voltge_2'] = HV_val
+        logging.info("HV ch2 set to "+HV_val+" V")
+
+    def on_btHVset_3_pressed(self, widget):
+        HV_val=self.textinput_HV3.get_text()
+        self.data_dict['Caen.set_voltge_3'] = HV_val
+        logging.info("HV ch3 set to "+HV_val+" V")
+
+    ###---- LV buttons --------------
+    def on_btLV1on_pressed(self, widget):
+        self.btLV1on.attributes["disabled"] = ""
+        del self.btLV1off.attributes["disabled"]
+        self.data_dict['LV.State_1'] = 'ON'
+        logging.info("LV1 set to ON")
+
+
+    def on_btLV1off_pressed(self, widget):
+        self.btLV1off.attributes["disabled"] = ""
+        del self.btLV1on.attributes["disabled"]
+        self.data_dict['LV.State_1'] = 'OFF'
+        logging.info("LV1 set to OFF")
+
+    def on_btLV1set_pressed(self, widget):
+        LV1_0=self.textinput_LV1_0.get_text()
+        LV1_1=self.textinput_LV1_1.get_text()
+
+        self.data_dict['LV.set_voltge_1_0'] = LV1_0
+        self.data_dict['LV.set_voltge_1_1'] = LV1_1
+        logging.info("LV1_0 set to "+LV1_0+" V")
+        logging.info("LV1_1 set to "+LV1_1+" V")
+
+    def on_btLV2on_pressed(self, widget):
+        self.btLV2on.attributes["disabled"] = ""
+        del self.btLV2off.attributes["disabled"]
+        self.data_dict['LV.State_2'] = 'ON'
+        logging.info("LV2 set to ON")
+
+    def on_btLV2off_pressed(self, widget):
+        self.btLV2off.attributes["disabled"] = ""
+        del self.btLV2on.attributes["disabled"]
+        self.data_dict['LV.State_2'] = 'OFF'
+        logging.info("LV2 set to OFF")
+
+    def on_btLV2set_pressed(self, widget):
+        LV2_0=self.textinput_LV2_0.get_text()
+        LV2_1=self.textinput_LV2_1.get_text()
+
+        self.data_dict['LV.set_voltge_2_0'] = LV2_0
+        self.data_dict['LV.set_voltge_2_1'] = LV2_1
+        logging.info("LV2_0 set to "+LV2_0+" V")
+        logging.info("LV2_1 set to "+LV2_1+" V")
+
+    ###---- Chiller buttons --------------
+    def on_btChillerOn_pressed(self, widget):
+        self.btChillerOn.attributes["disabled"] = ""
+        del self.btChillerOff.attributes["disabled"]
+        self.data_dict['chiller.set_state'] = 'ON'
+        logging.info("Chiller set to ON")
+
+    def on_btChillerOff_pressed(self, widget):
+        self.btChillerOff.attributes["disabled"] = ""
+        del self.btChillerOn.attributes["disabled"]
+        self.data_dict['chiller.set_state'] = 'OFF'
+        logging.info("Chiller set to OFF")
+
+    def on_btChilTset_pressed(self, widget):
+        ChillerT=self.textinput_ChilT.get_text()
+        self.data_dict['chiller.set_temperature'] = ChillerT
+        logging.info("Chiller temperature set to "+ChillerT+" C")
+
+    '''
+    def on_btAdvSet_pressed(self, widget):
+        self.dialog = gui.GenericDialog(title='Setting HV/LV/Chiller T values', message='Are you sure you want to set new values for HV/LV/Chiller T?', width='500px')
+        self.dialog.confirm_dialog.do(self.SetAdvValues)
+        self.dialog.show(self)
+
+    def SetAdvValues(self, widget):
+
+        new_ChillerT_value=self.textinput_ChilT.get_text()
+        logging.debug("Chiller set to "+new_ChillerT_value+"C")
+        #self.list_textinput_HV
+        #self.list_textinput_LV
+        #----------------------
+
+        data_dict['chiller.set_temperature'] = new_ChillerT_value
+
+        logging.info("NEW HV/LV/Chiller T values are set!!")
+        self.notification_message("NEW HV/LV/Chiller T values are set!", "")
+        '''
     def Terminate_thermocycling(self, widget):
         currentDT = datetime.datetime.now()
         current_text= self.statusBox.get_text()
-        coldjiglib.stop_thermal_cycle()
+        coldjigcontroller.stop_thermal_cycle()
         logging.info("Thermocycling stopped!")
         self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling stopped!\n")
         self.btStop.attributes["disabled"] = ""
         del self.btStart.attributes["disabled"]
+        del self.btAdvSet.attributes["disabled"]
+        for textinput in self.list_textinput_HV:
+            del textinput.attributes["disabled"]
+        for textinput in self.list_textinput_LV:
+            del textinput.attributes["disabled"]
+        del self.textinput_ChilT.attributes["disabled"]
+
         #--FIX ME
         #del self.subContainerRight_1.style['pointer-events']
         #del self.subContainerRight_1.style['opacity']
@@ -629,6 +1028,9 @@ if __name__ == "__main__":
     logging.info('Reading config file: '+configfile)
     config_gui, config_influx, config_device = configreader.read_conf(config)
 
+    # reading config values directly
+    #gui_server = config['SERVER']['gui_server']
+    #gui_server_port = config['SERVER']['gui_server_port']
 
     gui_server = config_gui["gui_server"]
     gui_server_port = config_gui["gui_server_port"]
@@ -675,6 +1077,7 @@ if __name__ == "__main__":
     logging.debug('coldbox_type= '+coldbox_type)
     logging.debug('n_chucks= '+str(n_chucks))
     logging.debug('plt_fields= '+str(plt_field))
+    logging.debug('controller= '+config['COLDBOX']['controller'])
 
     logging.debug('gui_debug= '+str(gui_debug))
     #logging.debug('gui_logging_level= '+str(gui_logging_level))
@@ -696,16 +1099,29 @@ if __name__ == "__main__":
         #logging.error(bcolors.FAIL +'Number of chucks is not supported. Set n_chucks in config file to 4 or 5.' +bcolors.ENDC)
         logging.error('Number of chucks is not supported. Set n_chucks in config file to 4 or 5.')
         sys.exit(1)
+    #-----------
+    coldjigcontroller = None
+    try:
+        coldjigcontroller = importlib.import_module(config['COLDBOX']['controller'])
+    except ImportError:
+        logging.critical('could not import controller library -- check COLDBOX.controller option of config file')
+        sys.exit(1)
 
+    if coldjigcontroller is None:
+        logging.critical('failed to create an instance of the controller')
+        sys.exit(1)
+
+    #-- use this for debugging purpose. The app will exit after loading the configs
     #exit()
+    #-----------
 
     if not verbose:
         stdout_string_io = StringIO()
         sys.stdout = sys.stderr = stdout_string_io
 
-    #--- starts the coldJiglib
-    if(coldjiglib.start()):
-        logging.info("Welcome to ColdJigLib2 ...!")
+    #--- starts the coldjigcontroller
+    if(coldjigcontroller.start()):
+        logging.info("Coldbox Controller is up and running!")
 
     #--starts the webserver / optional parameters
     #start(ColdBoxGUI, update_interval=0.5, debug=gui_debug, address=gui_server, port=gui_server_port, start_browser=gui_start_browser, multiple_instance=gui_multiple_instance, enable_file_cache=gui_enable_file_cache)
