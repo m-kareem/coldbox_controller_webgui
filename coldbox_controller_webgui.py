@@ -123,6 +123,10 @@ class ColdBoxGUI(App):
         horizontalContainer_logo = gui.Container(width='20%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
         horizontalContainer = gui.HBox(width = "95%")
 
+        horizontalContainer_grafana_dash = gui.HBox(width = "100%")
+        horizontalContainer_grafana_dash.style['justify-content'] ='flex-start'
+        horizontalContainer_grafana_dash.style['align-items'] = 'flex-start'
+
         horizontalContainer_grafana_intrl = gui.HBox(width = "100%")
         horizontalContainer_grafana_intrl.style['justify-content'] ='flex-start'
         horizontalContainer_grafana_intrl.style['align-items'] = 'flex-start'
@@ -309,6 +313,7 @@ class ColdBoxGUI(App):
 
 
         #===================================== TAB 2 =================================================
+
         horizontalContainer_tb2 = gui.HBox(width='70%')
 
         self.lbl_placeHolder = gui.Label('Place holder content', width=200, height=30, margin='10px',style={'font-size': '15px', 'font-weight': 'bold','color': 'red'})
@@ -618,6 +623,14 @@ class ColdBoxGUI(App):
         tabBox.add_tab(verticalContainer_tb4, 'About', None)
 
         #===================================== Grafana pannels and interlocks =====================================
+        self.grafana_dash = gui.Widget( _type='iframe', width='100%', height=1000, margin='10px')
+        self.grafana_dash.attributes['src'] = grf_dash
+        self.grafana_dash.attributes['width'] = '100%'
+        self.grafana_dash.attributes['height'] = '100%'
+        self.grafana_dash.attributes['controls'] = 'true'
+        self.grafana_dash.style['border'] = 'none'
+
+
         self.grafana_panel_list=[]
         for panel in grf_panel_list:
             self.grafana_panel= gui.Widget( _type='iframe', width=618, height=300, margin='10px')
@@ -642,10 +655,14 @@ class ColdBoxGUI(App):
         horizontalContainer_grafana_intrl.append([self.grafana_intrl_list])
         horizontalContainer_grafana_panels.append([self.grafana_panel_list])
 
+        horizontalContainer_grafana_dash.append(self.grafana_dash)
+
+
         #=========================== Appending TabBox and Grafana plots to a vertical main container ======================
 
-        main_container = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
-        main_container.append([tabBox, horizontalContainer_grafana_intrl, horizontalContainer_grafana_panels])
+        main_container = gui.VBox(width ='100%', hight='100%', style={'align-items':'flex-start', 'justify-content':'flex-start'})
+        main_container.append([tabBox, horizontalContainer_grafana_dash, horizontalContainer_grafana_intrl, horizontalContainer_grafana_panels])
+        #main_container.append([tabBox, horizontalContainer_grafana_dash])
 
         #================== Thread management =============================================================================
         self.thread_alive_flag = True
@@ -698,7 +715,8 @@ class ColdBoxGUI(App):
         #current_text= self.statusBox.get_text()
         self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling started\n")
         self.btStart.attributes["disabled"] = ""
-        self.btAdvSet.attributes["disabled"] = ""
+        #-- this is to prevent the user from changing the values when the TC is running
+        '''
         for textinput in self.list_textinput_HV:
             textinput.attributes["disabled"] = ""
         for textinput in self.list_textinput_LV1:
@@ -706,11 +724,9 @@ class ColdBoxGUI(App):
         for textinput in self.list_textinput_LV2:
             textinput.attributes["disabled"] = ""
         self.textinput_ChilT.attributes["disabled"] = ""
-
+        '''
         del self.btStop.attributes["disabled"]
-        #--FIX ME
-        #self.subContainerRight_1.style['pointer-events'] = 'none'
-        #self.subContainerRight_1.style['opacity'] = '0.4' #this is to give a disabled apparence
+
 
 
     def on_btStop_pressed(self, widget):
@@ -898,16 +914,18 @@ class ColdBoxGUI(App):
         self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling stopped!\n")
         self.btStop.attributes["disabled"] = ""
         del self.btStart.attributes["disabled"]
-        del self.btAdvSet.attributes["disabled"]
+        #-- this is to let the user to change the values when the TC is stopped
+        '''
         for textinput in self.list_textinput_HV:
             del textinput.attributes["disabled"]
-        for textinput in self.list_textinput_LV:
+        for textinput in self.list_textinput_LV1:
             del textinput.attributes["disabled"]
-        del self.textinput_ChilT.attributes["disabled"]
+        for textinput in self.list_textinput_LV2:
+            del textinput.attributes["disabled"]
 
-        #--FIX ME
-        #del self.subContainerRight_1.style['pointer-events']
-        #del self.subContainerRight_1.style['opacity']
+        del self.textinput_ChilT.attributes["disabled"]
+        '''
+
         self.notification_message("Thermocycling terminated!", "")
 
     def read_user_options(self):
@@ -1037,6 +1055,7 @@ if __name__ == "__main__":
     coldbox_type = config_gui["coldbox_type"]
     n_chucks = config_gui["n_chucks"]
     plt_field = config_gui["plt_field"]
+    grf_dash= config_gui["grf_dash"]
     grf_panel_list = config_gui["grf_panel_list"]
     grf_intrl_list = config_gui["grf_intrl_list"]
     gui_debug = config_gui["gui_debug"]
@@ -1053,6 +1072,7 @@ if __name__ == "__main__":
 
     gui_multiple_instance = config_gui["gui_multiple_instance"]
     gui_enable_file_cache = config_gui["gui_enable_file_cache"]
+    gui_update_interval = config_gui["gui_update_interval"]
 
     ch_device_list = config_device["ch_device_list"]
     mod_device_list = config_device["mod_device_list"]
@@ -1084,6 +1104,7 @@ if __name__ == "__main__":
     logging.debug('gui_start_browser= '+str(gui_start_browser))
     logging.debug('gui_multiple_instance= '+str(gui_multiple_instance))
     logging.debug('gui_enable_file_cache= '+str(gui_enable_file_cache))
+    logging.debug('gui_update_interval= '+str(gui_update_interval))
 
     logging.debug('CB_device_Chiller_flw= '+CB_device_Chiller_flw)
 
@@ -1091,6 +1112,7 @@ if __name__ == "__main__":
     logging.debug('mod_device_list='+ str(mod_device_list))
     logging.debug('pltC_device_list='+ str(pltC_device_list))
     logging.debug('pltV_device_list='+ str(pltV_device_list))
+    logging.debug('grf_dash='+ str(grf_dash))
     #logging.debug('grf_panel_list='+ str(grf_panel_list))
     #logging.debug('grf_intrl_list='+ str(grf_intrl_list))
 
@@ -1125,4 +1147,4 @@ if __name__ == "__main__":
 
     #--starts the webserver / optional parameters
     #start(ColdBoxGUI, update_interval=0.5, debug=gui_debug, address=gui_server, port=gui_server_port, start_browser=gui_start_browser, multiple_instance=gui_multiple_instance, enable_file_cache=gui_enable_file_cache)
-    start(ColdBoxGUI, debug=gui_debug, address=gui_server, port=gui_server_port, start_browser=gui_start_browser, multiple_instance=gui_multiple_instance, enable_file_cache=gui_enable_file_cache, username=None, password=None)
+    start(ColdBoxGUI, update_interval=gui_update_interval, debug=gui_debug, address=gui_server, port=gui_server_port, start_browser=gui_start_browser, multiple_instance=gui_multiple_instance, enable_file_cache=gui_enable_file_cache, username=None, password=None)

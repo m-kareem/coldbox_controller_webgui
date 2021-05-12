@@ -33,9 +33,11 @@ def read_conf(config):
     gui_start_browser = True
     gui_multiple_instance = False
     gui_enable_file_cache = False
+    gui_update_interval = 0.1
     #gui_logging_level = 'INFO'
     # ------------------------
 
+    grf_dash=''
     grf_panel_list=[]
     grf_intrl_list=[]
 
@@ -94,7 +96,9 @@ def read_conf(config):
 
         if sec == 'GRAFANA':
             for param in config[sec]:
-                if param.startswith('panel'):
+                if param.startswith('dash'):
+                    grf_dash=config[sec][param]
+                elif param.startswith('panel'):
                     grf_panel_list.append(config[sec][param])
                 elif param.startswith('intrl'):
                     grf_intrl_list.append(config[sec][param])
@@ -111,6 +115,8 @@ def read_conf(config):
                     gui_enable_file_cache = (config[sec][param] == "True")
                 #elif param == 'gui_logging_level':
                 #    gui_logging_level = config[sec][param]
+                elif param == 'gui_update_interval':
+                    gui_update_interval = float(config[sec][param])
 
         config_gui = {
             "gui_server": gui_server,
@@ -118,12 +124,14 @@ def read_conf(config):
             "coldbox_type": coldbox_type,
             "n_chucks": int(n_chucks),
             "plt_field": plt_field,
+            "grf_dash": grf_dash,
             "grf_panel_list": grf_panel_list,
             "grf_intrl_list": grf_intrl_list,
             "gui_debug": gui_debug,
             "gui_start_browser": gui_start_browser,
             "gui_multiple_instance": gui_multiple_instance,
             "gui_enable_file_cache": gui_enable_file_cache,
+            "gui_update_interval" : gui_update_interval,
             #"gui_logging_level": gui_logging_level
         }
 
