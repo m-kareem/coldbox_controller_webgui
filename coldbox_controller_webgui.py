@@ -21,6 +21,7 @@ https://gitlab.cern.ch/mkareem/coldbox_controller_webgui
 import remi.gui as gui
 from remi import start, App
 from GUImodules.RadioButton import *
+import GUImodules.Popup as Popup
 from threading import Timer
 import configparser as conf
 import GUImodules.configreader as configreader
@@ -263,6 +264,9 @@ class ColdBoxGUI(App):
         self.btStop = gui.Button('STOP', width=100, height=30, style={'font-size': '16px', 'font-weight': 'bold','background-color': '#C0392B'})
         self.btStop.attributes["disabled"] = ""
         self.btStop.onclick.do(self.on_btStop_pressed)
+        self.TC_term_popup_confirm = Popup.PopupConfirm("ColdBox webGUI", "Are you sure you want to terminate the Thermocycling?")
+        self.TC_term_popup_alert = Popup.PopupAlert("ColdBox webGUI", "Thermocycling terminated!")
+
 
         self.subContainerRight_1.append([self.btStart,self.btStop])
         self.subContainerRight_1.style['justify-content'] ='flex-start'
@@ -302,8 +306,10 @@ class ColdBoxGUI(App):
         self.subContainerLog_1.style['align-items'] = 'flex-start'
 
         #- Wrapping the subcontainers
-        horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight, subContainerLog])
-        horizontalContainer.style['justify-content'] ='flex-start'
+        horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight, subContainerLog,self.TC_term_popup_alert , self.TC_term_popup_confirm])
+        #horizontalContainer.style['justify-content'] ='flex-start'
+        #horizontalContainer.style['align-items'] = 'flex-start'
+        horizontalContainer.style['justify-content'] ='space-around'
         horizontalContainer.style['align-items'] = 'flex-start'
 
 
@@ -730,9 +736,15 @@ class ColdBoxGUI(App):
 
 
     def on_btStop_pressed(self, widget):
-        self.dialog = gui.GenericDialog(title='attempt to stop Thermocycling', message='Are you sure you want to terminate the Thermocycling?', width='500px')
-        self.dialog.confirm_dialog.do(self.Terminate_thermocycling)
-        self.dialog.show(self)
+        #self.dialog = gui.GenericDialog(title='attempt to stop Thermocycling', message='Are you sure you want to terminate the Thermocycling?', width='500px')
+        #self.dialog.show(self)
+        self.TC_term_popup_confirm.show()
+        self.TC_term_popup_confirm.onconfirm.do(self.Terminate_thermocycling)
+        #self.dialog.confirm_dialog.do(self.Terminate_thermocycling)
+        #self.TC_term_popup_confirm.onconfirm()
+
+
+
 
     #--------- Advance buttons ----------
     ###---- HV buttons --------------
@@ -925,8 +937,17 @@ class ColdBoxGUI(App):
 
         del self.textinput_ChilT.attributes["disabled"]
         '''
+        #self.js_notification('Thermocycling terminated!')
+        self.TC_term_popup_alert.show()
 
-        self.notification_message("Thermocycling terminated!", "")
+
+
+
+
+    def js_notification(self,txt):
+        time.sleep(0.1)
+        self.execute_javascript('alert("%s")'%txt)
+
 
     def read_user_options(self):
         ncycle = self.spin.get_value()
