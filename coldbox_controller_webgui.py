@@ -44,7 +44,7 @@ from GUImodules.influx_query import *
 #import user_manager
 #from user_manager import *
 
-import GUIlogging
+import logging
 
 import threading
 
@@ -735,20 +735,20 @@ class ColdBoxGUI(App):
             self.btStartLib.attributes["disabled"] = ""
             del self.btStopLib.attributes["disabled"]
             del self.btStartTC.attributes["disabled"]
-            logging.info("Coldbox Controller is up and running!")
+            logger.info("Coldbox Controller is up and running!")
 
     def on_btStopLib_pressed(self, widget):
         if(coldjigcontroller.shutdown()):
             self.btStopLib.attributes["disabled"] = ""
             self.btStartTC.attributes["disabled"] = ""
             del self.btStartLib.attributes["disabled"]
-            logging.info("Coldbox Controller is shutdown!")
+            logger.info("Coldbox Controller is shutdown!")
 
     def on_btStartTC_pressed(self, widget):
         currentDT = datetime.datetime.now()
         current_text=self.read_user_options()
         coldjigcontroller.start_thermal_cycle([1,2,3,4,5]) # should get list of available modules. Full list is hardcoded for now.
-        logging.info("Thermocycling started!")
+        logger.info("Thermocycling started!")
         #current_text= self.statusBox.get_text()
         self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling started\n")
         self.btStartTC.attributes["disabled"] = ""
@@ -782,56 +782,56 @@ class ColdBoxGUI(App):
         for bt in self.list_btHVset:
             del bt.attributes["disabled"]
         self.data_dict['Caen.state'] = 'ON'
-        logging.info("HV set to ON")
+        logger.info("HV set to ON")
 
     def on_btHVon_0_pressed(self, widget):
         self.list_btHVon[0].attributes["disabled"] = ""
         del self.list_btHVoff[0].attributes["disabled"]
         self.data_dict['Caen.set_channel_0'] = 'ON'
-        logging.info("HV ch0 set to ON")
+        logger.info("HV ch0 set to ON")
 
 
     def on_btHVon_1_pressed(self, widget):
         self.list_btHVon[1].attributes["disabled"] = ""
         del self.list_btHVoff[1].attributes["disabled"]
         self.data_dict['Caen.set_channel_1'] = 'ON'
-        logging.info("HV ch1 set to ON")
+        logger.info("HV ch1 set to ON")
 
     def on_btHVon_2_pressed(self, widget):
         self.list_btHVon[2].attributes["disabled"] = ""
         del self.list_btHVoff[2].attributes["disabled"]
         self.data_dict['Caen.set_channel_2'] = 'ON'
-        logging.info("HV ch2 set to ON")
+        logger.info("HV ch2 set to ON")
 
     def on_btHVon_3_pressed(self, widget):
         self.list_btHVon[3].attributes["disabled"] = ""
         del self.list_btHVoff[3].attributes["disabled"]
         self.data_dict['Caen.set_channel_3'] = 'ON'
-        logging.info("HV ch3 set to ON")
+        logger.info("HV ch3 set to ON")
 
     def on_btHVoff_0_pressed(self, widget):
         self.list_btHVoff[0].attributes["disabled"] = ""
         del self.list_btHVon[0].attributes["disabled"]
         self.data_dict['Caen.set_channel_0'] = 'OFF'
-        logging.info("HV ch0 set to OFF")
+        logger.info("HV ch0 set to OFF")
 
     def on_btHVoff_1_pressed(self, widget):
         self.list_btHVoff[1].attributes["disabled"] = ""
         del self.list_btHVon[1].attributes["disabled"]
         self.data_dict['Caen.set_channel_1'] = 'OFF'
-        logging.info("HV ch1 set to OFF")
+        logger.info("HV ch1 set to OFF")
 
     def on_btHVoff_2_pressed(self, widget):
         self.list_btHVoff[2].attributes["disabled"] = ""
         del self.list_btHVon[2].attributes["disabled"]
         self.data_dict['Caen.set_channel_2'] = 'OFF'
-        logging.info("HV ch2 set to OFF")
+        logger.info("HV ch2 set to OFF")
 
     def on_btHVoff_3_pressed(self, widget):
         self.list_btHVoff[3].attributes["disabled"] = ""
         del self.list_btHVon[3].attributes["disabled"]
         self.data_dict['Caen.set_channel_3'] = 'OFF'
-        logging.info("HV ch3 set to OFF")
+        logger.info("HV ch3 set to OFF")
 
     def on_btHVoff_pressed(self, widget):
         self.btHVoff.attributes["disabled"] = ""
@@ -841,41 +841,41 @@ class ColdBoxGUI(App):
         for bt in self.list_btHVset:
             bt.attributes["disabled"]= ""
         self.data_dict['Caen.state'] = 'OFF'
-        logging.info("HV set to OFF")
+        logger.info("HV set to OFF")
 
     def on_btHVset_0_pressed(self, widget):
         HV_val=self.textinput_HV0.get_text()
         self.data_dict['Caen.set_voltge_0'] = HV_val
-        logging.info("HV ch0 set to "+HV_val+" V")
+        logger.info("HV ch0 set to "+HV_val+" V")
 
     def on_btHVset_1_pressed(self, widget):
         HV_val=self.textinput_HV1.get_text()
         self.data_dict['Caen.set_voltge_1'] = HV_val
-        logging.info("HV ch1 set to "+HV_val+" V")
+        logger.info("HV ch1 set to "+HV_val+" V")
 
     def on_btHVset_2_pressed(self, widget):
         HV_val=self.textinput_HV2.get_text()
         self.data_dict['Caen.set_voltge_2'] = HV_val
-        logging.info("HV ch2 set to "+HV_val+" V")
+        logger.info("HV ch2 set to "+HV_val+" V")
 
     def on_btHVset_3_pressed(self, widget):
         HV_val=self.textinput_HV3.get_text()
         self.data_dict['Caen.set_voltge_3'] = HV_val
-        logging.info("HV ch3 set to "+HV_val+" V")
+        logger.info("HV ch3 set to "+HV_val+" V")
 
     ###---- LV buttons --------------
     def on_btLV1on_pressed(self, widget):
         self.btLV1on.attributes["disabled"] = ""
         del self.btLV1off.attributes["disabled"]
         self.data_dict['LV.State_1'] = 'ON'
-        logging.info("LV1 set to ON")
+        logger.info("LV1 set to ON")
 
 
     def on_btLV1off_pressed(self, widget):
         self.btLV1off.attributes["disabled"] = ""
         del self.btLV1on.attributes["disabled"]
         self.data_dict['LV.State_1'] = 'OFF'
-        logging.info("LV1 set to OFF")
+        logger.info("LV1 set to OFF")
 
     def on_btLV1set_pressed(self, widget):
         LV1_0=self.textinput_LV1_0.get_text()
@@ -883,20 +883,20 @@ class ColdBoxGUI(App):
 
         self.data_dict['LV.set_voltge_1_0'] = LV1_0
         self.data_dict['LV.set_voltge_1_1'] = LV1_1
-        logging.info("LV1_0 set to "+LV1_0+" V")
-        logging.info("LV1_1 set to "+LV1_1+" V")
+        logger.info("LV1_0 set to "+LV1_0+" V")
+        logger.info("LV1_1 set to "+LV1_1+" V")
 
     def on_btLV2on_pressed(self, widget):
         self.btLV2on.attributes["disabled"] = ""
         del self.btLV2off.attributes["disabled"]
         self.data_dict['LV.State_2'] = 'ON'
-        logging.info("LV2 set to ON")
+        logger.info("LV2 set to ON")
 
     def on_btLV2off_pressed(self, widget):
         self.btLV2off.attributes["disabled"] = ""
         del self.btLV2on.attributes["disabled"]
         self.data_dict['LV.State_2'] = 'OFF'
-        logging.info("LV2 set to OFF")
+        logger.info("LV2 set to OFF")
 
     def on_btLV2set_pressed(self, widget):
         LV2_0=self.textinput_LV2_0.get_text()
@@ -904,26 +904,26 @@ class ColdBoxGUI(App):
 
         self.data_dict['LV.set_voltge_2_0'] = LV2_0
         self.data_dict['LV.set_voltge_2_1'] = LV2_1
-        logging.info("LV2_0 set to "+LV2_0+" V")
-        logging.info("LV2_1 set to "+LV2_1+" V")
+        logger.info("LV2_0 set to "+LV2_0+" V")
+        logger.info("LV2_1 set to "+LV2_1+" V")
 
     ###---- Chiller buttons --------------
     def on_btChillerOn_pressed(self, widget):
         self.btChillerOn.attributes["disabled"] = ""
         del self.btChillerOff.attributes["disabled"]
         self.data_dict['chiller.set_state'] = 'ON'
-        logging.info("Chiller set to ON")
+        logger.info("Chiller set to ON")
 
     def on_btChillerOff_pressed(self, widget):
         self.btChillerOff.attributes["disabled"] = ""
         del self.btChillerOn.attributes["disabled"]
         self.data_dict['chiller.set_state'] = 'OFF'
-        logging.info("Chiller set to OFF")
+        logger.info("Chiller set to OFF")
 
     def on_btChilTset_pressed(self, widget):
         ChillerT=self.textinput_ChilT.get_text()
         self.data_dict['chiller.set_temperature'] = ChillerT
-        logging.info("Chiller temperature set to "+ChillerT+" C")
+        logger.info("Chiller temperature set to "+ChillerT+" C")
 
     '''
     def on_btAdvSet_pressed(self, widget):
@@ -934,21 +934,21 @@ class ColdBoxGUI(App):
     def SetAdvValues(self, widget):
 
         new_ChillerT_value=self.textinput_ChilT.get_text()
-        logging.debug("Chiller set to "+new_ChillerT_value+"C")
+        logger.debug("Chiller set to "+new_ChillerT_value+"C")
         #self.list_textinput_HV
         #self.list_textinput_LV
         #----------------------
 
         data_dict['chiller.set_temperature'] = new_ChillerT_value
 
-        logging.info("NEW HV/LV/Chiller T values are set!!")
+        logger.info("NEW HV/LV/Chiller T values are set!!")
         self.notification_message("NEW HV/LV/Chiller T values are set!", "")
         '''
     def Terminate_thermocycling(self, widget):
         currentDT = datetime.datetime.now()
         current_text= self.statusBox.get_text()
         coldjigcontroller.stop_thermal_cycle()
-        logging.info("Thermocycling stopped!")
+        logger.info("Thermocycling stopped!")
         self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling stopped!\n")
         self.btStopTC.attributes["disabled"] = ""
         del self.btStartTC.attributes["disabled"]
@@ -983,10 +983,10 @@ class ColdBoxGUI(App):
 
         for chuck in self.list_checkBox_ch:
             availavle_chucks.append(int(chuck.get_value()) )
-        logging.debug('availavle_chucks: '+str(availavle_chucks))
+        logger.debug('availavle_chucks: '+str(availavle_chucks))
 
         self.total_selected_chucks = np.sum(list(map(int,availavle_chucks)))
-        logging.debug('total_selected_chucks: '+str(self.total_selected_chucks))
+        logger.debug('total_selected_chucks: '+str(self.total_selected_chucks))
 
         if self.radioButton_stTest.get_value():
             selected_tests = ' standard'
@@ -994,7 +994,7 @@ class ColdBoxGUI(App):
             selected_tests_helper = [self.checkBox_t1.get_value(),self.checkBox_t2.get_value(),self.checkBox_t3.get_value(),self.checkBox_t4.get_value(),self.checkBox_t5.get_value(),self.checkBox_t6.get_value(),self.checkBox_t7.get_value()]
             selected_tests = str(list(map(int,selected_tests_helper)))
             self.total_selected_tests = np.sum(list(map(int,selected_tests_helper)))
-            logging.debug('custom test is running: '+str(self.total_selected_tests)+' tests')
+            logger.debug('custom test is running: '+str(self.total_selected_tests)+' tests')
 
         user_options = 'User options set:\n'+'-Cycles:'+ str(ncycle) +'\n-Available_chucks:'+str(list(map(int,availavle_chucks)))+'\n-Selected_test(s):'+selected_tests+'\n------\n'
         return user_options
@@ -1048,10 +1048,9 @@ class ColdBoxGUI(App):
 
 
 if __name__ == "__main__":
-    logging = GUIlogging.init_logger(__name__)
-    #logging = GUIcoloredlogging.init_logger(__name__)
+    logger = logging.getLogger(__name__)
 
-    logging.info("Starting ColdJig GUI")
+    logger.info("Starting ColdJig GUI")
     verbose = False # set to Fals if you dont want to print debugging info
     config = conf.ConfigParser()
     configfile = 'default'
@@ -1066,7 +1065,7 @@ if __name__ == "__main__":
          'help'
          ])
     except getopt.GetoptError as err:
-        logging.error('option requires argument.\n Usage: blah -c configFile \n Process terminated.')
+        logger.error('option requires argument.\n Usage: blah -c configFile \n Process terminated.')
         sys.exit(1)
 
     for opt, arg in options:
@@ -1079,20 +1078,20 @@ if __name__ == "__main__":
             verbose = True
 
     if not any('-c' in sublist for sublist in options):
-        #logging.error(bcolors.FAIL + "Attempt to start the GUI without user config.\n Process terminated." + bcolors.ENDC)
-        logging.error("Attempt to start the GUI without user config.\n Process terminated.")
+        #logger.error(bcolors.FAIL + "Attempt to start the GUI without user config.\n Process terminated." + bcolors.ENDC)
+        logger.error("Attempt to start the GUI without user config.\n Process terminated.")
         sys.exit(1)
 
     else:
         if os.path.isfile(configfile):
             config.read(configfile)
         else:
-            #logging.error(bcolors.FAIL +'Config file does not exist. Process terminated.' +bcolors.ENDC)
-            logging.error('Config file does not exist. Process terminated.')
+            #logger.error(bcolors.FAIL +'Config file does not exist. Process terminated.' +bcolors.ENDC)
+            logger.error('Config file does not exist. Process terminated.')
             sys.exit(1)
 
-    #logging.info(bcolors.OKGREEN+'Reading config file: '+configfile+bcolors.ENDC)
-    logging.info('Reading config file: '+configfile)
+    #logger.info(bcolors.OKGREEN+'Reading config file: '+configfile+bcolors.ENDC)
+    logger.info('Reading config file: '+configfile)
     config_gui, config_influx, config_device = configreader.read_conf(config)
 
     # reading config values directly
@@ -1134,52 +1133,52 @@ if __name__ == "__main__":
     CB_device_Chiller_flw = config_device["CB_device_Chiller_flw"]
 
 
-    logging.debug('gui_server= '+gui_server)
-    logging.debug('gui_port= '+str(gui_server_port))
+    logger.debug('gui_server= '+gui_server)
+    logger.debug('gui_port= '+str(gui_server_port))
 
-    logging.debug('influx_server= '+INFLUXDB_ADDRESS)
-    logging.debug('influx_user= '+INFLUXDB_USER)
-    logging.debug('influx_port= '+INFLUXDB_PORT)
-    logging.debug('influx_database= '+INFLUXDB_DATABASE)
-    logging.debug('influx_measurement= '+INFLUXDB_MEASUREMENT)
+    logger.debug('influx_server= '+INFLUXDB_ADDRESS)
+    logger.debug('influx_user= '+INFLUXDB_USER)
+    logger.debug('influx_port= '+INFLUXDB_PORT)
+    logger.debug('influx_database= '+INFLUXDB_DATABASE)
+    logger.debug('influx_measurement= '+INFLUXDB_MEASUREMENT)
 
-    logging.debug('coldbox_type= '+coldbox_type)
-    logging.debug('n_chucks= '+str(n_chucks))
-    logging.debug('plt_fields= '+str(plt_field))
-    logging.debug('controller= '+config['COLDBOX']['controller'])
+    logger.debug('coldbox_type= '+coldbox_type)
+    logger.debug('n_chucks= '+str(n_chucks))
+    logger.debug('plt_fields= '+str(plt_field))
+    logger.debug('controller= '+config['COLDBOX']['controller'])
 
-    logging.debug('gui_debug= '+str(gui_debug))
-    #logging.debug('gui_logging_level= '+str(gui_logging_level))
-    logging.debug('gui_start_browser= '+str(gui_start_browser))
-    logging.debug('gui_multiple_instance= '+str(gui_multiple_instance))
-    logging.debug('gui_enable_file_cache= '+str(gui_enable_file_cache))
-    logging.debug('gui_update_interval= '+str(gui_update_interval))
+    logger.debug('gui_debug= '+str(gui_debug))
+    #logger.debug('gui_logging_level= '+str(gui_logging_level))
+    logger.debug('gui_start_browser= '+str(gui_start_browser))
+    logger.debug('gui_multiple_instance= '+str(gui_multiple_instance))
+    logger.debug('gui_enable_file_cache= '+str(gui_enable_file_cache))
+    logger.debug('gui_update_interval= '+str(gui_update_interval))
 
-    logging.debug('CB_device_Chiller_flw= '+CB_device_Chiller_flw)
+    logger.debug('CB_device_Chiller_flw= '+CB_device_Chiller_flw)
 
-    logging.debug('ch_device_list='+ str(ch_device_list))
-    logging.debug('mod_device_list='+ str(mod_device_list))
-    logging.debug('pltC_device_list='+ str(pltC_device_list))
-    logging.debug('pltV_device_list='+ str(pltV_device_list))
-    logging.debug('grf_dash='+ str(grf_dash))
-    #logging.debug('grf_panel_list='+ str(grf_panel_list))
-    #logging.debug('grf_intrl_list='+ str(grf_intrl_list))
+    logger.debug('ch_device_list='+ str(ch_device_list))
+    logger.debug('mod_device_list='+ str(mod_device_list))
+    logger.debug('pltC_device_list='+ str(pltC_device_list))
+    logger.debug('pltV_device_list='+ str(pltV_device_list))
+    logger.debug('grf_dash='+ str(grf_dash))
+    #logger.debug('grf_panel_list='+ str(grf_panel_list))
+    #logger.debug('grf_intrl_list='+ str(grf_intrl_list))
 
     #-- checking number of chucks--
     if not (n_chucks==5 or n_chucks==4):
-        #logging.error(bcolors.FAIL +'Number of chucks is not supported. Set n_chucks in config file to 4 or 5.' +bcolors.ENDC)
-        logging.error('Number of chucks is not supported. Set n_chucks in config file to 4 or 5.')
+        #logger.error(bcolors.FAIL +'Number of chucks is not supported. Set n_chucks in config file to 4 or 5.' +bcolors.ENDC)
+        logger.error('Number of chucks is not supported. Set n_chucks in config file to 4 or 5.')
         sys.exit(1)
     #-----------
     coldjigcontroller = None
     try:
         coldjigcontroller = importlib.import_module(config['COLDBOX']['controller'])
     except ImportError:
-        logging.critical('could not import controller library -- check COLDBOX.controller option of config file')
+        logger.critical('could not import controller library -- check COLDBOX.controller option of config file')
         sys.exit(1)
 
     if coldjigcontroller is None:
-        logging.critical('failed to create an instance of the controller')
+        logger.critical('failed to create an instance of the controller')
         sys.exit(1)
 
     #-- use this for debugging purpose. The app will exit after loading the configs
