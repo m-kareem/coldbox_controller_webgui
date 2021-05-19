@@ -251,26 +251,42 @@ class ColdBoxGUI(App):
         #-------------------------- Right V Container ---------------------
         # the arguments are	width - height - layoutOrientationOrizontal
         subContainerRight = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
-        self.subContainerRight_1 = gui.HBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
+        self.subContainerRight_11 = gui.HBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
+        self.subContainerRight_12 = gui.HBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
         self.subContainerRight_2 = gui.HBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
         self.subContainerRight_3 = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
 
-        self.lbl_04 = gui.Label('Controls', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
+        #self.lbl_04 = gui.Label('Controls', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
+
+        self.btStartLib = gui.Button('Start', width=100, height=30, margin='15px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#28B463'})
+        self.btStartLib.onclick.do(self.on_btStartLib_pressed)
+        self.btStartLib.attributes['title']='-Connects and initialises hardware\n-Starts core loop'
+
+        self.btStopLib = gui.Button('Shutdown', width=100, height=30, style={'font-size': '16px', 'font-weight': 'bold','background-color': '#C0392B'})
+        self.btStopLib.onclick.do(self.on_btStopLib_pressed)
+        self.btStopLib.attributes['title']='-Shutting down all tasks and core loop\n-Gracefully disengage hardware'
+        self.btStopLib.attributes["disabled"] = ""
+
+        self.subContainerRight_11.append([self.btStartLib,self.btStopLib])
+        self.subContainerRight_11.style['justify-content'] ='flex-start'
+        self.subContainerRight_11.style['align-items'] = 'center'
+
+        self.btStartTC = gui.Button('Start TC', width=100, height=30, margin='15px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#28B463'})
+        self.btStartTC.onclick.do(self.on_btStartTC_pressed)
+        self.btStartTC.attributes['title']='Start Thermocycling'
+        self.btStartTC.attributes["disabled"] = ""
+
+        self.btStopTC = gui.Button('Stop TC', width=100, height=30, style={'font-size': '16px', 'font-weight': 'bold','background-color': '#C0392B'})
+        self.btStopTC.attributes["disabled"] = ""
+        self.btStopTC.onclick.do(self.on_btStopTC_pressed)
+        self.btStopTC.attributes['title']='Stop Thermocycling'
+        self.TC_term_popup_confirm = Popup.PopupConfirm("ColdBoxGUI", "Are you sure you want to terminate the Thermocycling?")
+        self.TC_term_popup_alert = Popup.PopupAlert("ColdBoxGUI", "Thermocycling terminated!")
 
 
-        self.btStart = gui.Button('START', width=100, height=30, margin='15px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#28B463'})
-        self.btStart.onclick.do(self.on_btStart_pressed)
-
-        self.btStop = gui.Button('STOP', width=100, height=30, style={'font-size': '16px', 'font-weight': 'bold','background-color': '#C0392B'})
-        self.btStop.attributes["disabled"] = ""
-        self.btStop.onclick.do(self.on_btStop_pressed)
-        self.TC_term_popup_confirm = Popup.PopupConfirm("ColdBox webGUI", "Are you sure you want to terminate the Thermocycling?")
-        self.TC_term_popup_alert = Popup.PopupAlert("ColdBox webGUI", "Thermocycling terminated!")
-
-
-        self.subContainerRight_1.append([self.btStart,self.btStop])
-        self.subContainerRight_1.style['justify-content'] ='flex-start'
-        self.subContainerRight_1.style['align-items'] = 'center'
+        self.subContainerRight_12.append([self.btStartTC,self.btStopTC])
+        self.subContainerRight_12.style['justify-content'] ='flex-start'
+        self.subContainerRight_12.style['align-items'] = 'center'
 
         self.lbl_spin = gui.Label('# of cycles', width=100, height=20, margin='15px')
         self.spin = gui.SpinBox(10, 1, 100, width=100, height=20)
@@ -284,7 +300,8 @@ class ColdBoxGUI(App):
         self.statusBox = gui.TextInput(False,width=280, height=160)
 
         self.subContainerRight_3.append([self.lbl_status,self.statusBox])
-        subContainerRight.append([self.lbl_04,self.subContainerRight_1 ,self.subContainerRight_2, self.subContainerRight_3])
+
+        subContainerRight.append([self.subContainerRight_11, self.subContainerRight_12 ,self.subContainerRight_2, self.subContainerRight_3])
         self.subContainerRight_3.style['justify-content'] ='space-between'
         self.subContainerRight_3.style['align-items'] = 'flex-start'
 
@@ -713,14 +730,29 @@ class ColdBoxGUI(App):
             self.list_textinput_ch[id].attributes["disabled"] = ""
 
 
-    def on_btStart_pressed(self, widget):
+    def on_btStartLib_pressed(self, widget):
+        if(coldjigcontroller.start()):
+            self.btStartLib.attributes["disabled"] = ""
+            del self.btStopLib.attributes["disabled"]
+            del self.btStartTC.attributes["disabled"]
+            logging.info("Coldbox Controller is up and running!")
+
+    def on_btStopLib_pressed(self, widget):
+        if(coldjigcontroller.shutdown()):
+            self.btStopLib.attributes["disabled"] = ""
+            self.btStartTC.attributes["disabled"] = ""
+            del self.btStartLib.attributes["disabled"]
+            logging.info("Coldbox Controller is shutdown!")
+
+    def on_btStartTC_pressed(self, widget):
         currentDT = datetime.datetime.now()
         current_text=self.read_user_options()
         coldjigcontroller.start_thermal_cycle([1,2,3,4,5]) # should get list of available modules. Full list is hardcoded for now.
         logging.info("Thermocycling started!")
         #current_text= self.statusBox.get_text()
         self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling started\n")
-        self.btStart.attributes["disabled"] = ""
+        self.btStartTC.attributes["disabled"] = ""
+        self.btStopLib.attributes["disabled"] = ""
         #-- this is to prevent the user from changing the values when the TC is running
         '''
         for textinput in self.list_textinput_HV:
@@ -731,19 +763,13 @@ class ColdBoxGUI(App):
             textinput.attributes["disabled"] = ""
         self.textinput_ChilT.attributes["disabled"] = ""
         '''
-        del self.btStop.attributes["disabled"]
+        del self.btStopTC.attributes["disabled"]
 
 
 
-    def on_btStop_pressed(self, widget):
-        #self.dialog = gui.GenericDialog(title='attempt to stop Thermocycling', message='Are you sure you want to terminate the Thermocycling?', width='500px')
-        #self.dialog.show(self)
+    def on_btStopTC_pressed(self, widget):
         self.TC_term_popup_confirm.show()
         self.TC_term_popup_confirm.onconfirm.do(self.Terminate_thermocycling)
-        #self.dialog.confirm_dialog.do(self.Terminate_thermocycling)
-        #self.TC_term_popup_confirm.onconfirm()
-
-
 
 
     #--------- Advance buttons ----------
@@ -924,8 +950,10 @@ class ColdBoxGUI(App):
         coldjigcontroller.stop_thermal_cycle()
         logging.info("Thermocycling stopped!")
         self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling stopped!\n")
-        self.btStop.attributes["disabled"] = ""
-        del self.btStart.attributes["disabled"]
+        self.btStopTC.attributes["disabled"] = ""
+        del self.btStartTC.attributes["disabled"]
+        del self.btStopLib.attributes["disabled"]
+
         #-- this is to let the user to change the values when the TC is stopped
         '''
         for textinput in self.list_textinput_HV:
@@ -1162,9 +1190,7 @@ if __name__ == "__main__":
         stdout_string_io = StringIO()
         sys.stdout = sys.stderr = stdout_string_io
 
-    #--- starts the coldjigcontroller
-    if(coldjigcontroller.start()):
-        logging.info("Coldbox Controller is up and running!")
+
 
     #--starts the webserver / optional parameters
     #start(ColdBoxGUI, update_interval=0.5, debug=gui_debug, address=gui_server, port=gui_server_port, start_browser=gui_start_browser, multiple_instance=gui_multiple_instance, enable_file_cache=gui_enable_file_cache)
