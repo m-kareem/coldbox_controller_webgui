@@ -68,6 +68,8 @@ class ColdBoxGUI(App):
             lines = stdout_string_io.readlines()
             lines.reverse()
             self.stdout_LogBox.set_text("".join(lines))
+        else:
+            self.stdout_LogBox.set_text(" Run without verbose option to reflect the terminal outputs here.")
 
         # ======== updating tables in TAB 2 with realtime data
 
@@ -266,6 +268,7 @@ class ColdBoxGUI(App):
         self.btStopLib.onclick.do(self.on_btStopLib_pressed)
         self.btStopLib.attributes['title']='-Shutting down all tasks and core loop\n-Gracefully disengage hardware'
         self.btStopLib.attributes["disabled"] = ""
+        self.Lib_term_popup_confirm = Popup.PopupConfirm("ColdBoxGUI", "Are you sure you want to shutdown the ColdJigLib?")
 
         self.subContainerRight_11.append([self.btStartLib,self.btStopLib])
         self.subContainerRight_11.style['justify-content'] ='flex-start'
@@ -297,7 +300,8 @@ class ColdBoxGUI(App):
         self.subContainerRight_2.style['align-items'] = 'center'
 
         self.lbl_status = gui.Label('Status', height=20, margin='1px', style={'font-size': '15px', 'font-weight': 'bold'})
-        self.statusBox = gui.TextInput(False,width=280, height=160)
+        self.statusBox = gui.TextInput(False,width=280, height=220)
+        self.statusBox.set_text('--- Welcome to ColdBoxGUI ---\n press Start to begin\n================\n')
 
         self.subContainerRight_3.append([self.lbl_status,self.statusBox])
 
@@ -323,7 +327,7 @@ class ColdBoxGUI(App):
         self.subContainerLog_1.style['align-items'] = 'flex-start'
 
         #- Wrapping the subcontainers
-        horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight, subContainerLog,self.TC_term_popup_alert , self.TC_term_popup_confirm])
+        horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight, subContainerLog, self.TC_term_popup_alert , self.TC_term_popup_confirm, self.Lib_term_popup_confirm])
         #horizontalContainer.style['justify-content'] ='flex-start'
         #horizontalContainer.style['align-items'] = 'flex-start'
         horizontalContainer.style['justify-content'] ='space-around'
@@ -641,7 +645,7 @@ class ColdBoxGUI(App):
         tabBox = gui.TabBox(width='100%',style={'align-items':'flex-start', 'justify-content':'flex-start','font-size': '16px', 'font-weight': 'bold','background-color': '#3498DB'})
 
         tabBox.append(verticalContainer_tb1, 'Control Panel')
-        tabBox.add_tab(verticalContainer_tb2, 'Monitoring', None)
+        #tabBox.add_tab(verticalContainer_tb2, 'Monitoring', None)
         tabBox.add_tab(verticalContainer_tb3, 'Advanced', None)
         tabBox.add_tab(verticalContainer_tb4, 'About', None)
 
@@ -731,43 +735,55 @@ class ColdBoxGUI(App):
 
 
     def on_btStartLib_pressed(self, widget):
+        logger.debug("user pressed Start button")
+        self.btStartLib.attributes["disabled"] = ""
+        currentDT = datetime.datetime.now()
+        current_text= self.statusBox.get_text()
+
         if(coldjigcontroller.start()):
-            self.btStartLib.attributes["disabled"] = ""
             del self.btStopLib.attributes["disabled"]
             del self.btStartTC.attributes["disabled"]
-            logger.info("Coldbox Controller is up and running!")
+            logger.info("Coldbox Controller is up!")
+            self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Coldbox Controller is up!\n")
+
+        else:
+            logger.error("Starting the coldjiglib failed!")
 
     def on_btStopLib_pressed(self, widget):
-        if(coldjigcontroller.shutdown()):
-            self.btStopLib.attributes["disabled"] = ""
-            self.btStartTC.attributes["disabled"] = ""
-            del self.btStartLib.attributes["disabled"]
-            logger.info("Coldbox Controller is shutdown!")
+        logger.debug("user pressed shutdown button")
+        self.Lib_term_popup_confirm.show()
+        self.Lib_term_popup_confirm.onconfirm.do(self.prep_Shutdown_Lib)
+
+
 
     def on_btStartTC_pressed(self, widget):
-        currentDT = datetime.datetime.now()
-        current_text=self.read_user_options()
-        coldjigcontroller.start_thermal_cycle([1,2,3,4,5]) # should get list of available modules. Full list is hardcoded for now.
-        logger.info("Thermocycling started!")
-        #current_text= self.statusBox.get_text()
-        self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling started\n")
+        logger.debug("user pressed Start TC button")
         self.btStartTC.attributes["disabled"] = ""
         self.btStopLib.attributes["disabled"] = ""
-        #-- this is to prevent the user from changing the values when the TC is running
-        '''
-        for textinput in self.list_textinput_HV:
-            textinput.attributes["disabled"] = ""
-        for textinput in self.list_textinput_LV1:
-            textinput.attributes["disabled"] = ""
-        for textinput in self.list_textinput_LV2:
-            textinput.attributes["disabled"] = ""
-        self.textinput_ChilT.attributes["disabled"] = ""
-        '''
-        del self.btStopTC.attributes["disabled"]
+        currentDT = datetime.datetime.now()
+        current_text= self.statusBox.get_text()
+        userOpt_text=self.read_user_options()
+        if(coldjigcontroller.start_thermal_cycle([1,2,3,4,5])): # should get list of available modules. Full list is hardcoded for now.
+            logger.info("Thermocycling started!")
+            self.statusBox.set_text(current_text+"\n"+userOpt_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling started\n")
 
+            #-- this is to prevent the user from changing the values when the TC is running
+            '''
+            for textinput in self.list_textinput_HV:
+                textinput.attributes["disabled"] = ""
+            for textinput in self.list_textinput_LV1:
+                textinput.attributes["disabled"] = ""
+            for textinput in self.list_textinput_LV2:
+                textinput.attributes["disabled"] = ""
+            self.textinput_ChilT.attributes["disabled"] = ""
+            '''
+            del self.btStopTC.attributes["disabled"]
+        else:
+            logger.error("Starting thermocycling failed!")
 
 
     def on_btStopTC_pressed(self, widget):
+        logger.debug("user pressed Stop TC button")
         self.TC_term_popup_confirm.show()
         self.TC_term_popup_confirm.onconfirm.do(self.Terminate_thermocycling)
 
@@ -944,38 +960,73 @@ class ColdBoxGUI(App):
         logger.info("NEW HV/LV/Chiller T values are set!!")
         self.notification_message("NEW HV/LV/Chiller T values are set!", "")
         '''
-    def Terminate_thermocycling(self, widget):
+
+    def prep_Shutdown_Lib(self, widget):
+        self.btStopLib.attributes["disabled"] = ""
+        self.btStartTC.attributes["disabled"] = ""
         currentDT = datetime.datetime.now()
         current_text= self.statusBox.get_text()
-        coldjigcontroller.stop_thermal_cycle()
-        logger.info("Thermocycling stopped!")
-        self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling stopped!\n")
+        self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Shutting down all tasks and core_loop\n")
+        self.thread_Shutdown_Lib = threading.Thread(target=self.Shutdown_Lib)
+        self.thread_Shutdown_Lib.start()
+
+    def Shutdown_Lib(self):
+        #'''
+        if(coldjigcontroller.shutdown()):
+            del self.btStartLib.attributes["disabled"]
+            logger.info("Coldbox Controller is down!")
+            currentDT = datetime.datetime.now()
+            current_text= self.statusBox.get_text()
+            self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Coldbox Controller is down!\n")
+        else:
+            logger.error("Shuting down the coldjiglib failed!")
+            del self.btStopLib.attributes["disabled"]
+        #'''
+        ''' # --- For test only / replace with above block
+        time.sleep(5)
+        del self.btStartLib.attributes["disabled"]
+        logger.info("Coldbox Controller is down!")
+        currentDT = datetime.datetime.now()
+        current_text= self.statusBox.get_text()
+        self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Coldbox Controller is down!\n")
+         ''' #---
+
+
+    def Terminate_thermocycling(self, widget):
         self.btStopTC.attributes["disabled"] = ""
-        del self.btStartTC.attributes["disabled"]
-        del self.btStopLib.attributes["disabled"]
+        currentDT = datetime.datetime.now()
+        current_text= self.statusBox.get_text()
+        if(coldjigcontroller.stop_thermal_cycle()):
+            logger.info("Thermocycling stopped!")
+            self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling stopped!\n")
+            del self.btStartTC.attributes["disabled"]
+            del self.btStopLib.attributes["disabled"]
 
         #-- this is to let the user to change the values when the TC is stopped
-        '''
-        for textinput in self.list_textinput_HV:
-            del textinput.attributes["disabled"]
-        for textinput in self.list_textinput_LV1:
-            del textinput.attributes["disabled"]
-        for textinput in self.list_textinput_LV2:
-            del textinput.attributes["disabled"]
+            '''
+            for textinput in self.list_textinput_HV:
+                del textinput.attributes["disabled"]
+            for textinput in self.list_textinput_LV1:
+                del textinput.attributes["disabled"]
+            for textinput in self.list_textinput_LV2:
+                del textinput.attributes["disabled"]
 
-        del self.textinput_ChilT.attributes["disabled"]
-        '''
-        #self.js_notification('Thermocycling terminated!')
-        self.TC_term_popup_alert.show()
-
-
-
+            del self.textinput_ChilT.attributes["disabled"]
+            '''
+            #self.js_notification('Thermocycling terminated!')
+            self.TC_term_popup_alert.show()
+        else:
+            logger.error("Stopping thermocycling failed!")
+            del self.btStopTC.attributes["disabled"]
 
 
     def js_notification(self,txt):
         time.sleep(0.1)
         self.execute_javascript('alert("%s")'%txt)
 
+    def scroll_statusBox(self):
+        #self.execute_javascript("document.getElementById('%s').scrollTop=%s;"%(self.statusBox.identifier, 9999)) #9999 number of pixel to scroll
+        self.execute_javascript("document.getElementById('%s').scrollTop=%s;"%(self.statusBox.identifier, 0)) #9999 number of pixel to scroll
 
     def read_user_options(self):
         ncycle = self.spin.get_value()
@@ -1049,6 +1100,10 @@ class ColdBoxGUI(App):
 
 if __name__ == "__main__":
     logger = logging.getLogger(__name__)
+
+    # Set this script's log-level to DEBUG
+    logger.setLevel(logging.DEBUG)
+
 
     logger.info("Starting ColdJig GUI")
     verbose = False # set to Fals if you dont want to print debugging info
