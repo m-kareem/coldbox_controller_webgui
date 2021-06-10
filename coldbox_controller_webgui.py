@@ -28,6 +28,7 @@ import GUImodules.configreader as configreader
 from GUImodules.dewPoint import *
 import GUImodules.CBChelp as CBChelp
 import numpy as np
+import random
 import os, sys, getopt
 import importlib
 try:
@@ -48,7 +49,12 @@ import logging
 
 import threading
 
+from pubsub import pub
 
+#-- For pubsub testing only
+testPubSub = False
+if testPubSub:
+    import coldjig_pubsub
 
 #--------------------------------------------------------------
 class ColdBoxGUI(App):
@@ -687,9 +693,9 @@ class ColdBoxGUI(App):
 
         #=========================== Appending TabBox and Grafana plots to a vertical main container ======================
 
-        main_container = gui.VBox(width ='100%', hight='100%', style={'align-items':'flex-start', 'justify-content':'flex-start'})
-        main_container.append([tabBox, horizontalContainer_grafana_dash, horizontalContainer_grafana_intrl, horizontalContainer_grafana_panels])
-        #main_container.append([tabBox, horizontalContainer_grafana_dash])
+        self.main_container = gui.VBox(width ='100%', hight='100%', style={'align-items':'flex-start', 'justify-content':'flex-start'})
+        self.main_container.append([tabBox, horizontalContainer_grafana_dash, horizontalContainer_grafana_intrl, horizontalContainer_grafana_panels])
+
 
         #================== Thread management =============================================================================
         self.thread_alive_flag = True
@@ -706,8 +712,25 @@ class ColdBoxGUI(App):
         thread_table_plt.start()
         thread_table_amb.start()
 
+        #-------------------------------------
+        #-- Subscribe to messages
+        pub.subscribe(self.gui_warning,'warning')
+        pub.subscribe(self.gui_error,'error')
+        pub.subscribe(self.gui_alert,'alert')
+        pub.subscribe(self.gui_danger,'danger')
+
+
+        #=== for testing pubsub only
+        if testPubSub:
+            def start_pubsub():
+                coldjig_pubsub.start()
+
+            #start a separate thread to listen to the subscribed messages
+            th_pubsub = threading.Thread(target=start_pubsub).start()
+        #-------------------------------------
+
         # returning the root widget
-        return main_container
+        return self.main_container
 
 
     #=============================== SLOT functions =====================================================
@@ -967,11 +990,16 @@ class ColdBoxGUI(App):
         currentDT = datetime.datetime.now()
         current_text= self.statusBox.get_text()
         self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Shutting down all tasks and core_loop\n")
+
+        # temporary solution: this will terminate the GUI server
+        #self.close()
+        #sys.exit(0)
+
         self.thread_Shutdown_Lib = threading.Thread(target=self.Shutdown_Lib)
         self.thread_Shutdown_Lib.start()
 
     def Shutdown_Lib(self):
-        #'''
+        #''' #--- this leads to timeout error from coldjiglib and needs to be fixed from there!
         if(coldjigcontroller.shutdown()):
             del self.btStartLib.attributes["disabled"]
             logger.info("Coldbox Controller is down!")
@@ -982,6 +1010,8 @@ class ColdBoxGUI(App):
             logger.error("Shuting down the coldjiglib failed!")
             del self.btStopLib.attributes["disabled"]
         #'''
+
+
         ''' # --- For test only / replace with above block
         time.sleep(5)
         del self.btStartLib.attributes["disabled"]
@@ -1096,8 +1126,48 @@ class ColdBoxGUI(App):
         self.thread_alive_flag = False
         super(ColdBoxGUI, self).on_close()
 
+    #------ Listener functions
+    def randomMargin(self, obj, lmarg, tmarg, randInterval):
+        n1 = random.randint(-1*randInterval,randInterval)
+        n2 = random.randint(-1*randInterval,randInterval)
+        lMarg = str(n1+lmarg)+'px'
+        tMarg = str(n1+tmarg)+'px'
+        obj.style['margin-left'] = lMarg
+        obj.style['margin-top'] = tMarg
 
+    def gui_warning(self, message="NOT DEFINED") :
+        logger.debug(">>> Received warning message")
+        logger.warning("WARNING: "+message)
+        self.popup_warning = Popup.PopupAlert("WARNING", message, '#F7AB3B')
+        self.randomMargin(self.popup_warning, 600, 250, 20)
+        self.main_container.append(self.popup_warning)
+        self.popup_warning.show()
 
+    def gui_error(self,message="NOT DEFINED") :
+        logger.debug(">>> Received error message")
+        logger.error(message)
+        self.popup_error = Popup.PopupAlert("ERROR", message, '#BF33AD')
+        self.randomMargin(self.popup_error, 600, 250, 20)
+        self.main_container.append(self.popup_error)
+        self.popup_error.show()
+
+    def gui_alert(self,message="NOT DEFINED") :
+        logger.debug(">>> Received alert message")
+        logger.warning("ALERT: "+message)
+        self.popup_alert = Popup.PopupAlert("ALERT", message)
+        self.randomMargin(self.popup_alert, 600, 250, 20)
+        self.main_container.append(self.popup_alert)
+        self.popup_alert.show()
+
+    def gui_danger(self,message="NOT DEFINED") :
+        logger.debug(">>> Received danger message")
+        logger.warning("DANGER: "+message)
+        self.popup_danger = Popup.PopupAlert("DANGER", message, '#B10D03')
+        self.randomMargin(self.popup_danger, 600, 250, 20)
+        self.main_container.append(self.popup_danger)
+        self.popup_danger.show()
+
+#===========================================================================
 if __name__ == "__main__":
     logger = logging.getLogger(__name__)
 
@@ -1243,7 +1313,6 @@ if __name__ == "__main__":
     if not verbose:
         stdout_string_io = StringIO()
         sys.stdout = sys.stderr = stdout_string_io
-
 
 
     #--starts the webserver / optional parameters

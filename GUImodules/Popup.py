@@ -1,7 +1,7 @@
 import remi.gui as gui
 
 class PopupAlert(gui.VBox):
-    def __init__(self, title, message, *args, **kwargs):
+    def __init__(self, title, message, titleColor='#85C1E9', *args, **kwargs):
         gui.VBox.__init__(self, *args, **kwargs)
         self.css_display = "none"
         self.style['margin'] = 'auto'
@@ -13,8 +13,10 @@ class PopupAlert(gui.VBox):
 
 
         self.css_outline = "3px solid black"
+        lbl_title = gui.Label(title, width=400, height=30, style={'font-weight':'bold'})
+        lbl_title.style['background-color'] = titleColor
+        self.append(lbl_title)
 
-        self.append(gui.Label(title, width=400, height=30, style={'font-weight':'bold','background-color': '#85C1E9'}))
         self.append(gui.Label(message, width=400, height=50, style={'font-size':'15px'}))
 
         self.bt_confirm = gui.Button("OK",width=70, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold','background-color': '#5DADE2'})
