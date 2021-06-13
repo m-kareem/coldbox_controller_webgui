@@ -76,7 +76,7 @@ class ColdBoxGUI(App):
             self.stdout_LogBox.set_text("".join(lines))
         else:
             self.stdout_LogBox.set_text(" Run without verbose option to reflect the terminal outputs here.")
-
+        '''
         # ======== updating tables in TAB 2 with realtime data
 
         #--- chucks / Modules temperature
@@ -115,6 +115,7 @@ class ColdBoxGUI(App):
             if n_chucks==5:
                 self.table_Plt.children['row5'].children['col2'].set_text(self.readout_table_plt['row5_col2'])
                 self.table_Plt.children['row5'].children['col3'].set_text(self.readout_table_plt['row5_col3'])
+        '''
 
 
     def main(self):
@@ -346,7 +347,7 @@ class ColdBoxGUI(App):
 
 
         #===================================== TAB 2 =================================================
-
+        '''
         horizontalContainer_tb2 = gui.HBox(width='70%')
 
         self.lbl_placeHolder = gui.Label('Place holder content', width=200, height=30, margin='10px',style={'font-size': '15px', 'font-weight': 'bold','color': 'red'})
@@ -425,7 +426,7 @@ class ColdBoxGUI(App):
 
         #this flag will be used to stop the display_counter Timer
         self.stop_flag = False
-
+        '''
 
         #===================================== TAB 3 =================================================
         self.lbl_warning = gui.Label('WARNING: thses options are compatible with BNL coldbox type only', width=600, height=30, margin='10px',style={'font-size': '15px', 'font-weight': 'bold','color': 'red'})
@@ -698,6 +699,7 @@ class ColdBoxGUI(App):
 
 
         #================== Thread management =============================================================================
+        '''
         self.thread_alive_flag = True
         table_kys1=['row1_col2','row2_col2','row3_col2','row4_col2','row5_col2','row1_col3','row2_col3','row3_col3','row4_col3','row5_col3']
         table_kys2=['row0_col2','row1_col2','row2_col2','row3_col2','row4_col2','row5_col2']
@@ -711,7 +713,7 @@ class ColdBoxGUI(App):
         thread_table_t.start()
         thread_table_plt.start()
         thread_table_amb.start()
-
+        '''
         #-------------------------------------
         #-- Subscribe to messages
         pub.subscribe(self.gui_warning,'warning')
@@ -991,14 +993,17 @@ class ColdBoxGUI(App):
         current_text= self.statusBox.get_text()
         self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Shutting down all tasks and core_loop\n")
 
-        # temporary solution: this will terminate the GUI server
-        #self.close()
-        #sys.exit(0)
-
         self.thread_Shutdown_Lib = threading.Thread(target=self.Shutdown_Lib)
         self.thread_Shutdown_Lib.start()
 
     def Shutdown_Lib(self):
+        '''
+        # temporary solution: this will terminate the GUI server
+        time.sleep(1)
+        self.close()
+        sys.exit(0)
+        '''
+
         #''' #--- this leads to timeout error from coldjiglib and needs to be fixed from there!
         if(coldjigcontroller.shutdown()):
             del self.btStartLib.attributes["disabled"]
