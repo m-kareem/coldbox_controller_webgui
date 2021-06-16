@@ -52,7 +52,8 @@ import threading
 from pubsub import pub
 
 #-- For pubsub testing only
-testPubSub = False
+testPubSub = True
+#testPubSub = False
 if testPubSub:
     import coldjig_pubsub
 
@@ -63,7 +64,7 @@ class ColdBoxGUI(App):
         res_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), './res/')
         super(ColdBoxGUI, self).__init__(*args, static_file_path={'my_res':res_path})
 
-        self.dbClient= influx_init(config_influx)
+        #self.dbClient= influx_init(config_influx)
 
     def idle(self):
         #idle function called every update cycle (e.g. update_interval=0.1 argument in 'start' function)
@@ -146,7 +147,7 @@ class ColdBoxGUI(App):
         horizontalContainer_grafana_panels.style['align-items'] = 'flex-start'
 
         #--------------------------InfluxDB -----------------
-        self.dbClient = InfluxDBClient(INFLUXDB_ADDRESS, 8086, INFLUXDB_USER, INFLUXDB_PASSWORD, None)
+        #self.dbClient = InfluxDBClient(INFLUXDB_ADDRESS, 8086, INFLUXDB_USER, INFLUXDB_PASSWORD, None)
 
         #--------logo Container ---------------
         self.img_logo = gui.Image('/my_res:ITKlogo.png', width=200, height=67)
@@ -695,8 +696,12 @@ class ColdBoxGUI(App):
         #=========================== Appending TabBox and Grafana plots to a vertical main container ======================
 
         self.main_container = gui.VBox(width ='100%', hight='100%', style={'align-items':'flex-start', 'justify-content':'flex-start'})
-        self.main_container.append([tabBox, horizontalContainer_grafana_dash, horizontalContainer_grafana_intrl, horizontalContainer_grafana_panels])
 
+        #-- other popup boxes will be appended here once the corresponding pubsub message is received
+        self.main_container.append([tabBox])
+
+        self.ultimate_container = gui.VBox(width ='100%', hight='100%', style={'align-items':'flex-start', 'justify-content':'flex-start'})
+        self.ultimate_container.append([self.main_container, horizontalContainer_grafana_dash, horizontalContainer_grafana_intrl, horizontalContainer_grafana_panels])
 
         #================== Thread management =============================================================================
         '''
@@ -732,7 +737,7 @@ class ColdBoxGUI(App):
         #-------------------------------------
 
         # returning the root widget
-        return self.main_container
+        return self.ultimate_container
 
 
     #=============================== SLOT functions =====================================================
@@ -985,6 +990,16 @@ class ColdBoxGUI(App):
         logger.info("NEW HV/LV/Chiller T values are set!!")
         self.notification_message("NEW HV/LV/Chiller T values are set!", "")
         '''
+    #=====================WIP=================
+
+    def on_close(self):
+        """ Overloading App.on_close event allows to perform some
+             activities before app termination.
+        """
+        print("I'm going to be closed.")
+        super(ColdBoxGUI, self).on_close()
+
+    #=========================================
 
     def prep_Shutdown_Lib(self, widget):
         self.btStopLib.attributes["disabled"] = ""
@@ -997,12 +1012,6 @@ class ColdBoxGUI(App):
         self.thread_Shutdown_Lib.start()
 
     def Shutdown_Lib(self):
-        '''
-        # temporary solution: this will terminate the GUI server
-        time.sleep(1)
-        self.close()
-        sys.exit(0)
-        '''
 
         #''' #--- this leads to timeout error from coldjiglib and needs to be fixed from there!
         if(coldjigcontroller.shutdown()):
@@ -1011,6 +1020,10 @@ class ColdBoxGUI(App):
             currentDT = datetime.datetime.now()
             current_text= self.statusBox.get_text()
             self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Coldbox Controller is down!\n")
+
+            time.sleep(3)
+            self.execute_javascript("window.close();")
+            self.close()
         else:
             logger.error("Shuting down the coldjiglib failed!")
             del self.btStopLib.attributes["disabled"]
@@ -1024,8 +1037,9 @@ class ColdBoxGUI(App):
         currentDT = datetime.datetime.now()
         current_text= self.statusBox.get_text()
         self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Coldbox Controller is down!\n")
-         ''' #---
+        ''' #---
 
+    #=====================
 
     def Terminate_thermocycling(self, widget):
         self.btStopTC.attributes["disabled"] = ""
@@ -1084,7 +1098,7 @@ class ColdBoxGUI(App):
 
         user_options = 'User options set:\n'+'-Cycles:'+ str(ncycle) +'\n-Available_chucks:'+str(list(map(int,availavle_chucks)))+'\n-Selected_test(s):'+selected_tests+'\n------\n'
         return user_options
-
+    '''
     def update_table_t(self):
         while self.thread_alive_flag:
             self.readout_table_t['row1_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["ch_device_list"][0],INFLUXDB_MEASUREMENT,'T'))
@@ -1126,10 +1140,7 @@ class ColdBoxGUI(App):
             self.readout_table_amb['row4_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_Chiller_T"],INFLUXDB_MEASUREMENT,'T'))
             self.readout_table_amb['row5_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_Chiller_flw"],INFLUXDB_MEASUREMENT,'T'))
             time.sleep(1)
-
-    def on_close(self):
-        self.thread_alive_flag = False
-        super(ColdBoxGUI, self).on_close()
+    '''
 
     #------ Listener functions
     def randomMargin(self, obj, lmarg, tmarg, randInterval):
