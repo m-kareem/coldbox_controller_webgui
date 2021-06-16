@@ -52,8 +52,8 @@ import threading
 from pubsub import pub
 
 #-- For pubsub testing only
-testPubSub = True
-#testPubSub = False
+#testPubSub = True
+testPubSub = False
 if testPubSub:
     import coldjig_pubsub
 
