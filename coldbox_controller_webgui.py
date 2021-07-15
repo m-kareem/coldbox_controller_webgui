@@ -14,20 +14,23 @@
 
 '''
 Configuration file can be specified with option -c filename.conf
-Mohammad Kareem, 2020
+Mohammad Kareem, 2021
 https://gitlab.cern.ch/mkareem/coldbox_controller_webgui
 '''
 
 import remi.gui as gui
 from remi import start, App
 from GUImodules.RadioButton import *
+import GUImodules.Popup as Popup
 from threading import Timer
 import configparser as conf
 import GUImodules.configreader as configreader
 from GUImodules.dewPoint import *
 import GUImodules.CBChelp as CBChelp
 import numpy as np
+import random
 import os, sys, getopt
+import importlib
 try:
     from io import StringIO
 except:
@@ -37,16 +40,29 @@ import time,datetime
 
 from GUImodules.influx_query import *
 
-import coldjiglib
+#import coldjiglib
 
 #import user_manager
 #from user_manager import *
 
-import GUIlogging
+import logging
 
 import threading
 
+from pubsub import pub
 
+#-- For pubsub testing only
+#testPubSub = True
+testPubSub = False
+if testPubSub:
+    import coldjig_pubsub
+
+#--- HTML color codes:
+col_blue  = '#2563C8'
+col_lblue  = '#259CC8'
+col_red   = '#C82525'
+col_green = '#34B63B'
+col_darkBlue = '#21618C'
 
 #--------------------------------------------------------------
 class ColdBoxGUI(App):
@@ -55,7 +71,7 @@ class ColdBoxGUI(App):
         res_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), './res/')
         super(ColdBoxGUI, self).__init__(*args, static_file_path={'my_res':res_path})
 
-        self.dbClient= influx_init(config_influx)
+        #self.dbClient= influx_init(config_influx)
 
     def idle(self):
         #idle function called every update cycle (e.g. update_interval=0.1 argument in 'start' function)
@@ -66,45 +82,8 @@ class ColdBoxGUI(App):
             lines = stdout_string_io.readlines()
             lines.reverse()
             self.stdout_LogBox.set_text("".join(lines))
-
-        # ======== updating tables in TAB 2 with realtime data
-
-        #--- chucks / Modules temperature
-        self.table_t.children['row1'].children['col2'].set_text(self.readout_table_t['row1_col2'])
-        self.table_t.children['row2'].children['col2'].set_text(self.readout_table_t['row2_col2'])
-        self.table_t.children['row3'].children['col2'].set_text(self.readout_table_t['row3_col2'])
-        self.table_t.children['row4'].children['col2'].set_text(self.readout_table_t['row4_col2'])
-
-        self.table_t.children['row1'].children['col3'].set_text(self.readout_table_t['row1_col3'])
-        self.table_t.children['row2'].children['col3'].set_text(self.readout_table_t['row2_col3'])
-        self.table_t.children['row3'].children['col3'].set_text(self.readout_table_t['row3_col3'])
-        self.table_t.children['row4'].children['col3'].set_text(self.readout_table_t['row4_col3'])
-        if n_chucks==5:
-            self.table_t.children['row5'].children['col2'].set_text(self.readout_table_t['row5_col2'])
-            self.table_t.children['row5'].children['col3'].set_text(self.readout_table_t['row5_col3'])
-
-        #----------- Ambient data
-        self.table_amb.children['row0'].children['col2'].set_text(self.readout_table_amb['row0_col2'])
-        self.table_amb.children['row1'].children['col2'].set_text(self.readout_table_amb['row1_col2'])
-        self.table_amb.children['row2'].children['col2'].set_text(self.readout_table_amb['row2_col2'])
-        self.table_amb.children['row3'].children['col2'].set_text(self.readout_table_amb['row3_col2'])
-        self.table_amb.children['row4'].children['col2'].set_text(self.readout_table_amb['row4_col2'])
-        self.table_amb.children['row5'].children['col2'].set_text(self.readout_table_amb['row5_col2'])
-
-        #--- current / voltage
-        if (plt_field):
-            self.table_Plt.children['row1'].children['col2'].set_text(self.readout_table_plt['row1_col2'])
-            self.table_Plt.children['row2'].children['col2'].set_text(self.readout_table_plt['row2_col2'])
-            self.table_Plt.children['row3'].children['col2'].set_text(self.readout_table_plt['row3_col2'])
-            self.table_Plt.children['row4'].children['col2'].set_text(self.readout_table_plt['row4_col2'])
-
-            self.table_Plt.children['row1'].children['col3'].set_text(self.readout_table_plt['row1_col3'])
-            self.table_Plt.children['row2'].children['col3'].set_text(self.readout_table_plt['row2_col3'])
-            self.table_Plt.children['row3'].children['col3'].set_text(self.readout_table_plt['row3_col3'])
-            self.table_Plt.children['row4'].children['col3'].set_text(self.readout_table_plt['row4_col3'])
-            if n_chucks==5:
-                self.table_Plt.children['row5'].children['col2'].set_text(self.readout_table_plt['row5_col2'])
-                self.table_Plt.children['row5'].children['col3'].set_text(self.readout_table_plt['row5_col3'])
+        else:
+            self.stdout_LogBox.set_text(" Run without verbose option (-v) to redirect the terminal outputs here.")
 
 
     def main(self):
@@ -114,13 +93,17 @@ class ColdBoxGUI(App):
     @staticmethod
     def construct_ui(self):
         # the margin 0px auto centers the main container
-        verticalContainer_tb1 = gui.VBox(width = "100%", height=550)
-        verticalContainer_tb2 = gui.VBox(width = "100%", height=550)
-        verticalContainer_tb3 = gui.VBox(width = "100%", height=550)
-        verticalContainer_tb4 = gui.VBox(width = "100%", height=550)
+        verticalContainer_tb1 = gui.VBox(width = "100%", height=450)
+        verticalContainer_tb2 = gui.VBox(width = "100%", height=450)
+        verticalContainer_tb3 = gui.VBox(width = "100%", height=450)
 
-        horizontalContainer_logo = gui.Container(width='20%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
-        horizontalContainer = gui.HBox(width = "95%")
+        horizontalContainer_logo = gui.Container(width='40%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
+        #horizontalContainer = gui.HBox(width = "95%",style={'align-items':'flex-start', 'justify-content':'space-around'})
+        horizontalContainer = gui.HBox(width = "95%",style={'align-items':'stretch', 'justify-content':'center'})
+
+        horizontalContainer_grafana_dash = gui.HBox(width = "100%")
+        horizontalContainer_grafana_dash.style['justify-content'] ='flex-start'
+        horizontalContainer_grafana_dash.style['align-items'] = 'flex-start'
 
         horizontalContainer_grafana_intrl = gui.HBox(width = "100%")
         horizontalContainer_grafana_intrl.style['justify-content'] ='flex-start'
@@ -131,43 +114,41 @@ class ColdBoxGUI(App):
         horizontalContainer_grafana_panels.style['align-items'] = 'flex-start'
 
         #--------------------------InfluxDB -----------------
-        self.dbClient = InfluxDBClient(INFLUXDB_ADDRESS, 8086, INFLUXDB_USER, INFLUXDB_PASSWORD, None)
+        #self.dbClient = InfluxDBClient(INFLUXDB_ADDRESS, 8086, INFLUXDB_USER, INFLUXDB_PASSWORD, None)
 
         #--------logo Container ---------------
         self.img_logo = gui.Image('/my_res:ITKlogo.png', width=200, height=67)
-        horizontalContainer_logo.append(self.img_logo)
+        self.lbl_ColdBoxType = gui.Label('ColdBox type: '+coldbox_type , width=200, height=20, margin='20px',style={'font-size': '14px', 'font-weight': 'bold','color': 'red'})
+        #horizontalContainer_logo.append(self.img_logo)
+        horizontalContainer_logo.append([self.img_logo,self.lbl_ColdBoxType])
 
 
         #============================================= Tab 1 =============================================
-        #-------------------------- Left V Container ---------------------
-        subContainerLeft = gui.HBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
-        subContainerLeft_1 = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
-        subContainerLeft_2 = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
-        subContainerLeft_3 = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
+        #-------------------------- Left Container ---------------------
+        subContainerLeft = gui.GridBox(width='30%', height='100%', style={'margin':'10px'})
+        self.lbl_ava = gui.Label('Available chk.', width="100%", height=20, style={'font-size': '15px', 'font-weight': 'bold','color': col_darkBlue})
+        self.lbl_mod = gui.Label('Module Flv..', width="100%", height=20, style={'font-size': '15px', 'font-weight': 'bold','color': col_darkBlue})
+        self.lbl_ser = gui.Label('Serial #', width="100%", height=20, style={'font-size': '15px', 'font-weight': 'bold','color': col_darkBlue})
 
-
-        self.lbl_01 = gui.Label('Available chk.', width=100, height=20, margin='20px',style={'font-size': '14px', 'font-weight': 'bold'})
-        self.checkBox_ch1 = gui.CheckBoxLabel('Chuck 1', False, width=85, height=20, margin='15px')
-        self.checkBox_ch2 = gui.CheckBoxLabel('Chuck 2', False, width=85, height=20, margin='15px')
-        self.checkBox_ch3 = gui.CheckBoxLabel('Chuck 3', False, width=85, height=20, margin='15px')
-        self.checkBox_ch4 = gui.CheckBoxLabel('Chuck 4', False, width=85, height=20, margin='15px')
+        self.checkBox_ch1 = gui.CheckBoxLabel('Chuck 1', False, width="100%", height=25)
+        self.checkBox_ch2 = gui.CheckBoxLabel('Chuck 2', False, width="100%", height=25)
+        self.checkBox_ch3 = gui.CheckBoxLabel('Chuck 3', False, width="100%", height=25)
+        self.checkBox_ch4 = gui.CheckBoxLabel('Chuck 4', False, width="100%", height=25)
         self.list_checkBox_ch = [self.checkBox_ch1,self.checkBox_ch2,self.checkBox_ch3,self.checkBox_ch4]
         if n_chucks ==5:
-            self.checkBox_ch5 = gui.CheckBoxLabel('Chuck 5', False, width=85, height=20, margin='15px')
+            self.checkBox_ch5 = gui.CheckBoxLabel('Chuck 5', False, width="100%", height=25)
             self.list_checkBox_ch.append(self.checkBox_ch5)
 
         for checkBox in self.list_checkBox_ch:
             checkBox.onchange.do(self.onchange_checkbox_ch)
 
-
-        self.lbl_02 = gui.Label('Module Flv.', width=100, height=20, margin='20px',style={'font-size': '14px', 'font-weight': 'bold'})
-        self.dropDown_ch1 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=60, height=20, margin='15px')
-        self.dropDown_ch2 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=60, height=20, margin='15px')
-        self.dropDown_ch3 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=60, height=20, margin='15px')
-        self.dropDown_ch4 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=60, height=20, margin='15px')
+        self.dropDown_ch1 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width="100%", height=25)
+        self.dropDown_ch2 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width="100%", height=25)
+        self.dropDown_ch3 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width="100%", height=25)
+        self.dropDown_ch4 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width="100%", height=25)
         self.list_dropDown_ch = [self.dropDown_ch1,self.dropDown_ch2,self.dropDown_ch3,self.dropDown_ch4]
         if n_chucks ==5:
-            self.dropDown_ch5 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width=60, height=20, margin='15px')
+            self.dropDown_ch5 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width="100%", height=25)
             self.list_dropDown_ch.append(self.dropDown_ch5)
 
         for dropDown in self.list_dropDown_ch:
@@ -175,130 +156,143 @@ class ColdBoxGUI(App):
             dropDown.attributes["disabled"] = ""
             dropDown.style['opacity'] = '0.4' #this is to give a disabled apparence
 
-
-        self.lbl_03 = gui.Label('Serial #', width=100, height=20, margin='20px',style={'font-size': '14px', 'font-weight': 'bold'})
-        self.textinput_ch1 = gui.TextInput(width=130, height=20,margin='15px')
-        self.textinput_ch2 = gui.TextInput(width=130, height=20,margin='15px')
-        self.textinput_ch3 = gui.TextInput(width=130, height=20,margin='15px')
-        self.textinput_ch4 = gui.TextInput(width=130, height=20,margin='15px')
+        self.textinput_ch1 = gui.TextInput(width="100%", height=25)
+        self.textinput_ch2 = gui.TextInput(width="100%", height=25)
+        self.textinput_ch3 = gui.TextInput(width="100%", height=25)
+        self.textinput_ch4 = gui.TextInput(width="100%", height=25)
         self.list_textinput_ch = [self.textinput_ch1,self.textinput_ch2,self.textinput_ch3,self.textinput_ch4]
         if n_chucks ==5:
-            self.textinput_ch5 = gui.TextInput(width=130, height=20,margin='15px')
+            self.textinput_ch5 = gui.TextInput(width="100%", height=25)
             self.list_textinput_ch.append(self.textinput_ch5)
 
         for textinput in self.list_textinput_ch:
             textinput.set_value('20UXXYY#######')
             textinput.attributes["disabled"] = ""
 
-        subContainerLeft_1.append([self.lbl_01, self.list_checkBox_ch])
-        subContainerLeft_2.append([self.lbl_02, self.list_dropDown_ch])
-        subContainerLeft_3.append([self.lbl_03, self.list_textinput_ch])
+        if n_chucks ==5:
+            subContainerLeft.set_from_asciiart("""
+                |lbl_ava      |lbl_mod      | lbl_ser      |
+                |checkBox_ch1 |dropDown_ch1 |textinput_ch1 |
+                |checkBox_ch2 |dropDown_ch2 |textinput_ch2 |
+                |checkBox_ch3 |dropDown_ch3 |textinput_ch3 |
+                |checkBox_ch4 |dropDown_ch4 |textinput_ch4 |
+                |checkBox_ch5 |dropDown_ch5 |textinput_ch5 |
+                """, 2, 10)
+        else:
+            subContainerLeft.set_from_asciiart("""
+                |lbl_ava      |lbl_mod      | lbl_ser      |
+                |checkBox_ch1 |dropDown_ch1 |textinput_ch1 |
+                |checkBox_ch2 |dropDown_ch2 |textinput_ch2 |
+                |checkBox_ch3 |dropDown_ch3 |textinput_ch3 |
+                |checkBox_ch4 |dropDown_ch4 |textinput_ch4 |
+                """, 2, 10)
 
-        subContainerLeft_1.style['justify-content'] ='space-around'
-        subContainerLeft_1.style['align-items'] = 'flex-start'
+        subContainerLeft.append({'lbl_ava':self.lbl_ava, 'lbl_mod':self.lbl_mod,'lbl_ser':self.lbl_ser,
+                                 'checkBox_ch1':self.checkBox_ch1, 'dropDown_ch1':self.dropDown_ch1 , 'textinput_ch1':self.textinput_ch1,
+                                 'checkBox_ch2':self.checkBox_ch2, 'dropDown_ch2':self.dropDown_ch2 , 'textinput_ch2':self.textinput_ch2,
+                                 'checkBox_ch3':self.checkBox_ch3, 'dropDown_ch3':self.dropDown_ch3 , 'textinput_ch3':self.textinput_ch3,
+                                 'checkBox_ch4':self.checkBox_ch4, 'dropDown_ch4':self.dropDown_ch4 , 'textinput_ch4':self.textinput_ch4,
+                                })
+        if n_chucks ==5:
+            subContainerLeft.append({'checkBox_ch5':self.checkBox_ch5, 'dropDown_ch5':self.dropDown_ch5 , 'textinput_ch5':self.textinput_ch5 })
 
-        subContainerLeft_2.style['justify-content'] ='space-around'
-        subContainerLeft_2.style['align-items'] = 'flex-start'
 
-        subContainerLeft_3.style['justify-content'] ='space-around'
-        subContainerLeft_3.style['align-items'] = 'flex-start'
-
-        subContainerLeft.append([subContainerLeft_1,subContainerLeft_2,subContainerLeft_3])
-        subContainerLeft.style['justify-content'] ='space-around'
-        subContainerLeft.style['align-items'] = 'flex-start'
+        subContainerLeft.style.update({'grid-template-columns':'25% 25% 30%', 'grid-template-rows':'30% 30% 30% 30% 30% 30%'})
 
         #-------------------------- Middle V Container ---------------------
-        subContainerMiddle = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'space-around'})
-        subContainerMiddle_1 = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'space-around'})
-        self.subContainerMiddle_2 = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'space-around'})
+        subContainerMiddle = gui.GridBox(width='25%', height='100%', style={'margin':'0px auto'})
+        self.lbl_tests = gui.Label('Tests', width="100%", height=20, style={'font-size': '15px', 'font-weight': 'bold','color': col_darkBlue})
 
-        self.lbl_05 = gui.Label('Tests', width=200, height=20, margin='15px',style={'font-size': '15px', 'font-weight': 'bold'})
-        self.radioButton_stTest = RadioButtonWithLabel('Standard tests',True, 'groupTests', width=250, height=20, margin='10px')
-        self.radioButton_cuTest = RadioButtonWithLabel('Custom tests',False, 'groupTests', width=250, height=20, margin='10px')
+        self.radioButton_stTest = RadioButtonWithLabel('Standard tests',True, 'groupTests', width="100%", height=20 )
+        self.radioButton_cuTest = RadioButtonWithLabel('Custom tests',False, 'groupTests', width="100%", height=20 )
 
-        self.checkBox_t1 = gui.CheckBoxLabel('Strobe Delay', False,  height=20, margin='10px',style={'font-size': '15px','display': 'block',  'text-align': 'left'})
-        self.checkBox_t2 = gui.CheckBoxLabel('Three Point Gain', False,  height=20, margin='10px',style={'font-size': '15px','display': 'block',  'text-align': 'left'})
-        self.checkBox_t3 = gui.CheckBoxLabel('Trim Range', False,  height=20, margin='10px',style={'font-size': '15px','display': 'block',  'text-align': 'left'})
-        self.checkBox_t4 = gui.CheckBoxLabel('Three Point Gain part 2', False,  height=20, margin='10px',style={'font-size': '15px','display': 'block',  'text-align': 'left'})
-        self.checkBox_t5 = gui.CheckBoxLabel('Response Curve', False,  height=20, margin='10px',style={'font-size': '15px','display': 'block',  'text-align': 'left'})
-        self.checkBox_t6 = gui.CheckBoxLabel('Three Point Gain High Stats', False,  height=20, margin='10px',style={'font-size': '15px','display': 'block',  'text-align': 'left'})
-        self.checkBox_t7 = gui.CheckBoxLabel('Noise Occupancy', False,  height=20, margin='10px',style={'font-size': '15px','display': 'block',  'text-align': 'left'})
-        subContainerMiddle_1.append([self.lbl_05, self.radioButton_stTest, self.radioButton_cuTest])
+        self.subContainerMiddle_2 = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
+        self.checkBox_t1 = gui.CheckBoxLabel('Strobe Delay', False,  height=22, margin='5px', style={'font-size': '15px','display': 'block'})
+        self.checkBox_t2 = gui.CheckBoxLabel('Three Point Gain', False,  height=22, margin='5px', style={'font-size': '15px','display': 'block'})
+        self.checkBox_t3 = gui.CheckBoxLabel('Trim Range', False,  height=22, margin='5px', style={'font-size': '15px','display': 'block'})
+        self.checkBox_t4 = gui.CheckBoxLabel('Three Point Gain part 2', False,  height=22, margin='5px', style={'font-size': '15px','display': 'block'})
+        self.checkBox_t5 = gui.CheckBoxLabel('Response Curve', False,  height=22, margin='5px', style={'font-size': '15px','display': 'block'})
+        self.checkBox_t6 = gui.CheckBoxLabel('Three Point Gain High Stats', False,  height=22, margin='5px', style={'font-size': '15px','display': 'block'})
+        self.checkBox_t7 = gui.CheckBoxLabel('Noise Occupancy', False,  height=22, margin='5px', style={'font-size': '15px','display': 'block'})
+
         self.subContainerMiddle_2.append([self.checkBox_t1,self.checkBox_t2,self.checkBox_t3,self.checkBox_t4,self.checkBox_t5,self.checkBox_t6,self.checkBox_t7])
-
-
         self.subContainerMiddle_2.style['pointer-events'] = 'none'
         self.subContainerMiddle_2.style['opacity'] = '0.4' #this is to give a disabled apparence
-
-        subContainerMiddle_1.style['justify-content'] ='space-around'
-        subContainerMiddle_1.style['align-items'] = 'flex-start'
-        self.subContainerMiddle_2.style['justify-content'] ='space-around'
-        self.subContainerMiddle_2.style['align-items'] = 'flex-start'
 
         self.radioButton_stTest.onchange.do(self.radio_changed)
         self.radioButton_cuTest.onchange.do(self.radio_changed)
 
-        subContainerMiddle.append([subContainerMiddle_1,self.subContainerMiddle_2])
+        subContainerMiddle.set_from_asciiart("""
+            |lbl_tests          |                      |
+            |radioButton_stTest |radioButton_cuTest    |
+            |                   |subContainerMiddle_2  |
+            """, 2, 10)
+
+        subContainerMiddle.append({'lbl_tests':self.lbl_tests,
+                                  'radioButton_stTest':self.radioButton_stTest, 'radioButton_cuTest':self.radioButton_cuTest ,
+                                  'subContainerMiddle_2':self.subContainerMiddle_2
+        })
+        subContainerMiddle.style.update({'grid-template-columns':'30% 50%', 'grid-template-rows':'5% 10% 50%'})
 
         #-------------------------- Right V Container ---------------------
-        # the arguments are	width - height - layoutOrientationOrizontal
-        subContainerRight = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
-        self.subContainerRight_1 = gui.HBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
-        self.subContainerRight_2 = gui.HBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
-        self.subContainerRight_3 = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
+        subContainerRight = gui.GridBox(width='40%', height='100%', style={'margin':'0px auto'})
 
-        self.lbl_04 = gui.Label('Controls', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.lbl_control = gui.Label('Controls', width="100%", height=20, style={'font-size': '15px', 'font-weight': 'bold','color': col_darkBlue})
 
+        self.btStartLib = gui.Button('Start', width="100%", height=30, style={'font-size': '16px', 'font-weight': 'bold','background-color': col_green})
+        self.btStartLib.onclick.do(self.on_btStartLib_pressed)
+        self.btStartLib.attributes['title']='-Connects and initialises hardware\n-Starts core loop'
 
-        self.btStart = gui.Button('START', width=100, height=30, margin='15px', style={'font-size': '16px', 'font-weight': 'bold','background-color': '#28B463'})
-        self.btStart.onclick.do(self.on_btStart_pressed)
+        self.btStopLib = gui.Button('Shutdown', width="100%", height=30, style={'font-size': '16px', 'font-weight': 'bold','background-color': col_red})
+        self.btStopLib.onclick.do(self.on_btStopLib_pressed)
+        self.btStopLib.attributes['title']='-Shutting down all tasks and core loop\n-Gracefully disengage hardware'
+        self.btStopLib.attributes["disabled"] = ""
+        self.Lib_term_popup_confirm = Popup.PopupConfirm("ColdBoxGUI", "Are you sure you want to shutdown the ColdJigLib?")
 
-        self.btStop = gui.Button('STOP', width=100, height=30, style={'font-size': '16px', 'font-weight': 'bold','background-color': '#C0392B'})
-        self.btStop.attributes["disabled"] = ""
-        self.btStop.onclick.do(self.on_btStop_pressed)
+        self.btStartTC = gui.Button('Start TC', width="100%", height=30, style={'font-size': '16px', 'font-weight': 'bold','background-color': col_green})
+        self.btStartTC.onclick.do(self.on_btStartTC_pressed)
+        self.btStartTC.attributes['title']='Start Thermocycling'
+        self.btStartTC.attributes["disabled"] = ""
 
-        self.subContainerRight_1.append([self.btStart,self.btStop])
-        self.subContainerRight_1.style['justify-content'] ='flex-start'
-        self.subContainerRight_1.style['align-items'] = 'center'
+        self.btStopTC = gui.Button('Stop TC', width="100%", height=30, style={'font-size': '16px', 'font-weight': 'bold','background-color': col_red})
+        self.btStopTC.attributes["disabled"] = ""
+        self.btStopTC.onclick.do(self.on_btStopTC_pressed)
+        self.btStopTC.attributes['title']='Stop Thermocycling'
+        self.TC_term_popup_confirm = Popup.PopupConfirm("ColdBoxGUI", "Are you sure you want to terminate the Thermocycling?")
+        self.TC_term_popup_alert = Popup.PopupAlert("ColdBoxGUI", "Thermocycling terminated!")
+        self.TC_NoCh_popup_alert = Popup.PopupAlert("ERROR", 'There is no selected chuck!', '#BF33AD')
 
-        self.lbl_spin = gui.Label('# of cycles', width=100, height=20, margin='15px')
-        self.spin = gui.SpinBox(10, 1, 100, width=100, height=20)
-        #self.spin.onchange.do(self.on_spin_change)
+        self.lbl_spin = gui.Label('# of cycles', width="100%", height=30)
+        self.spin = gui.SpinBox(10, 1, 100, width="100%", height=30, style={'font-size': '15px', 'font-weight': 'bold'})
 
-        self.subContainerRight_2.append([self.lbl_spin,self.spin])
-        self.subContainerRight_2.style['justify-content'] ='flex-start'
-        self.subContainerRight_2.style['align-items'] = 'center'
+        self.lbl_status = gui.Label('TC Status', width="100%", height=30, style={'font-size': '15px', 'font-weight': 'bold'})
+        self.statusBox = gui.TextInput(False, width="100%",hight=550)
+        self.statusBox.set_text('--- Welcome to ColdBoxGUI ---\n press Start to begin\n================\n')
 
-        self.lbl_status = gui.Label('Status', height=20, margin='1px', style={'font-size': '15px', 'font-weight': 'bold'})
-        self.statusBox = gui.TextInput(False,width=280, height=160)
+        self.lbl_LogBox = gui.Label('Log', width="100%", height=20, style={'font-size': '15px', 'font-weight': 'bold','color': col_darkBlue})
+        self.stdout_LogBox = gui.TextInput(False, width = "100%")
 
-        self.subContainerRight_3.append([self.lbl_status,self.statusBox])
-        subContainerRight.append([self.lbl_04,self.subContainerRight_1 ,self.subContainerRight_2, self.subContainerRight_3])
-        self.subContainerRight_3.style['justify-content'] ='space-between'
-        self.subContainerRight_3.style['align-items'] = 'flex-start'
+        subContainerRight.set_from_asciiart("""
+            |lb_controls  |            |lbl_LogBox    |
+            |bt_lib_start |bt_lib_stop |stdout_LogBox |
+            |bt_TC_start  |bt_TC_stop  |stdout_LogBox |
+            |lb_spin      |spin        |stdout_LogBox |
+            |lb_status    |            |stdout_LogBox |
+            |status_Box   |status_Box  |stdout_LogBox |
+            """, 2, 10)
 
-        subContainerRight.style['justify-content'] ='space-around'
-        subContainerRight.style['align-items'] = 'flex-start'
-
-        #-------------------------- Log Container ---------------------
-        # the arguments are	width - height - layoutOrientationOrizontal
-        subContainerLog = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
-        self.subContainerLog_1 = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
-
-        self.lbl_LogBox = gui.Label('Log', width=200, height=20, margin='1px',style={'font-size': '15px', 'font-weight': 'bold'})
-        self.stdout_LogBox = gui.TextInput(False,width=380, height=395, margin='1px')
-
-        self.subContainerLog_1.append([self.lbl_LogBox, self.stdout_LogBox])
-        subContainerLog.append(self.subContainerLog_1)
-
-        self.subContainerLog_1.style['justify-content'] ='space-around'
-        self.subContainerLog_1.style['align-items'] = 'flex-start'
+        subContainerRight.append({'lb_controls':self.lbl_control, 'lbl_LogBox':self.lbl_LogBox,
+                                  'bt_lib_start':self.btStartLib, 'bt_lib_stop':self.btStopLib ,
+                                  'bt_TC_start':self.btStartTC, 'bt_TC_stop':self.btStopTC ,
+                                  'lb_spin':self.lbl_spin, 'spin':self.spin ,
+                                  'lb_status':self.lbl_status,
+                                  'status_Box':self.statusBox,
+                                  'stdout_LogBox':self.stdout_LogBox,
+        })
+        subContainerRight.style.update({'grid-template-columns':'25% 25% 60%', 'grid-template-rows':'10% 10% 10% 10% 10% 100%'})
 
         #- Wrapping the subcontainers
-        horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight, subContainerLog])
-        horizontalContainer.style['justify-content'] ='flex-start'
-        horizontalContainer.style['align-items'] = 'flex-start'
-
+        horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight, self.TC_term_popup_alert, self.TC_NoCh_popup_alert, self.TC_term_popup_confirm, self.Lib_term_popup_confirm])
 
         verticalContainer_tb1.append([horizontalContainer_logo, horizontalContainer])
         verticalContainer_tb1.style['justify-content'] ='flex-start'
@@ -306,107 +300,339 @@ class ColdBoxGUI(App):
 
 
         #===================================== TAB 2 =================================================
-        horizontalContainer_tb2 = gui.HBox(width='70%')
+        '''
+        Monitoring Tab removed
+        '''
 
-        self.lbl_placeHolder = gui.Label('Place holder content', width=200, height=30, margin='10px',style={'font-size': '15px', 'font-weight': 'bold','color': 'red'})
+        #===================================== TAB 2 =================================================
+        self.data_dict = coldjigcontroller.data_dict
+        subContainerADV = gui.HBox(width = "100%", hight = "100%", style={'align-items':'flex-start', 'justify-content':'space-around'})
 
-        #------ Left Container ---------
-        subContainerLeft_tb2 = gui.VBox(width='100%')
-        self.lbl_temp = gui.Label('Temperature[C]', height=20, margin='10px', style={'font-size': '15px', 'font-weight': 'bold'})
+        if coldbox_type == 'BNL':
+            #------------HV controls-----------
+            subContainerADV_HV = gui.GridBox(width = "20%", hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
+            #subContainerADV_HV.style['border'] = '3px solid rgba(0,0,0,.12)'
+
+            self.lbl_HV = gui.Label('High-Voltage', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
+
+            self.btHVon = gui.Button('ON', width=75, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_green})
+            self.btHVoff = gui.Button('OFF', width=75, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_red})
+
+            self.lbl_textinput_HV0 = gui.Label('CH0', width=50, height=20, margin='5px',style={'font-size': '14px'})
+            self.lbl_textinput_HV1 = gui.Label('CH1', width=50, height=20, margin='5px',style={'font-size': '14px'})
+            self.lbl_textinput_HV2 = gui.Label('CH2', width=50, height=20, margin='5px',style={'font-size': '14px'})
+            self.lbl_textinput_HV3 = gui.Label('CH3', width=50, height=20, margin='5px',style={'font-size': '14px'})
+
+            self.textinput_HV0 = gui.TextInput(width=50, height=20,margin='5px')
+            self.textinput_HV1 = gui.TextInput(width=50, height=20,margin='5px')
+            self.textinput_HV2 = gui.TextInput(width=50, height=20,margin='5px')
+            self.textinput_HV3 = gui.TextInput(width=50, height=20,margin='5px')
+
+            self.list_textinput_HV = [self.textinput_HV0, self.textinput_HV1,self.textinput_HV2,self.textinput_HV3]
+            for textinput in self.list_textinput_HV:
+                textinput.set_value('0.00')
+
+            self.btHVon_0 = gui.Button('ON', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_green})
+            self.btHVon_1 = gui.Button('ON', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_green})
+            self.btHVon_2 = gui.Button('ON', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_green})
+            self.btHVon_3 = gui.Button('ON', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_green})
+
+            self.btHVoff_0 = gui.Button('OFF', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_red})
+            self.btHVoff_1 = gui.Button('OFF', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_red})
+            self.btHVoff_2 = gui.Button('OFF', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_red})
+            self.btHVoff_3 = gui.Button('OFF', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_red})
+
+            self.btHVset_0 = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
+            self.btHVset_1 = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
+            self.btHVset_2 = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
+            self.btHVset_3 = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
 
 
-        # Temperatues table
-        self.table_t = gui.Table(children={
-            'row0': gui.TableRow({'col1':'  #  ', 'col2':'Chuck', 'col3':'Module'}),
-            'row1': gui.TableRow({'col1':'1','col2':'', 'col3':''}),
-            'row2': gui.TableRow({'col1':'2','col2':'', 'col3':''}),
-            'row3': gui.TableRow({'col1':'3','col2':'', 'col3':''}),
-            'row4': gui.TableRow({'col1':'4','col2':'', 'col3':''})
-            },
-            width=250, height=200)
-        if n_chucks==5:
-            self.table_t.add_child('row5', gui.TableRow({'col1':'5','col2':'', 'col3':''}) )
 
-        subContainerLeft_tb2.append([self.lbl_temp, self.table_t])
-        subContainerLeft_tb2.style['justify-content'] ='space-around'
-        subContainerLeft_tb2.style['align-items'] = 'flex-start'
+            subContainerADV_HV.set_from_asciiart("""
+                |HV_label |HV_label| HV_on  | HV_off   |       | |
+                |         |ch0     | ch0_on | ch0_off | textinput_0| set_0 |
+                |         |ch1     | ch1_on | ch1_off | textinput_1| set_1 |
+                |         |ch2     | ch2_on | ch2_off | textinput_2| set_2 |
+                |         |ch3     | ch3_on | ch3_off | textinput_3| set_3 |
+                """, 10, 10)
 
-        #------ Middle Container ---------
+            subContainerADV_HV.append({'HV_label':self.lbl_HV, 'HV_on':self.btHVon ,'HV_off':self.btHVoff,
+                                        'ch0':self.lbl_textinput_HV0, 'ch0_on':self.btHVon_0 , 'ch0_off':self.btHVoff_0 ,'textinput_0': self.textinput_HV0, 'set_0':self.btHVset_0 ,
+                                        'ch1':self.lbl_textinput_HV1, 'ch1_on':self.btHVon_1 , 'ch1_off':self.btHVoff_1 ,'textinput_1': self.textinput_HV1, 'set_1':self.btHVset_1 ,
+                                        'ch2':self.lbl_textinput_HV2, 'ch2_on':self.btHVon_2 , 'ch2_off':self.btHVoff_2 ,'textinput_2': self.textinput_HV2, 'set_2':self.btHVset_2 ,
+                                        'ch3':self.lbl_textinput_HV3, 'ch3_on':self.btHVon_3 , 'ch3_off':self.btHVoff_3 ,'textinput_3': self.textinput_HV3, 'set_3':self.btHVset_3
+            })
 
-        #subContainerMiddle_tb2 = gui.Container(width=300, layout_orientation=gui.Container.LAYOUT_HORIZONTAL, style={'display': 'block', 'overflow': 'auto', 'text-align': 'left','border':'0px solid black'})
-        subContainerMiddle_tb2 = gui.VBox(width='100%')
+            self.btHVoff.attributes["disabled"] = ""
+            self.list_btHV = [self.btHVon_0,self.btHVon_1,self.btHVon_2,self.btHVon_3,self.btHVoff_0,self.btHVoff_1,self.btHVoff_2,self.btHVoff_3]
+            self.list_btHVon = [self.btHVon_0,self.btHVon_1,self.btHVon_2,self.btHVon_3]
+            self.list_btHVoff = [self.btHVoff_0,self.btHVoff_1,self.btHVoff_2,self.btHVoff_3]
+            self.list_btHVset = [self.btHVset_0,self.btHVset_1,self.btHVset_2,self.btHVset_3]
 
-        if (plt_field):
-            self.lbl_peltiers = gui.Label('Peltiers', height=20, margin='10px', style={'font-size': '15px', 'font-weight': 'bold'})
-            # Peltiers I/V table
-            self.table_Plt = gui.Table(children={
-                'row0': gui.TableRow({'col1':'  #  ', 'col2':'Current[mA]', 'col3':'Voltage[V]'}),
-                'row1': gui.TableRow({'col1':'1','col2':'', 'col3':''}),
-                'row2': gui.TableRow({'col1':'2','col2':'', 'col3':''}),
-                'row3': gui.TableRow({'col1':'3','col2':'', 'col3':''}),
-                'row4': gui.TableRow({'col1':'4','col2':'', 'col3':''}),
-                },
-                width=250, height=200)
-            if n_chucks==5:
-                self.table_Plt.add_child('row5', gui.TableRow({'col1':'5','col2':'', 'col3':''}) )
+            for bt in self.list_btHVon:
+                bt.attributes["disabled"] = ""
+            for bt in self.list_btHVoff:
+                bt.attributes["disabled"] = ""
+            for bt in self.list_btHVset:
+                bt.attributes["disabled"] = ""
 
-            subContainerMiddle_tb2.append([self.lbl_peltiers,self.table_Plt])
-            subContainerMiddle_tb2.style['justify-content'] ='space-around'
-            subContainerMiddle_tb2.style['align-items'] = 'flex-start'
+            self.btHVon.onclick.do(self.on_btHV_sw_pressed,-1,'on')
+            self.btHVoff.onclick.do(self.on_btHV_sw_pressed,-1,'off')
 
-        #------ Right Container ---------
-        subContainerRight_tb2 = gui.VBox(width='100%')
+            for i in range(4):
+                self.list_btHVon[i].onclick.do(self.on_btHV_sw_pressed,i,'on')
+                self.list_btHVoff[i].onclick.do(self.on_btHV_sw_pressed,i,'off')
+                self.list_btHVset[i].onclick.do(self.on_btHVset_pressed,i)
 
-        self.lbl_Box = gui.Label('ColdBox Ambient', height=20, margin='10px', style={'font-size': '15px', 'font-weight': 'bold'})
+            #------------LV controls-----------
+            subContainerADV_LV1 = gui.GridBox(width = "15%",hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
+            subContainerADV_LV1.style['border-left'] = '3px solid rgba(0,0,0,.12)'
 
-        # Ambient table
-        self.table_amb = gui.Table(children={
-            'row0': gui.TableRow({'col1':'Relative H[%]', 'col2':''}),
-            'row1': gui.TableRow({'col1':'Temperature[C]','col2':''}),
-            'row2': gui.TableRow({'col1':'DewPoint[C]','col2':''}),
-            'row3': gui.TableRow({'col1':'Flow N2/DryAir[l/s]','col2':''}),
-            'row4': gui.TableRow({'col1':'Coolant temperature[C]','col2':''}),
-            'row5': gui.TableRow({'col1':'Flow Coolant[l/s]','col2':''})
-            },
-            width=250, height=200, style={'text-align': 'left'})
+            self.lbl_LV1 = gui.Label('Low-Voltage 1', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
 
-        subContainerRight_tb2.append([self.lbl_Box,self.table_amb])
-        subContainerRight_tb2.style['justify-content'] ='space-around'
-        subContainerRight_tb2.style['align-items'] = 'flex-start'
+            self.btLV1on = gui.Button('ON', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_green})
+            self.btLV1off = gui.Button('OFF', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_red})
 
-        horizontalContainer_tb2.append([subContainerLeft_tb2, subContainerMiddle_tb2, subContainerRight_tb2])
-        horizontalContainer_tb2.style['justify-content'] ='space-around'
-        horizontalContainer_tb2.style['align-items'] = 'center'
+            self.lbl_textinput_LV1_0 = gui.Label('CH0', width=50, height=20, margin='5px',style={'font-size': '14px'})
+            self.lbl_textinput_LV1_1 = gui.Label('CH1', width=50, height=20, margin='5px',style={'font-size': '14px'})
 
-        verticalContainer_tb2.append([horizontalContainer_logo, self.lbl_placeHolder, horizontalContainer_tb2])
+            self.textinput_LV1_0 = gui.TextInput(width=50, height=20,margin='5px')
+            self.textinput_LV1_1 = gui.TextInput(width=50, height=20,margin='5px')
+
+            self.list_textinput_LV1 = [self.textinput_LV1_0,self.textinput_LV1_1]
+            for textinput in self.list_textinput_LV1:
+                textinput.set_value('0.00')
+
+            self.btLV1set = gui.Button('SET', width=50, height=50, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
+
+
+            subContainerADV_LV1.set_from_asciiart("""
+                |LV1_label| LV1_label | LV1_on       | LV1_off |
+                |         | ch1_1     | textinput1_1 | set_VL1 |
+                |         | ch1_2     | textinput1_2 | set_VL1 |
+                """, 10, 10)
+
+            subContainerADV_LV1.append({'LV1_label':self.lbl_LV1, 'LV1_on':self.btLV1on ,'LV1_off':self.btLV1off,
+                                    'ch1_1':self.lbl_textinput_LV1_0,'textinput1_1': self.textinput_LV1_0,
+                                    'ch1_2':self.lbl_textinput_LV1_1,'textinput1_2': self.textinput_LV1_1,
+                                    'set_VL1':self.btLV1set
+                                })
+
+            self.btLV1off.attributes["disabled"] = ""
+            self.btLV1on.onclick.do(self.on_btLV_sw_pressed,1,'on')
+            self.btLV1off.onclick.do(self.on_btLV_sw_pressed,1,'off')
+            self.btLV1set.onclick.do(self.on_btLVset_pressed,1)
+
+
+            subContainerADV_LV2 = gui.GridBox(width = "15%",hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
+            subContainerADV_LV2.style['border-left'] = '3px solid rgba(0,0,0,.12)'
+
+            self.lbl_LV2 = gui.Label('Low-Voltage 2', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
+
+            self.btLV2on = gui.Button('ON', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_green})
+            self.btLV2off = gui.Button('OFF', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_red})
+
+            self.lbl_textinput_LV2_0 = gui.Label('CH0', width=50, height=20, margin='5px',style={'font-size': '14px'})
+            self.lbl_textinput_LV2_1 = gui.Label('CH1', width=50, height=20, margin='5px',style={'font-size': '14px'})
+
+            self.textinput_LV2_0 = gui.TextInput(width=50, height=20,margin='5px')
+            self.textinput_LV2_1 = gui.TextInput(width=50, height=20,margin='5px')
+
+            self.list_textinput_LV2 = [self.textinput_LV2_0,self.textinput_LV2_1]
+
+            for textinput in self.list_textinput_LV2:
+                textinput.set_value('0.00')
+
+            self.btLV2set = gui.Button('SET', width=50, height=50, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
+
+            subContainerADV_LV2.set_from_asciiart("""
+                |LV2_label| LV2_label | LV2_on       | LV2_off |
+                |         | ch2_1     | textinput1_1 | set_LV2 |
+                |         | ch2_2     | textinput1_2 | set_LV2 |
+                """, 10, 10)
+
+            subContainerADV_LV2.append({'LV2_label':self.lbl_LV2, 'LV2_on':self.btLV2on ,'LV2_off':self.btLV2off,
+                                    'ch2_1':self.lbl_textinput_LV2_0,'textinput1_1': self.textinput_LV2_0,
+                                    'ch2_2':self.lbl_textinput_LV2_1,'textinput1_2': self.textinput_LV2_1,
+                                    'set_LV2':self.btLV2set
+                                    })
+            self.btLV2off.attributes["disabled"] = ""
+            self.btLV2on.onclick.do(self.on_btLV_sw_pressed,2,'on')
+            self.btLV2off.onclick.do(self.on_btLV_sw_pressed,2,'off')
+            self.btLV2set.onclick.do(self.on_btLVset_pressed,2)
+
+            #------------Chiller controls-----------
+            subContainerADV_Chiller = gui.GridBox(width = "10%",hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
+            subContainerADV_Chiller.style['border-left'] = '3px solid rgba(0,0,0,.12)'
+
+            self.lbl_Chiller = gui.Label('Chiller', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
+
+            self.btChillerOn = gui.Button('ON', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_green})
+            self.btChillerOff = gui.Button('OFF', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_red})
+
+            self.lbl_textinput_ChilT = gui.Label('T[C]', width=50, height=20, margin='5px',style={'font-size': '14px'})
+
+            self.textinput_ChilT = gui.TextInput(width=50, height=20,margin='5px')
+            self.textinput_ChilT.set_value('0.00')
+
+            self.btChilTset = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
+
+            subContainerADV_Chiller.set_from_asciiart("""
+                |Chil_label| Chil_label | Chil_on         | Chil_off |
+                |          | Chil_T      | textinput_ChilT | set_ChilT |
+                """, 10, 10)
+
+            subContainerADV_Chiller.append({'Chil_label':self.lbl_Chiller, 'Chil_on':self.btChillerOn ,'Chil_off':self.btChillerOff,
+                                        'Chil_T':self.lbl_textinput_ChilT,'textinput_ChilT': self.textinput_ChilT,'set_ChilT':self.btChilTset
+                                        })
+
+            self.btChillerOff.attributes["disabled"] = ""
+            self.btChillerOn.onclick.do(self.on_btChiller_sw_pressed, 'on')
+            self.btChillerOff.onclick.do(self.on_btChiller_sw_pressed, 'off')
+            self.btChilTset.onclick.do(self.on_btChil_T_set_pressed)
+
+            '''
+            #------------Setting the values -----------
+            self.btAdvSet = gui.Button('SET', width="20%", height=30, margin='15px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_blue})
+            self.btAdvSet.onclick.do(self.on_btAdvSet_pressed)
+            '''
+            #- Wrapping the subcontainers
+            subContainerADV.append([subContainerADV_HV, subContainerADV_LV1, subContainerADV_LV2,subContainerADV_Chiller])
+
+
+
+
+            #------------------------------------------
+        elif coldbox_type=='UK':
+            #------------Peltiers controls-----------
+
+            subContainerADV_plt = gui.GridBox(width = "20%", hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
+            self.lbl_plt = gui.Label('Peltier', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
+            self.lbl_plt_curr = gui.Label('Current[A]', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
+            self.lbl_plt_vol = gui.Label('Voltage[V]', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
+
+            self.btPLT_heat = gui.Button('HEAT', width=75, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_red})
+            self.btPLT_cool = gui.Button('COOL', width=75, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_blue})
+
+            self.lbl_textinput_plt0 = gui.Label('Plt_1', width=50, height=20, margin='5px',style={'font-size': '14px'})
+            self.lbl_textinput_plt1 = gui.Label('Plt_2', width=50, height=20, margin='5px',style={'font-size': '14px'})
+            self.lbl_textinput_plt2 = gui.Label('Plt_3', width=50, height=20, margin='5px',style={'font-size': '14px'})
+            self.lbl_textinput_plt3 = gui.Label('Plt_4', width=50, height=20, margin='5px',style={'font-size': '14px'})
+            self.lbl_textinput_plt4 = gui.Label('Plt_5', width=50, height=20, margin='5px',style={'font-size': '14px'})
+
+            self.textinput_curr_plt0 = gui.TextInput(width=50, height=20,margin='5px')
+            self.textinput_curr_plt1 = gui.TextInput(width=50, height=20,margin='5px')
+            self.textinput_curr_plt2 = gui.TextInput(width=50, height=20,margin='5px')
+            self.textinput_curr_plt3 = gui.TextInput(width=50, height=20,margin='5px')
+            self.textinput_curr_plt4 = gui.TextInput(width=50, height=20,margin='5px')
+            self.list_textinput_curr= [self.textinput_curr_plt0,self.textinput_curr_plt1,self.textinput_curr_plt2,self.textinput_curr_plt3,self.textinput_curr_plt4]
+
+
+            self.textinput_vol_plt0 = gui.TextInput(width=50, height=20,margin='5px')
+            self.textinput_vol_plt1 = gui.TextInput(width=50, height=20,margin='5px')
+            self.textinput_vol_plt2 = gui.TextInput(width=50, height=20,margin='5px')
+            self.textinput_vol_plt3 = gui.TextInput(width=50, height=20,margin='5px')
+            self.textinput_vol_plt4 = gui.TextInput(width=50, height=20,margin='5px')
+            self.list_textinput_vol= [self.textinput_vol_plt0,self.textinput_vol_plt1,self.textinput_vol_plt2,self.textinput_vol_plt3,self.textinput_vol_plt4]
+
+            self.list_textinput_plt = [self.textinput_curr_plt0, self.textinput_curr_plt1,self.textinput_curr_plt2,self.textinput_curr_plt3,self.textinput_curr_plt4,
+                                       self.textinput_vol_plt0, self.textinput_vol_plt1,self.textinput_vol_plt2,self.textinput_vol_plt3,self.textinput_vol_plt4]
+            for textinput in self.list_textinput_plt:
+                textinput.set_value('0.00')
+
+            self.bt_PLTset_0 = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
+            self.bt_PLTset_1 = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
+            self.bt_PLTset_2 = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
+            self.bt_PLTset_3 = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
+            self.bt_PLTset_4 = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
+            self.list_bt_PLTset = [self.bt_PLTset_0,self.bt_PLTset_1,self.bt_PLTset_2,self.bt_PLTset_3,self.bt_PLTset_4]
+
+            subContainerADV_plt.set_from_asciiart("""
+                |PLT_label | PLT_bt_HEAT  | PLT_bt_COOL |             |
+                |          | PLT_current  | PTL_vol     |             |
+                | plt0     | plt_curr0    | plt_vol0    | plt_set0    |
+                | plt1     | plt_curr1    | plt_vol1    | plt_set1    |
+                | plt2     | plt_curr2    | plt_vol2    | plt_set2    |
+                | plt3     | plt_curr3    | plt_vol3    | plt_set3    |
+                | plt4     | plt_curr4    | plt_vol4    | plt_set4    |
+                """, 10, 10)
+
+            subContainerADV_plt.append({'PLT_label':self.lbl_plt, 'PLT_bt_HEAT':self.btPLT_heat,'PLT_bt_COOL':self.btPLT_cool,
+                                        'PLT_current':self.lbl_plt_curr ,'PTL_vol':self.lbl_plt_vol,
+                                        'plt0':self.lbl_textinput_plt0, 'plt_curr0':self.list_textinput_curr[0] , 'plt_vol0':self.list_textinput_vol[0], 'plt_set0':self.bt_PLTset_0 ,
+                                        'plt1':self.lbl_textinput_plt1, 'plt_curr1':self.list_textinput_curr[1] , 'plt_vol1':self.list_textinput_vol[1], 'plt_set1':self.bt_PLTset_1 ,
+                                        'plt2':self.lbl_textinput_plt2, 'plt_curr2':self.list_textinput_curr[2] , 'plt_vol2':self.list_textinput_vol[2], 'plt_set2':self.bt_PLTset_2 ,
+                                        'plt3':self.lbl_textinput_plt3, 'plt_curr3':self.list_textinput_curr[3] , 'plt_vol3':self.list_textinput_vol[3], 'plt_set3':self.bt_PLTset_3 ,
+                                        'plt4':self.lbl_textinput_plt4, 'plt_curr4':self.list_textinput_curr[4] , 'plt_vol4':self.list_textinput_vol[4], 'plt_set4':self.bt_PLTset_4
+            })
+
+
+            self.btPLT_heat.onclick.do(self.on_btPLT_sw_pressed,'heat')
+            self.btPLT_cool.onclick.do(self.on_btPLT_sw_pressed,'cool')
+
+            for i in range(len(self.list_bt_PLTset)):
+                self.list_bt_PLTset[i].onclick.do(self.on_bt_PLTset_pressed,i)
+
+            #------------Chiller controls-----------
+            subContainerADV_Chiller = gui.GridBox(width = "25%",hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
+            subContainerADV_Chiller.style['border-left'] = '3px solid rgba(0,0,0,.12)'
+
+            self.lbl_Chiller = gui.Label('Chiller', width=50, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
+
+            self.lbl_textinput_ChilT = gui.Label('Temperature [C]', width=100, height=20, margin='5px',style={'font-size': '14px'})
+            self.textinput_ChilT = gui.TextInput(width=50, height=20,margin='5px')
+            self.textinput_ChilT.set_value('0.00')
+            self.btChilTset = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
+
+            self.lbl_textinput_Chil_pumpS = gui.Label('Pump speed [RPM]', width=150, height=20, margin='5px',style={'font-size': '14px'})
+            self.textinput_Chil_pumpS = gui.TextInput(width=50, height=20,margin='5px')
+            self.textinput_Chil_pumpS.set_value('0.00')
+            self.btChil_pumpS_set = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
+
+            subContainerADV_Chiller.set_from_asciiart("""
+                |Chil_label  | Chil_label           |                |
+                |Chil_T      | textinput_ChilT      | set_ChilT      |
+                |Chil_pumpS  | textinput_Chil_pumpS | set_Chil_pumpS |
+                """, 10, 10)
+
+            subContainerADV_Chiller.append({'Chil_label':self.lbl_Chiller,
+                                        'Chil_T':self.lbl_textinput_ChilT,'textinput_ChilT': self.textinput_ChilT,'set_ChilT':self.btChilTset,
+                                        'Chil_pumpS':self.lbl_textinput_Chil_pumpS,'textinput_Chil_pumpS': self.textinput_Chil_pumpS,'set_Chil_pumpS':self.btChil_pumpS_set,
+                                        })
+            self.btChilTset.onclick.do(self.on_btChil_T_set_pressed)
+            self.btChil_pumpS_set.onclick.do(self.on_btChil_pumpS_set_pressed)
+
+            #- Wrapping the subcontainers
+            subContainerADV.append([subContainerADV_plt, subContainerADV_Chiller])
+
+        verticalContainer_tb2.append([horizontalContainer_logo, subContainerADV ])
         verticalContainer_tb2.style['justify-content'] ='space-around'
         verticalContainer_tb2.style['align-items'] = 'center'
 
-        #this flag will be used to stop the display_counter Timer
-        self.stop_flag = False
 
 
         #===================================== TAB 3 =================================================
-        verticalContainer_tb3.append([horizontalContainer_logo, self.lbl_placeHolder])
-        verticalContainer_tb3.style['justify-content'] ='flex-start'
-        verticalContainer_tb3.style['align-items'] = 'flex-start'
-
-
-
-        #===================================== TAB 4 =================================================
         self.lbl_swName = gui.Label('ColdBox Controller V 0.5', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
-        self.lbl_coldbox_type = gui.Label('ColdBox type: '+coldbox_type , width=200, height=30, margin='5px')
-        verticalContainer_tb4.append([horizontalContainer_logo, self.lbl_swName, self.lbl_coldbox_type])
+        #self.lbl_coldbox_type = gui.Label('ColdBox type: '+coldbox_type , width=200, height=30, margin='5px')
+        verticalContainer_tb3.append([horizontalContainer_logo, self.lbl_swName, self.lbl_ColdBoxType])
 
         #===================================== Wrapping all tabs together =================================================
-        tabBox = gui.TabBox(width='100%',style={'align-items':'flex-start', 'justify-content':'flex-start','font-size': '16px', 'font-weight': 'bold','background-color': '#3498DB'})
+        tabBox = gui.TabBox(width='100%',style={'align-items':'flex-start', 'justify-content':'flex-start','font-size': '16px', 'font-weight': 'bold','background-color': col_darkBlue})
 
         tabBox.append(verticalContainer_tb1, 'Control Panel')
-        tabBox.add_tab(verticalContainer_tb2, 'Monitoring', None)
-        tabBox.add_tab(verticalContainer_tb3, 'Advanced', None)
-        tabBox.add_tab(verticalContainer_tb4, 'About', None)
+        tabBox.add_tab(verticalContainer_tb2, 'Advanced', None)
+        tabBox.add_tab(verticalContainer_tb3, 'About', None)
 
         #===================================== Grafana pannels and interlocks =====================================
+        self.grafana_dash = gui.Widget( _type='iframe', width='100%', height=1000, margin='10px')
+        self.grafana_dash.attributes['src'] = grf_dash
+        self.grafana_dash.attributes['width'] = '100%'
+        self.grafana_dash.attributes['height'] = '100%'
+        self.grafana_dash.attributes['controls'] = 'true'
+        self.grafana_dash.style['border'] = 'none'
+
+
         self.grafana_panel_list=[]
         for panel in grf_panel_list:
             self.grafana_panel= gui.Widget( _type='iframe', width=618, height=300, margin='10px')
@@ -431,28 +657,41 @@ class ColdBoxGUI(App):
         horizontalContainer_grafana_intrl.append([self.grafana_intrl_list])
         horizontalContainer_grafana_panels.append([self.grafana_panel_list])
 
+        horizontalContainer_grafana_dash.append(self.grafana_dash)
+
+
         #=========================== Appending TabBox and Grafana plots to a vertical main container ======================
 
-        main_container = gui.VBox(width = "100%", style={'align-items':'flex-start', 'justify-content':'flex-start'})
-        main_container.append([tabBox, horizontalContainer_grafana_intrl, horizontalContainer_grafana_panels])
+        self.main_container = gui.VBox(width ='100%', hight='100%', style={'align-items':'flex-start', 'justify-content':'flex-start'})
 
-        #================== Thread management =============================================================================
-        self.thread_alive_flag = True
-        table_kys1=['row1_col2','row2_col2','row3_col2','row4_col2','row5_col2','row1_col3','row2_col3','row3_col3','row4_col3','row5_col3']
-        table_kys2=['row0_col2','row1_col2','row2_col2','row3_col2','row4_col2','row5_col2']
-        self.readout_table_t= dict.fromkeys(table_kys1,'None')
-        self.readout_table_plt = dict.fromkeys(table_kys1,'None')
-        self.readout_table_amb= dict.fromkeys(table_kys2,'None')
+        #-- other popup boxes will be appended here once the corresponding pubsub message is received
+        self.main_container.append([tabBox])
 
-        thread_table_t = threading.Thread(target=self.update_table_t)
-        thread_table_plt = threading.Thread(target=self.update_table_plt)
-        thread_table_amb = threading.Thread(target=self.update_table_amb)
-        thread_table_t.start()
-        thread_table_plt.start()
-        thread_table_amb.start()
+        self.ultimate_container = gui.VBox(width ='100%', hight='100%', style={'align-items':'flex-start', 'justify-content':'flex-start'})
+        self.ultimate_container.append([self.main_container, horizontalContainer_grafana_dash, horizontalContainer_grafana_intrl, horizontalContainer_grafana_panels])
+
+        #-------------------------------------
+        #-- Subscribe to messages
+        pub.subscribe(self.gui_warning,'warning')
+        pub.subscribe(self.gui_error,'error')
+        pub.subscribe(self.gui_alert,'alert')
+        pub.subscribe(self.gui_danger,'danger')
+
+
+        #=== for testing pubsub only
+        if testPubSub:
+            def start_pubsub():
+                coldjig_pubsub.start()
+
+            #start a separate thread to listen to the subscribed messages
+            th_pubsub = threading.Thread(target=start_pubsub).start()
+
+        #-------------------------Global GUI variables
+        self.availavle_chucks=[]
+
 
         # returning the root widget
-        return main_container
+        return self.ultimate_container
 
 
     #=============================== SLOT functions =====================================================
@@ -479,48 +718,302 @@ class ColdBoxGUI(App):
             self.list_textinput_ch[id].attributes["disabled"] = ""
 
 
-    def on_btStart_pressed(self, widget):
-        currentDT = datetime.datetime.now()
-        current_text=self.read_user_options()
-        coldjiglib.start_thermal_cycle([1,2,3,4,5]) # should get list of available modules. Full list os hardcoded for now.
-        logging.info("Thermocycling started!")
-        #current_text= self.statusBox.get_text()
-        self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling started\n")
-        self.btStart.attributes["disabled"] = ""
-        del self.btStop.attributes["disabled"]
-        #--FIX ME
-        #self.subContainerRight_1.style['pointer-events'] = 'none'
-        #self.subContainerRight_1.style['opacity'] = '0.4' #this is to give a disabled apparence
-
-
-    def on_btStop_pressed(self, widget):
-        self.dialog = gui.GenericDialog(title='attempt to stop Thermocycling', message='Are you sure you want to terminate the Thermocycling?', width='500px')
-        self.dialog.confirm_dialog.do(self.Terminate_thermocycling)
-        self.dialog.show(self)
-
-    def Terminate_thermocycling(self, widget):
+    def on_btStartLib_pressed(self, widget):
+        logger.debug("user pressed Start button")
+        self.btStartLib.attributes["disabled"] = ""
         currentDT = datetime.datetime.now()
         current_text= self.statusBox.get_text()
-        coldjiglib.stop_thermal_cycle()
-        logging.info("Thermocycling stopped!")
-        self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling stopped!\n")
-        self.btStop.attributes["disabled"] = ""
-        del self.btStart.attributes["disabled"]
-        #--FIX ME
-        #del self.subContainerRight_1.style['pointer-events']
-        #del self.subContainerRight_1.style['opacity']
-        self.notification_message("Thermocycling terminated!", "")
+
+        if(coldjigcontroller.start()):
+            del self.btStopLib.attributes["disabled"]
+            del self.btStartTC.attributes["disabled"]
+            logger.info("Coldbox Controller is up!")
+            #self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Coldbox Controller is up!\n")
+
+        else:
+            logger.error("Starting the coldjiglib failed!")
+
+    def on_btStopLib_pressed(self, widget):
+        logger.debug("user pressed shutdown button")
+        self.Lib_term_popup_confirm.show()
+        self.Lib_term_popup_confirm.onconfirm.do(self.prep_Shutdown_Lib)
+
+
+
+    def on_btStartTC_pressed(self, widget):
+        logger.debug("user pressed Start TC button")
+        total_selected_chucks, userOpt_text=self.read_user_options()
+        if total_selected_chucks <1:
+            logger.error("There is no selected chuck!")
+            self.TC_NoCh_popup_alert.show()
+        else:
+            self.btStartTC.attributes["disabled"] = ""
+            self.btStopLib.attributes["disabled"] = ""
+            currentDT = datetime.datetime.now()
+            current_text= self.statusBox.get_text()
+
+            if(coldjigcontroller.start_thermal_cycle(self.availavle_chucks)): # -- shoud pass number of TC (self.ncycle) once implemented in coldjiglib as well.
+                logger.info("Thermocycling started!")
+                self.statusBox.set_text(userOpt_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling started\n")
+
+                #-- this is to prevent the user from changing the values when the TC is running
+                '''
+                for textinput in self.list_textinput_HV:
+                    textinput.attributes["disabled"] = ""
+                for textinput in self.list_textinput_LV1:
+                    textinput.attributes["disabled"] = ""
+                for textinput in self.list_textinput_LV2:
+                    textinput.attributes["disabled"] = ""
+                self.textinput_ChilT.attributes["disabled"] = ""
+                '''
+                del self.btStopTC.attributes["disabled"]
+            else:
+                logger.error("Starting thermocycling failed!")
+
+    def on_btStopTC_pressed(self, widget):
+        logger.debug("user pressed Stop TC button")
+        self.TC_term_popup_confirm.show()
+        self.TC_term_popup_confirm.onconfirm.do(self.Terminate_thermocycling)
+
+
+    #--------- Advance buttons ----------
+    ###---- HV buttons --------------
+    def on_btHV_sw_pressed(self, widget, n, switch):
+        if switch=='on' or switch=='On' or switch=='ON':
+            if n == -1:
+                self.btHVon.attributes["disabled"] = ""
+                del self.btHVoff.attributes["disabled"]
+                for bt in self.list_btHVon:
+                    del bt.attributes["disabled"]
+                for bt in self.list_btHVset:
+                    del bt.attributes["disabled"]
+                self.data_dict['Caen.state'] = 'ON'
+                logger.info("HV switched ON")
+            elif n>=0 and n<4:
+                self.list_btHVon[n].attributes["disabled"] = ""
+                del self.list_btHVoff[n].attributes["disabled"]
+                self.data_dict['Caen.set_channel_%i'%n] = 'ON'
+                logger.info("HV ch%i switched ON"%n)
+                #logger.debug('data_dict: '+'Caen.set_channel_%i'%n)
+            else:
+                logger.info("Attempt to access invalid HV channel")
+
+        elif switch=='off' or switch=='Off' or switch=='OFF':
+            if n == -1:
+                self.btHVoff.attributes["disabled"] = ""
+                del self.btHVon.attributes["disabled"]
+                for bt in self.list_btHV:
+                    bt.attributes["disabled"]= ""
+                for bt in self.list_btHVset:
+                    bt.attributes["disabled"]= ""
+                self.data_dict['Caen.state'] = 'OFF'
+                logger.info("HV switched OFF")
+            elif n>=0 and n<4:
+                self.list_btHVoff[n].attributes["disabled"] = ""
+                del self.list_btHVon[n].attributes["disabled"]
+                self.data_dict['Caen.set_channel_%i'%n] = 'OFF'
+                logger.info("HV ch%i switched OFF"%n)
+                #logger.debug('data_dict: '+'Caen.set_channel_%i'%n)
+            else:
+                logger.info("Attempt to access invalid HV channel")
+        else:
+            logger.info("Invalid HV switch. Use ON or OFF.")
+
+
+    def on_btHVset_pressed(self, widget, n):
+        HV_val=self.list_textinput_HV[n].get_text()
+        self.data_dict['Caen.set_voltge_%i'%n] = float(HV_val)
+        logger.info("HV ch%i set to %s V"%(n,HV_val) )
+
+    #---- LV buttons --------------
+    def on_btLV_sw_pressed(self, widget, LVstate, switch):
+        if switch=='on' or switch=='On' or switch=='ON':
+            if LVstate==1:
+                self.btLV1on.attributes["disabled"] = ""
+                del self.btLV1off.attributes["disabled"]
+                self.data_dict['LV.State_1'] = 'ON'
+                logger.info("LV1 switched ON")
+            elif LVstate ==2:
+                self.btLV2on.attributes["disabled"] = ""
+                del self.btLV2off.attributes["disabled"]
+                self.data_dict['LV.State_2'] = 'ON'
+                logger.info("LV2 switched ON")
+
+        elif switch=='off' or switch=='Off' or switch=='OFF':
+            if LVstate==1:
+                self.btLV1off.attributes["disabled"] = ""
+                del self.btLV1on.attributes["disabled"]
+                self.data_dict['LV.State_1'] = 'OFF'
+                logger.info("LV1 switched OFF")
+            elif LVstate ==2:
+                self.btLV2off.attributes["disabled"] = ""
+                del self.btLV2on.attributes["disabled"]
+                self.data_dict['LV.State_2'] = 'OFF'
+                logger.info("LV2 switched OFF")
+
+    def on_btLVset_pressed(self, widget,LVstate):
+        if LVstate==1:
+            LV1_0=self.textinput_LV1_0.get_text()
+            LV1_1=self.textinput_LV1_1.get_text()
+            self.data_dict['LV.set_voltge_1_0'] = float(LV1_0)
+            self.data_dict['LV.set_voltge_1_1'] = float(LV1_1)
+            logger.info("LV1_0 set to "+LV1_0+" V")
+            logger.info("LV1_1 set to "+LV1_1+" V")
+
+        elif LVstate==2:
+            LV2_0=self.textinput_LV2_0.get_text()
+            LV2_1=self.textinput_LV2_1.get_text()
+            self.data_dict['LV.set_voltge_2_0'] = float(LV2_0)
+            self.data_dict['LV.set_voltge_2_1'] = float(LV2_1)
+            logger.info("LV2_0 set to "+LV2_0+" V")
+            logger.info("LV2_1 set to "+LV2_1+" V")
+
+    #---- Chiller buttons --------------
+    def on_btChiller_sw_pressed(self, widget,switch):
+        if switch=='on' or switch=='On' or switch=='ON':
+            self.btChillerOn.attributes["disabled"] = ""
+            del self.btChillerOff.attributes["disabled"]
+            self.data_dict['chiller.set_state'] = 'ON'
+            logger.info("Chiller switched ON")
+        elif switch=='off' or switch=='Off' or switch=='OFF':
+            self.btChillerOff.attributes["disabled"] = ""
+            del self.btChillerOn.attributes["disabled"]
+            self.data_dict['chiller.set_state'] = 'OFF'
+            logger.info("Chiller switched OFF")
+
+    def on_btChil_T_set_pressed(self, widget):
+        ChillerT=self.textinput_ChilT.get_text()
+        self.data_dict['chiller.set_temperature'] = float(ChillerT)
+        logger.info("Chiller temperature set to "+ChillerT+" C")
+
+    #------ UK Advanced slots ----------
+    def on_btPLT_sw_pressed(self, widget, swith):
+        if swith=="HEAT" or swith=="Heat" or swith=="heat":
+            self.btPLT_heat.attributes["disabled"] = ""
+            del self.btPLT_cool.attributes["disabled"]
+            self.data_dict['peltier.set_mode'] = 'HEAT'
+            logger.info("Peltier mode set to HEAT")
+
+        elif swith=="COOL" or swith=="Cool" or swith=="cool":
+            self.btPLT_cool.attributes["disabled"] = ""
+            del self.btPLT_heat.attributes["disabled"]
+            self.data_dict['peltier.set_mode'] = 'COOL'
+            logger.info("Peltier mode set to COOL")
+        else:
+            logger.error('Attempt to set invalid Peltier mode. Use HEAT or COOL.')
+
+    def on_bt_PLTset_pressed(self, widget, n):
+        plt_curr=self.list_textinput_curr[n].get_text()
+        plt_vol=self.list_textinput_vol[n].get_text()
+        self.data_dict['peltier.set_current.%i'%(n+1)] = float(plt_curr)
+        self.data_dict['peltier.set_volt.%i'%(n+1)] = float(plt_vol)
+
+        logger.info("Plt %i current set to %s A"%(n+1, plt_curr))
+        logger.info("Plt %i voltage set to %s V"%(n+1, plt_vol))
+
+    def on_btChil_pumpS_set_pressed(self, widget):
+        ChillerPS=self.textinput_Chil_pumpS.get_text()
+        self.data_dict['chiller.set_pump'] = float(ChillerPS)
+        logger.info("Chiller pump speed set to "+ChillerPS+" RPM")
+    #=====================WIP=================
+
+    def on_close(self):
+        """ Overloading App.on_close event allows to perform some
+             activities before app termination.
+        """
+        print("I'm going to be closed.")
+        super(ColdBoxGUI, self).on_close()
+
+    #=========================================
+
+    def prep_Shutdown_Lib(self, widget):
+        self.btStopLib.attributes["disabled"] = ""
+        self.btStartTC.attributes["disabled"] = ""
+        currentDT = datetime.datetime.now()
+        current_text= self.statusBox.get_text()
+        self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Shutting down all tasks and core_loop\n")
+
+        self.thread_Shutdown_Lib = threading.Thread(target=self.Shutdown_Lib)
+        self.thread_Shutdown_Lib.start()
+
+    def Shutdown_Lib(self):
+
+        #''' #--- this leads to timeout error from coldjiglib and needs to be fixed from there!
+        if(coldjigcontroller.shutdown()):
+            del self.btStartLib.attributes["disabled"]
+            logger.info("Coldbox Controller is down!")
+            currentDT = datetime.datetime.now()
+            current_text= self.statusBox.get_text()
+            self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Coldbox Controller is down!\n")
+
+            time.sleep(3)
+            self.execute_javascript("window.close();")
+            self.close()
+        else:
+            logger.error("Shuting down the coldjiglib failed!")
+            del self.btStopLib.attributes["disabled"]
+        #'''
+
+
+        ''' # --- For test only / replace with above block
+        time.sleep(5)
+        del self.btStartLib.attributes["disabled"]
+        logger.info("Coldbox Controller is down!")
+        currentDT = datetime.datetime.now()
+        current_text= self.statusBox.get_text()
+        self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Coldbox Controller is down!\n")
+        ''' #---
+
+    #=====================
+
+    def Terminate_thermocycling(self, widget):
+        self.btStopTC.attributes["disabled"] = ""
+        currentDT = datetime.datetime.now()
+        current_text= self.statusBox.get_text()
+        if(coldjigcontroller.stop_thermal_cycle()):
+            logger.info("Thermocycling terminated!")
+            self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling terminated!\n")
+            del self.btStartTC.attributes["disabled"]
+            del self.btStopLib.attributes["disabled"]
+
+        #-- this is to let the user to change the values when the TC is terminated
+            '''
+            for textinput in self.list_textinput_HV:
+                del textinput.attributes["disabled"]
+            for textinput in self.list_textinput_LV1:
+                del textinput.attributes["disabled"]
+            for textinput in self.list_textinput_LV2:
+                del textinput.attributes["disabled"]
+
+            del self.textinput_ChilT.attributes["disabled"]
+            '''
+            #self.js_notification('Thermocycling terminated!')
+            self.TC_term_popup_alert.show()
+        else:
+            logger.error("Terminating thermocycling failed!")
+            del self.btStopTC.attributes["disabled"]
+
+
+    def js_notification(self,txt):
+        time.sleep(0.1)
+        self.execute_javascript('alert("%s")'%txt)
 
     def read_user_options(self):
-        ncycle = self.spin.get_value()
-        availavle_chucks=[]
+        self.ncycle = self.spin.get_value()
+        #self.availavle_chucks=[]
+        availavle_chucks_tmp=[]
 
         for chuck in self.list_checkBox_ch:
-            availavle_chucks.append(int(chuck.get_value()) )
-        logging.debug('availavle_chucks: '+str(availavle_chucks))
+            availavle_chucks_tmp.append(int(chuck.get_value()) )
 
-        self.total_selected_chucks = np.sum(list(map(int,availavle_chucks)))
-        logging.debug('total_selected_chucks: '+str(self.total_selected_chucks))
+        for idx, val in enumerate(availavle_chucks_tmp):
+            if val ==1:
+                self.availavle_chucks.append(idx+1)
+
+        logger.debug('availavle_chucks: '+str(self.availavle_chucks))
+
+        total_selected_chucks = len(self.availavle_chucks)
+        logger.debug('total_selected_chucks: '+str(total_selected_chucks))
 
         if self.radioButton_stTest.get_value():
             selected_tests = ' standard'
@@ -528,64 +1021,58 @@ class ColdBoxGUI(App):
             selected_tests_helper = [self.checkBox_t1.get_value(),self.checkBox_t2.get_value(),self.checkBox_t3.get_value(),self.checkBox_t4.get_value(),self.checkBox_t5.get_value(),self.checkBox_t6.get_value(),self.checkBox_t7.get_value()]
             selected_tests = str(list(map(int,selected_tests_helper)))
             self.total_selected_tests = np.sum(list(map(int,selected_tests_helper)))
-            logging.debug('custom test is running: '+str(self.total_selected_tests)+' tests')
+            logger.debug('custom test is running: '+str(self.total_selected_tests)+' tests')
 
-        user_options = 'User options set:\n'+'-Cycles:'+ str(ncycle) +'\n-Available_chucks:'+str(list(map(int,availavle_chucks)))+'\n-Selected_test(s):'+selected_tests+'\n------\n'
-        return user_options
+        user_options = 'User options set:\n'+'-Cycles:'+ str(self.ncycle) +'\n-Available_chucks:'+str(list(map(int,self.availavle_chucks)))+'\n-Selected_test(s):'+selected_tests+'\n------\n'
+        return total_selected_chucks, user_options
 
-    def update_table_t(self):
-        while self.thread_alive_flag:
-            self.readout_table_t['row1_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["ch_device_list"][0],INFLUXDB_MEASUREMENT,'T'))
-            self.readout_table_t['row2_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["ch_device_list"][1],INFLUXDB_MEASUREMENT,'T'))
-            self.readout_table_t['row3_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["ch_device_list"][2],INFLUXDB_MEASUREMENT,'T'))
-            self.readout_table_t['row4_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["ch_device_list"][3],INFLUXDB_MEASUREMENT,'T'))
+    #------ Listener functions
+    def randomMargin(self, obj, lmarg, tmarg, randInterval):
+        n1 = random.randint(-1*randInterval,randInterval)
+        n2 = random.randint(-1*randInterval,randInterval)
+        lMarg = str(n1+lmarg)+'px'
+        tMarg = str(n1+tmarg)+'px'
+        obj.style['margin-left'] = lMarg
+        obj.style['margin-top'] = tMarg
 
-            self.readout_table_t['row1_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["mod_device_list"][0],INFLUXDB_MEASUREMENT,'rH'))
-            self.readout_table_t['row2_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["mod_device_list"][1],INFLUXDB_MEASUREMENT,'rH'))
-            self.readout_table_t['row3_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["mod_device_list"][2],INFLUXDB_MEASUREMENT,'rH'))
-            self.readout_table_t['row4_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["mod_device_list"][3],INFLUXDB_MEASUREMENT,'rH'))
-            if n_chucks==5:
-                self.readout_table_t['row5_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["ch_device_list"][4],INFLUXDB_MEASUREMENT,'T'))
-                self.readout_table_t['row5_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["mod_device_list"][4],INFLUXDB_MEASUREMENT,'rH'))
-            time.sleep(1)
+    def gui_warning(self, message="NOT DEFINED") :
+        logger.debug(">>> Received warning message")
+        logger.warning(message)
+        self.popup_warning = Popup.PopupAlert("WARNING", message, '#F7AB3B')
+        self.randomMargin(self.popup_warning, 600, 250, 20)
+        self.main_container.append(self.popup_warning)
+        self.popup_warning.show()
 
-    def update_table_plt(self):
-        while self.thread_alive_flag:
-            self.readout_table_plt['row1_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltC_device_list"][0],INFLUXDB_MEASUREMENT,'T'))
-            self.readout_table_plt['row2_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltC_device_list"][1],INFLUXDB_MEASUREMENT,'T'))
-            self.readout_table_plt['row3_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltC_device_list"][2],INFLUXDB_MEASUREMENT,'T'))
-            self.readout_table_plt['row4_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltC_device_list"][3],INFLUXDB_MEASUREMENT,'T'))
+    def gui_error(self,message="NOT DEFINED") :
+        logger.debug(">>> Received error message")
+        logger.error(message)
+        self.popup_error = Popup.PopupAlert("ERROR", message, '#BF33AD')
+        self.randomMargin(self.popup_error, 600, 250, 20)
+        self.main_container.append(self.popup_error)
+        self.popup_error.show()
 
-            self.readout_table_plt['row1_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltV_device_list"][0],INFLUXDB_MEASUREMENT,'rH'))
-            self.readout_table_plt['row2_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltV_device_list"][1],INFLUXDB_MEASUREMENT,'rH'))
-            self.readout_table_plt['row3_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltV_device_list"][2],INFLUXDB_MEASUREMENT,'rH'))
-            self.readout_table_plt['row4_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltV_device_list"][3],INFLUXDB_MEASUREMENT,'rH'))
-            if n_chucks==5:
-                self.readout_table_plt['row5_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltC_device_list"][4],INFLUXDB_MEASUREMENT,'T'))
-                self.readout_table_plt['row5_col3']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE, config_device["pltV_device_list"][4],INFLUXDB_MEASUREMENT,'rH'))
-            time.sleep(1)
+    def gui_alert(self,message="NOT DEFINED") :
+        logger.debug(">>> Received alert message")
+        logger.warning("ALERT: "+message)
+        self.popup_alert = Popup.PopupAlert("ALERT", message)
+        self.randomMargin(self.popup_alert, 600, 250, 20)
+        self.main_container.append(self.popup_alert)
+        self.popup_alert.show()
 
-    def update_table_amb(self):
-        while self.thread_alive_flag:
-            self.readout_table_amb['row0_col2']= str(get_measurement(self.dbClient, INFLUXDB_DATABASE,config_device["CB_device_rH"],INFLUXDB_MEASUREMENT,'rH'))
-            self.readout_table_amb['row1_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_T"],INFLUXDB_MEASUREMENT,'T'))
-            self.readout_table_amb['row2_col2']= str(get_dewpoint(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_T"],INFLUXDB_MEASUREMENT,'T'), get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_rH"],INFLUXDB_MEASUREMENT,'rH') ))
-            self.readout_table_amb['row3_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_N2flw"],INFLUXDB_MEASUREMENT,'T'))
-            self.readout_table_amb['row4_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_Chiller_T"],INFLUXDB_MEASUREMENT,'T'))
-            self.readout_table_amb['row5_col2']= str(get_measurement(self.dbClient,INFLUXDB_DATABASE,config_device["CB_device_Chiller_flw"],INFLUXDB_MEASUREMENT,'T'))
-            time.sleep(1)
+    def gui_danger(self,message="NOT DEFINED") :
+        logger.debug(">>> Received danger message")
+        logger.warning("DANGER: "+message)
+        self.popup_danger = Popup.PopupAlert("DANGER", message, '#B10D03')
+        self.randomMargin(self.popup_danger, 600, 250, 20)
+        self.main_container.append(self.popup_danger)
+        self.popup_danger.show()
 
-    def on_close(self):
-        self.thread_alive_flag = False
-        super(ColdBoxGUI, self).on_close()
-
-
-
+#===========================================================================
 if __name__ == "__main__":
-    logging = GUIlogging.init_logger(__name__)
-    #logging = GUIcoloredlogging.init_logger(__name__)
+    logger = logging.getLogger(__name__)
+    logging.basicConfig(level=logging.DEBUG)
 
-    logging.info("Starting ColdJig GUI")
+    logger.info("Starting ColdJig GUI")
     verbose = False # set to Fals if you dont want to print debugging info
     config = conf.ConfigParser()
     configfile = 'default'
@@ -600,7 +1087,7 @@ if __name__ == "__main__":
          'help'
          ])
     except getopt.GetoptError as err:
-        logging.error('option requires argument.\n Usage: blah -c configFile \n Process terminated.')
+        logger.error('option requires argument.\n Usage: blah -c configFile \n Process terminated.')
         sys.exit(1)
 
     for opt, arg in options:
@@ -613,28 +1100,31 @@ if __name__ == "__main__":
             verbose = True
 
     if not any('-c' in sublist for sublist in options):
-        #logging.error(bcolors.FAIL + "Attempt to start the GUI without user config.\n Process terminated." + bcolors.ENDC)
-        logging.error("Attempt to start the GUI without user config.\n Process terminated.")
+        #logger.error(bcolors.FAIL + "Attempt to start the GUI without user config.\n Process terminated." + bcolors.ENDC)
+        logger.error("Attempt to start the GUI without user config.\n Process terminated.")
         sys.exit(1)
 
     else:
         if os.path.isfile(configfile):
             config.read(configfile)
         else:
-            #logging.error(bcolors.FAIL +'Config file does not exist. Process terminated.' +bcolors.ENDC)
-            logging.error('Config file does not exist. Process terminated.')
+            #logger.error(bcolors.FAIL +'Config file does not exist. Process terminated.' +bcolors.ENDC)
+            logger.error('Config file does not exist.\n Process terminated.')
             sys.exit(1)
 
-    #logging.info(bcolors.OKGREEN+'Reading config file: '+configfile+bcolors.ENDC)
-    logging.info('Reading config file: '+configfile)
+    logger.info('Reading config file: '+configfile)
     config_gui, config_influx, config_device = configreader.read_conf(config)
 
+    # reading config values directly
+    #gui_server = config['SERVER']['gui_server']
+    #gui_server_port = config['SERVER']['gui_server_port']
 
     gui_server = config_gui["gui_server"]
     gui_server_port = config_gui["gui_server_port"]
     coldbox_type = config_gui["coldbox_type"]
     n_chucks = config_gui["n_chucks"]
     plt_field = config_gui["plt_field"]
+    grf_dash= config_gui["grf_dash"]
     grf_panel_list = config_gui["grf_panel_list"]
     grf_intrl_list = config_gui["grf_intrl_list"]
     gui_debug = config_gui["gui_debug"]
@@ -651,6 +1141,7 @@ if __name__ == "__main__":
 
     gui_multiple_instance = config_gui["gui_multiple_instance"]
     gui_enable_file_cache = config_gui["gui_enable_file_cache"]
+    gui_update_interval = config_gui["gui_update_interval"]
 
     ch_device_list = config_device["ch_device_list"]
     mod_device_list = config_device["mod_device_list"]
@@ -663,50 +1154,62 @@ if __name__ == "__main__":
     CB_device_Chiller_flw = config_device["CB_device_Chiller_flw"]
 
 
-    logging.debug('gui_server= '+gui_server)
-    logging.debug('gui_port= '+str(gui_server_port))
+    logger.debug('gui_server= '+gui_server)
+    logger.debug('gui_port= '+str(gui_server_port))
 
-    logging.debug('influx_server= '+INFLUXDB_ADDRESS)
-    logging.debug('influx_user= '+INFLUXDB_USER)
-    logging.debug('influx_port= '+INFLUXDB_PORT)
-    logging.debug('influx_database= '+INFLUXDB_DATABASE)
-    logging.debug('influx_measurement= '+INFLUXDB_MEASUREMENT)
+    logger.debug('influx_server= '+INFLUXDB_ADDRESS)
+    logger.debug('influx_user= '+INFLUXDB_USER)
+    logger.debug('influx_port= '+INFLUXDB_PORT)
+    logger.debug('influx_database= '+INFLUXDB_DATABASE)
+    logger.debug('influx_measurement= '+INFLUXDB_MEASUREMENT)
 
-    logging.debug('coldbox_type= '+coldbox_type)
-    logging.debug('n_chucks= '+str(n_chucks))
-    logging.debug('plt_fields= '+str(plt_field))
+    logger.debug('coldbox_type= '+coldbox_type)
+    logger.debug('n_chucks= '+str(n_chucks))
+    logger.debug('plt_fields= '+str(plt_field))
+    logger.debug('controller= '+config['COLDBOX']['controller'])
 
-    logging.debug('gui_debug= '+str(gui_debug))
-    #logging.debug('gui_logging_level= '+str(gui_logging_level))
-    logging.debug('gui_start_browser= '+str(gui_start_browser))
-    logging.debug('gui_multiple_instance= '+str(gui_multiple_instance))
-    logging.debug('gui_enable_file_cache= '+str(gui_enable_file_cache))
+    logger.debug('gui_debug= '+str(gui_debug))
+    #logger.debug('gui_logging_level= '+str(gui_logging_level))
+    logger.debug('gui_start_browser= '+str(gui_start_browser))
+    logger.debug('gui_multiple_instance= '+str(gui_multiple_instance))
+    logger.debug('gui_enable_file_cache= '+str(gui_enable_file_cache))
+    logger.debug('gui_update_interval= '+str(gui_update_interval))
 
-    logging.debug('CB_device_Chiller_flw= '+CB_device_Chiller_flw)
+    logger.debug('CB_device_Chiller_flw= '+CB_device_Chiller_flw)
 
-    logging.debug('ch_device_list='+ str(ch_device_list))
-    logging.debug('mod_device_list='+ str(mod_device_list))
-    logging.debug('pltC_device_list='+ str(pltC_device_list))
-    logging.debug('pltV_device_list='+ str(pltV_device_list))
-    #logging.debug('grf_panel_list='+ str(grf_panel_list))
-    #logging.debug('grf_intrl_list='+ str(grf_intrl_list))
+    logger.debug('ch_device_list='+ str(ch_device_list))
+    logger.debug('mod_device_list='+ str(mod_device_list))
+    logger.debug('pltC_device_list='+ str(pltC_device_list))
+    logger.debug('pltV_device_list='+ str(pltV_device_list))
+    logger.debug('grf_dash='+ str(grf_dash))
+    #logger.debug('grf_panel_list='+ str(grf_panel_list))
+    #logger.debug('grf_intrl_list='+ str(grf_intrl_list))
 
     #-- checking number of chucks--
     if not (n_chucks==5 or n_chucks==4):
-        #logging.error(bcolors.FAIL +'Number of chucks is not supported. Set n_chucks in config file to 4 or 5.' +bcolors.ENDC)
-        logging.error('Number of chucks is not supported. Set n_chucks in config file to 4 or 5.')
+        logger.error('Number of chucks is not supported. Set n_chucks in config file to 4 or 5.')
+        sys.exit(1)
+    #-----------
+    coldjigcontroller = None
+    try:
+        coldjigcontroller = importlib.import_module(config['COLDBOX']['controller'])
+    except ImportError:
+        logger.critical('could not import controller library -- check COLDBOX.controller option of config file')
         sys.exit(1)
 
+    if coldjigcontroller is None:
+        logger.critical('failed to create an instance of the controller')
+        sys.exit(1)
+
+    #-- use this for debugging purpose. The app will exit after loading the configs
     #exit()
+    #-----------
 
     if not verbose:
         stdout_string_io = StringIO()
         sys.stdout = sys.stderr = stdout_string_io
 
-    #--- starts the coldJiglib
-    if(coldjiglib.start()):
-        logging.info("Welcome to ColdJigLib2 ...!")
 
     #--starts the webserver / optional parameters
     #start(ColdBoxGUI, update_interval=0.5, debug=gui_debug, address=gui_server, port=gui_server_port, start_browser=gui_start_browser, multiple_instance=gui_multiple_instance, enable_file_cache=gui_enable_file_cache)
-    start(ColdBoxGUI, debug=gui_debug, address=gui_server, port=gui_server_port, start_browser=gui_start_browser, multiple_instance=gui_multiple_instance, enable_file_cache=gui_enable_file_cache, username=None, password=None)
+    start(ColdBoxGUI, update_interval=gui_update_interval, debug=gui_debug, address=gui_server, port=gui_server_port, start_browser=gui_start_browser, multiple_instance=gui_multiple_instance, enable_file_cache=gui_enable_file_cache, username=None, password=None)
