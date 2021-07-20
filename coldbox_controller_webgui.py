@@ -13,7 +13,7 @@
 """
 
 '''
-Configuration file can be specified with option -c filename.conf
+Configuration file must be specified with option -c filename.conf
 Mohammad Kareem, 2021
 https://gitlab.cern.ch/mkareem/coldbox_controller_webgui
 '''
@@ -24,7 +24,6 @@ from GUImodules.RadioButton import *
 import GUImodules.Popup as Popup
 from threading import Timer
 import configparser as conf
-import GUImodules.configreader as configreader
 from GUImodules.dewPoint import *
 import GUImodules.CBChelp as CBChelp
 import numpy as np
@@ -39,8 +38,6 @@ except:
 import time,datetime
 
 from GUImodules.influx_query import *
-
-#import coldjiglib
 
 #import user_manager
 #from user_manager import *
@@ -112,9 +109,6 @@ class ColdBoxGUI(App):
         horizontalContainer_grafana_panels = gui.HBox(width = "100%")
         horizontalContainer_grafana_panels.style['justify-content'] ='flex-start'
         horizontalContainer_grafana_panels.style['align-items'] = 'flex-start'
-
-        #--------------------------InfluxDB -----------------
-        #self.dbClient = InfluxDBClient(INFLUXDB_ADDRESS, 8086, INFLUXDB_USER, INFLUXDB_PASSWORD, None)
 
         #--------logo Container ---------------
         self.img_logo = gui.Image('/my_res:ITKlogo.png', width=200, height=67)
@@ -214,6 +208,7 @@ class ColdBoxGUI(App):
         self.checkBox_t5 = gui.CheckBoxLabel('Response Curve', False,  height=22, margin='5px', style={'font-size': '15px','display': 'block'})
         self.checkBox_t6 = gui.CheckBoxLabel('Three Point Gain High Stats', False,  height=22, margin='5px', style={'font-size': '15px','display': 'block'})
         self.checkBox_t7 = gui.CheckBoxLabel('Noise Occupancy', False,  height=22, margin='5px', style={'font-size': '15px','display': 'block'})
+        self.list_checkBox_t = [self.checkBox_t1,self.checkBox_t2,self.checkBox_t3,self.checkBox_t4,self.checkBox_t5,self.checkBox_t6,self.checkBox_t7]
 
         self.subContainerMiddle_2.append([self.checkBox_t1,self.checkBox_t2,self.checkBox_t3,self.checkBox_t4,self.checkBox_t5,self.checkBox_t6,self.checkBox_t7])
         self.subContainerMiddle_2.style['pointer-events'] = 'none'
@@ -260,7 +255,8 @@ class ColdBoxGUI(App):
         self.btStopTC.attributes['title']='Stop Thermocycling'
         self.TC_term_popup_confirm = Popup.PopupConfirm("ColdBoxGUI", "Are you sure you want to terminate the Thermocycling?")
         self.TC_term_popup_alert = Popup.PopupAlert("ColdBoxGUI", "Thermocycling terminated!")
-        self.TC_NoCh_popup_alert = Popup.PopupAlert("ERROR", 'There is no selected chuck!', '#BF33AD')
+        self.TC_NoCh_popup_alert = Popup.PopupAlert("ERROR", 'No chuck selected!', '#BF33AD')
+        self.TC_NoCusTest_popup_alert = Popup.PopupAlert("ERROR", 'No custom test selected!', '#BF33AD')
 
         self.lbl_spin = gui.Label('# of cycles', width="100%", height=30)
         self.spin = gui.SpinBox(10, 1, 100, width="100%", height=30, style={'font-size': '15px', 'font-weight': 'bold'})
@@ -292,7 +288,9 @@ class ColdBoxGUI(App):
         subContainerRight.style.update({'grid-template-columns':'25% 25% 60%', 'grid-template-rows':'10% 10% 10% 10% 10% 100%'})
 
         #- Wrapping the subcontainers
-        horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight, self.TC_term_popup_alert, self.TC_NoCh_popup_alert, self.TC_term_popup_confirm, self.Lib_term_popup_confirm])
+        horizontalContainer.append([subContainerLeft, subContainerMiddle, subContainerRight,
+                                    self.TC_term_popup_alert, self.TC_NoCh_popup_alert, self.TC_NoCusTest_popup_alert,
+                                    self.TC_term_popup_confirm, self.Lib_term_popup_confirm])
 
         verticalContainer_tb1.append([horizontalContainer_logo, horizontalContainer])
         verticalContainer_tb1.style['justify-content'] ='flex-start'
@@ -613,7 +611,7 @@ class ColdBoxGUI(App):
 
 
         #===================================== TAB 3 =================================================
-        self.lbl_swName = gui.Label('ColdBox Controller V 0.5', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.lbl_swName = gui.Label('ColdBox Controller V 0.8', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
         #self.lbl_coldbox_type = gui.Label('ColdBox type: '+coldbox_type , width=200, height=30, margin='5px')
         verticalContainer_tb3.append([horizontalContainer_logo, self.lbl_swName, self.lbl_ColdBoxType])
 
@@ -632,31 +630,6 @@ class ColdBoxGUI(App):
         self.grafana_dash.attributes['controls'] = 'true'
         self.grafana_dash.style['border'] = 'none'
 
-
-        self.grafana_panel_list=[]
-        for panel in grf_panel_list:
-            self.grafana_panel= gui.Widget( _type='iframe', width=618, height=300, margin='10px')
-            self.grafana_panel.attributes['src'] = panel
-            self.grafana_panel.attributes['width'] = '100%'
-            self.grafana_panel.attributes['height'] = '100%'
-            self.grafana_panel.attributes['controls'] = 'true'
-            self.grafana_panel.style['border'] = 'none'
-            self.grafana_panel_list.append(self.grafana_panel)
-
-
-        self.grafana_intrl_list=[]
-        for intrl in grf_intrl_list:
-            self.grafana_inter = gui.Widget( _type='iframe', width=140, height=70, margin='10px')
-            self.grafana_inter.attributes['src'] = intrl
-            self.grafana_inter.attributes['width'] = '100%'
-            self.grafana_inter.attributes['height'] = '100%'
-            self.grafana_inter.attributes['controls'] = 'true'
-            self.grafana_inter.style['border'] = 'none'
-            self.grafana_intrl_list.append(self.grafana_inter)
-
-        horizontalContainer_grafana_intrl.append([self.grafana_intrl_list])
-        horizontalContainer_grafana_panels.append([self.grafana_panel_list])
-
         horizontalContainer_grafana_dash.append(self.grafana_dash)
 
 
@@ -668,7 +641,7 @@ class ColdBoxGUI(App):
         self.main_container.append([tabBox])
 
         self.ultimate_container = gui.VBox(width ='100%', hight='100%', style={'align-items':'flex-start', 'justify-content':'flex-start'})
-        self.ultimate_container.append([self.main_container, horizontalContainer_grafana_dash, horizontalContainer_grafana_intrl, horizontalContainer_grafana_panels])
+        self.ultimate_container.append([self.main_container, horizontalContainer_grafana_dash])
 
         #-------------------------------------
         #-- Subscribe to messages
@@ -688,6 +661,8 @@ class ColdBoxGUI(App):
 
         #-------------------------Global GUI variables
         self.availavle_chucks=[]
+        self.test_type=''
+        self.selected_tests=[]
 
 
         # returning the root widget
@@ -738,14 +713,18 @@ class ColdBoxGUI(App):
         self.Lib_term_popup_confirm.show()
         self.Lib_term_popup_confirm.onconfirm.do(self.prep_Shutdown_Lib)
 
-
-
     def on_btStartTC_pressed(self, widget):
         logger.debug("user pressed Start TC button")
-        total_selected_chucks, userOpt_text=self.read_user_options()
-        if total_selected_chucks <1:
-            logger.error("There is no selected chuck!")
+        #total_selected_chucks, total_selected_tests, userOpt_text=self.read_user_options()
+        userOpt_text = self.read_user_options()
+
+        if len(self.availavle_chucks) <1:
+            logger.error("No chuck selected!")
             self.TC_NoCh_popup_alert.show()
+
+        elif self.test_type == 'custom' and len(self.selected_tests)<1:
+                logger.error("No custom test selected!")
+                self.TC_NoCusTest_popup_alert.show()
         else:
             self.btStartTC.attributes["disabled"] = ""
             self.btStopLib.attributes["disabled"] = ""
@@ -937,8 +916,8 @@ class ColdBoxGUI(App):
         self.thread_Shutdown_Lib.start()
 
     def Shutdown_Lib(self):
-
-        #''' #--- this leads to timeout error from coldjiglib and needs to be fixed from there!
+        #-- currently the coldjiglib is not able to restart and this leads to timeout error.
+        #'''
         if(coldjigcontroller.shutdown()):
             del self.btStartLib.attributes["disabled"]
             logger.info("Coldbox Controller is down!")
@@ -1000,8 +979,10 @@ class ColdBoxGUI(App):
 
     def read_user_options(self):
         self.ncycle = self.spin.get_value()
-        #self.availavle_chucks=[]
+        self.availavle_chucks=[]
+        self.selected_tests=[]
         availavle_chucks_tmp=[]
+        selected_tests_tmp=[]
 
         for chuck in self.list_checkBox_ch:
             availavle_chucks_tmp.append(int(chuck.get_value()) )
@@ -1011,20 +992,27 @@ class ColdBoxGUI(App):
                 self.availavle_chucks.append(idx+1)
 
         logger.debug('availavle_chucks: '+str(self.availavle_chucks))
-
-        total_selected_chucks = len(self.availavle_chucks)
-        logger.debug('total_selected_chucks: '+str(total_selected_chucks))
+        logger.debug('total_selected_chucks: '+str(len(self.availavle_chucks)))
 
         if self.radioButton_stTest.get_value():
-            selected_tests = ' standard'
+            self.test_type = 'standard'
         else:
-            selected_tests_helper = [self.checkBox_t1.get_value(),self.checkBox_t2.get_value(),self.checkBox_t3.get_value(),self.checkBox_t4.get_value(),self.checkBox_t5.get_value(),self.checkBox_t6.get_value(),self.checkBox_t7.get_value()]
-            selected_tests = str(list(map(int,selected_tests_helper)))
-            self.total_selected_tests = np.sum(list(map(int,selected_tests_helper)))
-            logger.debug('custom test is running: '+str(self.total_selected_tests)+' tests')
+            self.test_type = 'custom'
+            for test in self.list_checkBox_t:
+                selected_tests_tmp.append(int(test.get_value()) )
+            for idx, val in enumerate(selected_tests_tmp):
+                if val ==1:
+                    self.selected_tests.append(idx+1)
 
-        user_options = 'User options set:\n'+'-Cycles:'+ str(self.ncycle) +'\n-Available_chucks:'+str(list(map(int,self.availavle_chucks)))+'\n-Selected_test(s):'+selected_tests+'\n------\n'
-        return total_selected_chucks, user_options
+            logger.debug('custom test is running: '+str(len(self.selected_tests))+' tests')
+
+        if self.test_type == 'custom':
+            #user_options = 'User options set:\n'+'-Cycles:'+ str(self.ncycle) +'\n-Available_chucks:'+str(list(map(int,self.availavle_chucks)))+'\n-Selected_test(s):'+self.selected_tests+'\n------\n'
+            user_options = 'User options set:\n'+'-Cycles:'+ str(self.ncycle) +'\n-Available_chucks:'+str(self.availavle_chucks)+'\n-Selected_test(s):'+str(self.selected_tests)+'\n------\n'
+        else:
+            #user_options = 'User options set:\n'+'-Cycles:'+ str(self.ncycle) +'\n-Available_chucks:'+str(list(map(int,self.availavle_chucks)))+'\n-Selected_test(s): standard\n------\n'
+            user_options = 'User options set:\n'+'-Cycles:'+ str(self.ncycle) +'\n-Available_chucks:'+str(self.availavle_chucks)+'\n-Selected_test(s): standard\n------\n'
+        return user_options
 
     #------ Listener functions
     def randomMargin(self, obj, lmarg, tmarg, randInterval):
@@ -1113,86 +1101,55 @@ if __name__ == "__main__":
             sys.exit(1)
 
     logger.info('Reading config file: '+configfile)
-    config_gui, config_influx, config_device = configreader.read_conf(config)
 
-    # reading config values directly
-    #gui_server = config['SERVER']['gui_server']
-    #gui_server_port = config['SERVER']['gui_server_port']
+    #--- reading config values
+    gui_server = config['SERVER']['gui_server']
+    gui_server_port = int(config['SERVER']['gui_server_port'])
 
-    gui_server = config_gui["gui_server"]
-    gui_server_port = config_gui["gui_server_port"]
-    coldbox_type = config_gui["coldbox_type"]
-    n_chucks = config_gui["n_chucks"]
-    plt_field = config_gui["plt_field"]
-    grf_dash= config_gui["grf_dash"]
-    grf_panel_list = config_gui["grf_panel_list"]
-    grf_intrl_list = config_gui["grf_intrl_list"]
-    gui_debug = config_gui["gui_debug"]
-    gui_start_browser = config_gui["gui_start_browser"]
-    #gui_logging_level = config_gui["gui_logging_level"]
+    coldbox_type = config['COLDBOX']['coldbox_type']
+    n_chucks = int(config['COLDBOX']['n_chucks'])
+    coldBox_controller = config['COLDBOX']['controller']
+    HW_INI_FILE        = config['COLDBOX']['INFLUX_INI_FILE']
+    INFLUX_INI_FILE    = config['COLDBOX']['INFLUX_INI_FILE']
+    INTERLOCK_ACTION   = config['COLDBOX']['INTERLOCK_ACTION']
+    controller_RATE    = float(config['COLDBOX']['controller_RATE'])
 
-    INFLUXDB_ADDRESS = config_influx["influx_server"]
-    INFLUXDB_USER = config_influx["influx_user"]
-    INFLUXDB_PASSWORD = config_influx["influx_pass"]
-    INFLUXDB_PORT = config_influx["influx_port"]
-    INFLUXDB_DATABASE = config_influx["influx_database"]
-    INFLUXDB_MEASUREMENT = config_influx["influx_measurement"]
+    gui_debug = config['GUI']['gui_debugging_mode']
+    gui_start_browser = config['GUI']['gui_start_browser']
+    gui_multiple_instance = config['GUI']['gui_multiple_instance']
+    gui_enable_file_cache = config['GUI']['gui_enable_file_cache']
+    gui_update_interval = float(config['GUI']['gui_update_interval'])
 
-
-    gui_multiple_instance = config_gui["gui_multiple_instance"]
-    gui_enable_file_cache = config_gui["gui_enable_file_cache"]
-    gui_update_interval = config_gui["gui_update_interval"]
-
-    ch_device_list = config_device["ch_device_list"]
-    mod_device_list = config_device["mod_device_list"]
-    pltC_device_list = config_device["pltC_device_list"]
-    pltV_device_list = config_device["pltV_device_list"]
-    CB_device_rH = config_device["CB_device_rH"]
-    CB_device_T = config_device["CB_device_T"]
-    CB_device_N2flw = config_device["CB_device_N2flw"]
-    CB_device_Chiller_T = config_device["CB_device_Chiller_T"]
-    CB_device_Chiller_flw = config_device["CB_device_Chiller_flw"]
-
+    grf_dash= config['GRAFANA']['dash']
 
     logger.debug('gui_server= '+gui_server)
     logger.debug('gui_port= '+str(gui_server_port))
 
-    logger.debug('influx_server= '+INFLUXDB_ADDRESS)
-    logger.debug('influx_user= '+INFLUXDB_USER)
-    logger.debug('influx_port= '+INFLUXDB_PORT)
-    logger.debug('influx_database= '+INFLUXDB_DATABASE)
-    logger.debug('influx_measurement= '+INFLUXDB_MEASUREMENT)
-
     logger.debug('coldbox_type= '+coldbox_type)
     logger.debug('n_chucks= '+str(n_chucks))
-    logger.debug('plt_fields= '+str(plt_field))
-    logger.debug('controller= '+config['COLDBOX']['controller'])
+    logger.debug('controller= '+str(coldBox_controller))
+    logger.debug('HW_INI_FILE= '+HW_INI_FILE)
+    logger.debug('INFLUX_INI_FILE= '+INFLUX_INI_FILE)
+    logger.debug('INTERLOCK_ACTION= '+INTERLOCK_ACTION)
+    logger.debug('controller_RATE= '+str(controller_RATE))
 
     logger.debug('gui_debug= '+str(gui_debug))
-    #logger.debug('gui_logging_level= '+str(gui_logging_level))
     logger.debug('gui_start_browser= '+str(gui_start_browser))
     logger.debug('gui_multiple_instance= '+str(gui_multiple_instance))
     logger.debug('gui_enable_file_cache= '+str(gui_enable_file_cache))
     logger.debug('gui_update_interval= '+str(gui_update_interval))
 
-    logger.debug('CB_device_Chiller_flw= '+CB_device_Chiller_flw)
-
-    logger.debug('ch_device_list='+ str(ch_device_list))
-    logger.debug('mod_device_list='+ str(mod_device_list))
-    logger.debug('pltC_device_list='+ str(pltC_device_list))
-    logger.debug('pltV_device_list='+ str(pltV_device_list))
     logger.debug('grf_dash='+ str(grf_dash))
-    #logger.debug('grf_panel_list='+ str(grf_panel_list))
-    #logger.debug('grf_intrl_list='+ str(grf_intrl_list))
 
     #-- checking number of chucks--
     if not (n_chucks==5 or n_chucks==4):
         logger.error('Number of chucks is not supported. Set n_chucks in config file to 4 or 5.')
         sys.exit(1)
-    #-----------
+
+    #--- initializing the coldjigcontroller
     coldjigcontroller = None
     try:
-        coldjigcontroller = importlib.import_module(config['COLDBOX']['controller'])
+        coldjigcontroller = importlib.import_module(coldBox_controller)
     except ImportError:
         logger.critical('could not import controller library -- check COLDBOX.controller option of config file')
         sys.exit(1)
@@ -1201,9 +1158,15 @@ if __name__ == "__main__":
         logger.critical('failed to create an instance of the controller')
         sys.exit(1)
 
+    coldjigcontroller.hardware_ini_file = HW_INI_FILE
+    coldjigcontroller.influx_ini_file = INFLUX_INI_FILE
+    coldjigcontroller.interlock_action_module = INTERLOCK_ACTION
+    coldjigcontroller.RATE = controller_RATE
+    #-----------
+
     #-- use this for debugging purpose. The app will exit after loading the configs
     #exit()
-    #-----------
+
 
     if not verbose:
         stdout_string_io = StringIO()
