@@ -583,7 +583,7 @@ class ColdBoxGUI(App):
             self.textinput_ChilT.set_value('0.00')
             self.btChilTset = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
 
-            self.lbl_textinput_Chil_pumpS = gui.Label('Pump speed [RPM]', width=150, height=20, margin='5px',style={'font-size': '14px'})
+            self.lbl_textinput_Chil_pumpS = gui.Label('Pump speed', width=150, height=20, margin='5px',style={'font-size': '14px'})
             self.textinput_Chil_pumpS = gui.TextInput(width=50, height=20,margin='5px')
             self.textinput_Chil_pumpS.set_value('0.00')
             self.btChil_pumpS_set = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
@@ -731,7 +731,7 @@ class ColdBoxGUI(App):
             currentDT = datetime.datetime.now()
             current_text= self.statusBox.get_text()
 
-            if(coldjigcontroller.start_thermal_cycle(self.availavle_chucks)): # -- shoud pass number of TC (self.ncycle) once implemented in coldjiglib as well.
+            if(coldjigcontroller.start_thermal_cycle(self.availavle_chucks,40.0,-35.0,20.0,self.ncycle)): # -- shoud pass number of TC (self.ncycle) once implemented in coldjiglib as well.
                 logger.info("Thermocycling started!")
                 self.statusBox.set_text(userOpt_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling started\n")
 
@@ -892,8 +892,8 @@ class ColdBoxGUI(App):
 
     def on_btChil_pumpS_set_pressed(self, widget):
         ChillerPS=self.textinput_Chil_pumpS.get_text()
-        self.data_dict['chiller.set_pump'] = float(ChillerPS)
-        logger.info("Chiller pump speed set to "+ChillerPS+" RPM")
+        self.data_dict['chiller.set_pump'] = int(ChillerPS)
+        logger.info("Chiller pump speed set to "+ChillerPS)
     #=====================WIP=================
 
     def on_close(self):
@@ -1057,8 +1057,24 @@ class ColdBoxGUI(App):
 
 #===========================================================================
 if __name__ == "__main__":
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+    logFile_name = 'log/'+timestr+'_ColdJigGUI.log'
+
+    logging.basicConfig(level=logging.INFO,
+                        format="%(asctime)s:%(levelname)s:%(name)s:%(funcName)s:%(threadName)s::%(message)s",
+                        datefmt="%Y-%m-%d %H:%M:%S",
+                        filename=logFile_name,
+                        filemode='w')
+    logging.captureWarnings(True)
+
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s: %(name)-12s: %(levelname)-8s %(message)s')
+    console.setFormatter(formatter)
+    logging.getLogger().addHandler(console)
+
     logger = logging.getLogger(__name__)
-    logging.basicConfig(level=logging.DEBUG)
+    logger.setLevel(logging.DEBUG)
 
     logger.info("Starting ColdJig GUI")
     verbose = False # set to Fals if you dont want to print debugging info
@@ -1109,9 +1125,10 @@ if __name__ == "__main__":
     coldbox_type = config['COLDBOX']['coldbox_type']
     n_chucks = int(config['COLDBOX']['n_chucks'])
     coldBox_controller = config['COLDBOX']['controller']
-    HW_INI_FILE        = config['COLDBOX']['INFLUX_INI_FILE']
+    HW_INI_FILE        = config['COLDBOX']['HW_INI_FILE']
     INFLUX_INI_FILE    = config['COLDBOX']['INFLUX_INI_FILE']
     INTERLOCK_ACTION   = config['COLDBOX']['INTERLOCK_ACTION']
+    THERMAL_CYCLE_MODULE = config['COLDBOX']['THERMAL_CYCLE_MODULE']
     controller_RATE    = float(config['COLDBOX']['controller_RATE'])
 
     gui_debug = config['GUI']['gui_debugging_mode']
@@ -1161,7 +1178,8 @@ if __name__ == "__main__":
     coldjigcontroller.hardware_ini_file = HW_INI_FILE
     coldjigcontroller.influx_ini_file = INFLUX_INI_FILE
     coldjigcontroller.interlock_action_module = INTERLOCK_ACTION
-    coldjigcontroller.RATE = controller_RATE
+    coldjigcontroller.thermal_cycle_module = THERMAL_CYCLE_MODULE
+    coldjigcontroller.RATE = controller_RATE    
     #-----------
 
     #-- use this for debugging purpose. The app will exit after loading the configs
