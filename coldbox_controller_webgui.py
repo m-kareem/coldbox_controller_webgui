@@ -242,7 +242,7 @@ class ColdBoxGUI(App):
         self.btStopLib.onclick.do(self.on_btStopLib_pressed)
         self.btStopLib.attributes['title']='-Shutting down all tasks and core loop\n-Gracefully disengage hardware'
         self.btStopLib.attributes["disabled"] = ""
-        self.Lib_term_popup_confirm = Popup.PopupConfirm("ColdBoxGUI", "Are you sure you want to shutdown the ColdJigLib?")
+        self.Lib_term_popup_confirm = Popup.PopupConfirm("ColdBoxGUI", "Are you sure you want to shutdown the ColdJigLib?\nThis will close the current browser tab as well!")
 
         self.btStartTC = gui.Button('Start TC', width="100%", height=30, style={'font-size': '16px', 'font-weight': 'bold','background-color': col_green})
         self.btStartTC.onclick.do(self.on_btStartTC_pressed)
@@ -304,12 +304,47 @@ class ColdBoxGUI(App):
 
         #===================================== TAB 2 =================================================
         self.data_dict = coldjigcontroller.data_dict
-        subContainerADV = gui.HBox(width = "100%", hight = "100%", style={'align-items':'flex-start', 'justify-content':'space-around'})
+        subContainerADV = gui.GridBox(width = "100%",hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
+
+        #------------TC controls-----------
+        subContainerADV_TC = gui.GridBox(width = "100%",hight = "100%", style={'margin':'20px','align-items':'flex-start', 'justify-content':'flex-start'})
+        subContainerADV_TC.style['border-left'] = '3px solid rgba(0,0,0,.12)'
+
+        self.lbl_TC = gui.Label('Thermocycling settings', width=200, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
+
+        self.lbl_textinput_TCHot = gui.Label('Hot temperature [C]', width=200, height=20, margin='5px',style={'font-size': '14px'})
+        self.textinput_TCHot = gui.TextInput(width=50, height=20,margin='5px')
+        self.textinput_TCHot.set_value('40')
+        #self.btTCHotset = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
+
+        self.lbl_textinput_TCCold = gui.Label('Cold temperature [C]', width=200, height=20, margin='5px',style={'font-size': '14px'})
+        self.textinput_TCCold = gui.TextInput(width=50, height=20,margin='5px')
+        self.textinput_TCCold.set_value('-35')
+        #self.btTCColdset = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
+
+        self.lbl_textinput_TCWarmup = gui.Label('Warm-up temperature [C]', width=200, height=20, margin='5px',style={'font-size': '14px'})
+        self.textinput_TCWarmup = gui.TextInput(width=50, height=20,margin='5px')
+        self.textinput_TCWarmup.set_value('20')
+        #self.btTCWarmupset = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
+
+        subContainerADV_TC.set_from_asciiart("""
+            |TC_label    | TC_label           |
+            |TCCold      | textinput_TCCold   |
+            |TCHot       | textinput_TCHot    |
+            |TCWarmup    | textinput_TCWarmup |
+
+            """, 10, 10)
+
+        subContainerADV_TC.append({'TC_label':self.lbl_TC,
+                                    'TCHot':self.lbl_textinput_TCHot,'textinput_TCHot': self.textinput_TCHot,
+                                    'TCCold':self.lbl_textinput_TCCold,'textinput_TCCold': self.textinput_TCCold,
+                                    'TCWarmup':self.lbl_textinput_TCWarmup,'textinput_TCWarmup': self.textinput_TCWarmup,
+                                    })
 
         if coldbox_type == 'BNL':
             #------------HV controls-----------
-            subContainerADV_HV = gui.GridBox(width = "20%", hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
-            #subContainerADV_HV.style['border'] = '3px solid rgba(0,0,0,.12)'
+            subContainerADV_HV = gui.GridBox(width = "100%", hight = "100%", style={'margin':'20px','align-items':'flex-start', 'justify-content':'flex-start'})
+            subContainerADV_HV.style['border-left'] = '3px solid rgba(0,0,0,.12)'
 
             self.lbl_HV = gui.Label('High-Voltage', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
 
@@ -384,7 +419,7 @@ class ColdBoxGUI(App):
                 self.list_btHVset[i].onclick.do(self.on_btHVset_pressed,i)
 
             #------------LV controls-----------
-            subContainerADV_LV1 = gui.GridBox(width = "15%",hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
+            subContainerADV_LV1 = gui.GridBox(width = "100%",hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
             subContainerADV_LV1.style['border-left'] = '3px solid rgba(0,0,0,.12)'
 
             self.lbl_LV1 = gui.Label('Low-Voltage 1', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
@@ -423,7 +458,7 @@ class ColdBoxGUI(App):
             self.btLV1set.onclick.do(self.on_btLVset_pressed,1)
 
 
-            subContainerADV_LV2 = gui.GridBox(width = "15%",hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
+            subContainerADV_LV2 = gui.GridBox(width = "100%",hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
             subContainerADV_LV2.style['border-left'] = '3px solid rgba(0,0,0,.12)'
 
             self.lbl_LV2 = gui.Label('Low-Voltage 2', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
@@ -461,7 +496,7 @@ class ColdBoxGUI(App):
             self.btLV2set.onclick.do(self.on_btLVset_pressed,2)
 
             #------------Chiller controls-----------
-            subContainerADV_Chiller = gui.GridBox(width = "10%",hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
+            subContainerADV_Chiller = gui.GridBox(width = "100%",hight = "100%", style={'margin':'20px','align-items':'flex-start', 'justify-content':'flex-start'})
             subContainerADV_Chiller.style['border-left'] = '3px solid rgba(0,0,0,.12)'
 
             self.lbl_Chiller = gui.Label('Chiller', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
@@ -496,16 +531,21 @@ class ColdBoxGUI(App):
             self.btAdvSet.onclick.do(self.on_btAdvSet_pressed)
             '''
             #- Wrapping the subcontainers
-            subContainerADV.append([subContainerADV_HV, subContainerADV_LV1, subContainerADV_LV2,subContainerADV_Chiller])
+            subContainerADV.set_from_asciiart("""
+                |TC      |HV |HV  | LV1  |  |
+                |Chiller |HV |HV  | LV2  |  |
 
+                """, 10, 10)
 
-
+            subContainerADV.append({'TC':subContainerADV_TC, 'Chiller':subContainerADV_Chiller,
+                                        'HV': subContainerADV_HV, 'LV1': subContainerADV_LV1, 'LV2': subContainerADV_LV2,
+                                        })
 
             #------------------------------------------
         elif coldbox_type=='UK':
             #------------Peltiers controls-----------
-
-            subContainerADV_plt = gui.GridBox(width = "20%", hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
+            subContainerADV_plt = gui.GridBox(width = "50%", hight = "100%", style={'margin':'20px','align-items':'flex-start', 'justify-content':'flex-start'})
+            subContainerADV_plt.style['border-left'] = '3px solid rgba(0,0,0,.12)'
             self.lbl_plt = gui.Label('Peltier', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
             self.lbl_plt_curr = gui.Label('Current[A]', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
             self.lbl_plt_vol = gui.Label('Voltage[V]', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
@@ -573,40 +613,51 @@ class ColdBoxGUI(App):
                 self.list_bt_PLTset[i].onclick.do(self.on_bt_PLTset_pressed,i)
 
             #------------Chiller controls-----------
-            subContainerADV_Chiller = gui.GridBox(width = "25%",hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
-            subContainerADV_Chiller.style['border-left'] = '3px solid rgba(0,0,0,.12)'
+            subContainerADV_Chiller_UK = gui.GridBox(width = "100%",hight = "100%", style={'margin':'20px','align-items':'flex-start', 'justify-content':'flex-start'})
+            subContainerADV_Chiller_UK.style['border-left'] = '3px solid rgba(0,0,0,.12)'
 
             self.lbl_Chiller = gui.Label('Chiller', width=50, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
 
-            self.lbl_textinput_ChilT = gui.Label('Temperature [C]', width=100, height=20, margin='5px',style={'font-size': '14px'})
+            self.lbl_textinput_ChilT = gui.Label('Temperature [C]', width=200, height=20, margin='5px',style={'font-size': '14px'})
             self.textinput_ChilT = gui.TextInput(width=50, height=20,margin='5px')
             self.textinput_ChilT.set_value('0.00')
             self.btChilTset = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
 
-            self.lbl_textinput_Chil_pumpS = gui.Label('Pump speed', width=150, height=20, margin='5px',style={'font-size': '14px'})
+            self.lbl_textinput_Chil_pumpS = gui.Label('Pump speed', width=200, height=20, margin='5px',style={'font-size': '14px'})
             self.textinput_Chil_pumpS = gui.TextInput(width=50, height=20,margin='5px')
             self.textinput_Chil_pumpS.set_value('0.00')
             self.btChil_pumpS_set = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
 
-            subContainerADV_Chiller.set_from_asciiart("""
-                |Chil_label  | Chil_label           |                |
-                |Chil_T      | textinput_ChilT      | set_ChilT      |
-                |Chil_pumpS  | textinput_Chil_pumpS | set_Chil_pumpS |
+            subContainerADV_Chiller_UK.set_from_asciiart("""
+                |Chil_label | Chil_label  |                |                   |
+                |Chil_T     |Chil_T       | textinput_ChilT      | set_ChilT      |
+                |Chil_pumpS |Chil_pumpS   | textinput_Chil_pumpS | set_Chil_pumpS |
                 """, 10, 10)
 
-            subContainerADV_Chiller.append({'Chil_label':self.lbl_Chiller,
+            subContainerADV_Chiller_UK.append({'Chil_label':self.lbl_Chiller,
                                         'Chil_T':self.lbl_textinput_ChilT,'textinput_ChilT': self.textinput_ChilT,'set_ChilT':self.btChilTset,
                                         'Chil_pumpS':self.lbl_textinput_Chil_pumpS,'textinput_Chil_pumpS': self.textinput_Chil_pumpS,'set_Chil_pumpS':self.btChil_pumpS_set,
                                         })
             self.btChilTset.onclick.do(self.on_btChil_T_set_pressed)
             self.btChil_pumpS_set.onclick.do(self.on_btChil_pumpS_set_pressed)
 
+
             #- Wrapping the subcontainers
-            subContainerADV.append([subContainerADV_plt, subContainerADV_Chiller])
+            subContainerADV.set_from_asciiart("""
+                |TC      |plt |plt  |  |
+                |Chiller |plt |plt  |  |
+
+                """, 10, 10)
+
+            subContainerADV.append({'TC':subContainerADV_TC, 'Chiller':subContainerADV_Chiller_UK,
+                                        'plt': subContainerADV_plt,
+                                        })
+
 
         verticalContainer_tb2.append([horizontalContainer_logo, subContainerADV ])
         verticalContainer_tb2.style['justify-content'] ='space-around'
         verticalContainer_tb2.style['align-items'] = 'center'
+        verticalContainer_tb2.style['margin'] = '2px'
 
 
 
@@ -703,7 +754,7 @@ class ColdBoxGUI(App):
             del self.btStopLib.attributes["disabled"]
             del self.btStartTC.attributes["disabled"]
             logger.info("Coldbox Controller is up!")
-            #self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Coldbox Controller is up!\n")
+            self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Coldbox Controller is up!\n")
 
         else:
             logger.error("Starting the coldjiglib failed!")
@@ -728,10 +779,20 @@ class ColdBoxGUI(App):
         else:
             self.btStartTC.attributes["disabled"] = ""
             self.btStopLib.attributes["disabled"] = ""
+            #-- user should not be able to change TC settings while TC is running
+            self.textinput_TCHot.attributes["disabled"] = ""
+            self.textinput_TCCold.attributes["disabled"] = ""
+            self.textinput_TCWarmup.attributes["disabled"] = ""
+
             currentDT = datetime.datetime.now()
             current_text= self.statusBox.get_text()
 
-            if(coldjigcontroller.start_thermal_cycle(self.availavle_chucks,40.0,-35.0,20.0,self.ncycle)): # -- shoud pass number of TC (self.ncycle) once implemented in coldjiglib as well.
+            #if(coldjigcontroller.start_thermal_cycle(self.availavle_chucks,40.0,-35.0,20.0,self.ncycle)):
+            if(coldjigcontroller.start_thermal_cycle(self.availavle_chucks,
+                                                    float(self.textinput_TCHot.get_text()),
+                                                    float(self.textinput_TCCold.get_text()),
+                                                    float(self.textinput_TCWarmup.get_text()),
+                                                    self.ncycle)):
                 logger.info("Thermocycling started!")
                 self.statusBox.set_text(userOpt_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling started\n")
 
@@ -916,32 +977,20 @@ class ColdBoxGUI(App):
         self.thread_Shutdown_Lib.start()
 
     def Shutdown_Lib(self):
-        #-- currently the coldjiglib is not able to restart and this leads to timeout error.
-        #'''
         if(coldjigcontroller.shutdown()):
-            del self.btStartLib.attributes["disabled"]
+            time.sleep(2)
             logger.info("Coldbox Controller is down!")
+            del self.btStartLib.attributes["disabled"]
             currentDT = datetime.datetime.now()
             current_text= self.statusBox.get_text()
             self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Coldbox Controller is down!\n")
 
-            time.sleep(3)
+            #-- Close the browser and terminate the webserver
             self.execute_javascript("window.close();")
             self.close()
         else:
             logger.error("Shuting down the coldjiglib failed!")
             del self.btStopLib.attributes["disabled"]
-        #'''
-
-
-        ''' # --- For test only / replace with above block
-        time.sleep(5)
-        del self.btStartLib.attributes["disabled"]
-        logger.info("Coldbox Controller is down!")
-        currentDT = datetime.datetime.now()
-        current_text= self.statusBox.get_text()
-        self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Coldbox Controller is down!\n")
-        ''' #---
 
     #=====================
 
@@ -954,6 +1003,10 @@ class ColdBoxGUI(App):
             self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling terminated!\n")
             del self.btStartTC.attributes["disabled"]
             del self.btStopLib.attributes["disabled"]
+            #-- allow the user to set TC settings
+            del self.textinput_TCHot.attributes["disabled"]
+            del self.textinput_TCCold.attributes["disabled"]
+            del self.textinput_TCWarmup.attributes["disabled"]
 
         #-- this is to let the user to change the values when the TC is terminated
             '''
@@ -1179,7 +1232,7 @@ if __name__ == "__main__":
     coldjigcontroller.influx_ini_file = INFLUX_INI_FILE
     coldjigcontroller.interlock_action_module = INTERLOCK_ACTION
     coldjigcontroller.thermal_cycle_module = THERMAL_CYCLE_MODULE
-    coldjigcontroller.RATE = controller_RATE    
+    coldjigcontroller.RATE = controller_RATE
     #-----------
 
     #-- use this for debugging purpose. The app will exit after loading the configs
