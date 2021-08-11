@@ -328,10 +328,10 @@ class ColdBoxGUI(App):
         #self.btTCWarmupset = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
 
         subContainerADV_TC.set_from_asciiart("""
-            |TC_label    | TC_label           |
-            |TCCold      | textinput_TCCold   |
-            |TCHot       | textinput_TCHot    |
-            |TCWarmup    | textinput_TCWarmup |
+            |TC_label    |TC_label    |                    |
+            |TCCold      |TCCold      | textinput_TCCold   |
+            |TCHot       |TCHot       | textinput_TCHot    |
+            |TCWarmup    |TCWarmup    | textinput_TCWarmup |
 
             """, 10, 10)
 
@@ -343,7 +343,7 @@ class ColdBoxGUI(App):
 
         if coldbox_type == 'BNL':
             #------------HV controls-----------
-            subContainerADV_HV = gui.GridBox(width = "100%", hight = "100%", style={'margin':'20px','align-items':'flex-start', 'justify-content':'flex-start'})
+            subContainerADV_HV = gui.GridBox(width = "40%", hight = "100%", style={'margin':'20px','align-items':'flex-start', 'justify-content':'flex-start'})
             subContainerADV_HV.style['border-left'] = '3px solid rgba(0,0,0,.12)'
 
             self.lbl_HV = gui.Label('High-Voltage', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
@@ -496,27 +496,27 @@ class ColdBoxGUI(App):
             self.btLV2set.onclick.do(self.on_btLVset_pressed,2)
 
             #------------Chiller controls-----------
-            subContainerADV_Chiller = gui.GridBox(width = "100%",hight = "100%", style={'margin':'20px','align-items':'flex-start', 'justify-content':'flex-start'})
-            subContainerADV_Chiller.style['border-left'] = '3px solid rgba(0,0,0,.12)'
+            subContainerADV_Chiller_BNL = gui.GridBox(width = "75%",hight = "100%", style={'margin':'20px','align-items':'flex-start', 'justify-content':'flex-start'})
+            subContainerADV_Chiller_BNL.style['border-left'] = '3px solid rgba(0,0,0,.12)'
 
             self.lbl_Chiller = gui.Label('Chiller', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
 
             self.btChillerOn = gui.Button('ON', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_green})
             self.btChillerOff = gui.Button('OFF', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_red})
 
-            self.lbl_textinput_ChilT = gui.Label('T[C]', width=50, height=20, margin='5px',style={'font-size': '14px'})
+            self.lbl_textinput_ChilT = gui.Label('Temperature[C]', width=50, height=20, margin='5px',style={'font-size': '14px'})
 
             self.textinput_ChilT = gui.TextInput(width=50, height=20,margin='5px')
             self.textinput_ChilT.set_value('0.00')
 
             self.btChilTset = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
 
-            subContainerADV_Chiller.set_from_asciiart("""
-                |Chil_label| Chil_label | Chil_on         | Chil_off |
-                |          | Chil_T      | textinput_ChilT | set_ChilT |
+            subContainerADV_Chiller_BNL.set_from_asciiart("""
+                |Chil_label| Chil_label  | Chil_on         | Chil_off  |
+                |Chil_T    | Chil_T      | textinput_ChilT | set_ChilT |
                 """, 10, 10)
 
-            subContainerADV_Chiller.append({'Chil_label':self.lbl_Chiller, 'Chil_on':self.btChillerOn ,'Chil_off':self.btChillerOff,
+            subContainerADV_Chiller_BNL.append({'Chil_label':self.lbl_Chiller, 'Chil_on':self.btChillerOn ,'Chil_off':self.btChillerOff,
                                         'Chil_T':self.lbl_textinput_ChilT,'textinput_ChilT': self.textinput_ChilT,'set_ChilT':self.btChilTset
                                         })
 
@@ -537,16 +537,16 @@ class ColdBoxGUI(App):
 
                 """, 10, 10)
 
-            subContainerADV.append({'TC':subContainerADV_TC, 'Chiller':subContainerADV_Chiller,
+            subContainerADV.append({'TC':subContainerADV_TC, 'Chiller':subContainerADV_Chiller_BNL,
                                         'HV': subContainerADV_HV, 'LV1': subContainerADV_LV1, 'LV2': subContainerADV_LV2,
                                         })
 
             #------------------------------------------
         elif coldbox_type=='UK':
             #------------Peltiers controls-----------
-            subContainerADV_plt = gui.GridBox(width = "50%", hight = "100%", style={'margin':'20px','align-items':'flex-start', 'justify-content':'flex-start'})
+            subContainerADV_plt = gui.GridBox(width = "55%", hight = "100%", style={'margin':'20px','align-items':'flex-start', 'justify-content':'flex-start'})
             subContainerADV_plt.style['border-left'] = '3px solid rgba(0,0,0,.12)'
-            self.lbl_plt = gui.Label('Peltier', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
+            self.lbl_plt = gui.Label('Peltier mode', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
             self.lbl_plt_curr = gui.Label('Current[A]', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
             self.lbl_plt_vol = gui.Label('Voltage[V]', width=110, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
 
@@ -613,7 +613,7 @@ class ColdBoxGUI(App):
                 self.list_bt_PLTset[i].onclick.do(self.on_bt_PLTset_pressed,i)
 
             #------------Chiller controls-----------
-            subContainerADV_Chiller_UK = gui.GridBox(width = "100%",hight = "100%", style={'margin':'20px','align-items':'flex-start', 'justify-content':'flex-start'})
+            subContainerADV_Chiller_UK = gui.GridBox(width = "91%",hight = "100%", style={'margin':'20px','align-items':'flex-start', 'justify-content':'flex-start'})
             subContainerADV_Chiller_UK.style['border-left'] = '3px solid rgba(0,0,0,.12)'
 
             self.lbl_Chiller = gui.Label('Chiller', width=50, height=20, margin='5px',style={'font-size': '14px', 'font-weight': 'bold'})
