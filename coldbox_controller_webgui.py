@@ -30,19 +30,17 @@ import numpy as np
 import random
 import os, sys, getopt
 import importlib
-try:
-    from io import StringIO
-except:
-    from cStringIO import StringIO
+
+from io import StringIO ## for Python 3
+stdout_string_io = StringIO()
+sys.stderr = sys.stdout= stdout_string_io
 
 import time,datetime
-
-from GUImodules.influx_query import *
 
 #import user_manager
 #from user_manager import *
 
-import logging
+import logging, logging.config
 
 import threading
 
@@ -60,15 +58,12 @@ col_lblue  = '#259CC8'
 col_red   = '#C82525'
 col_green = '#34B63B'
 col_darkBlue = '#21618C'
-
 #--------------------------------------------------------------
 class ColdBoxGUI(App):
     def __init__(self, *args):
 
         res_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), './res/')
         super(ColdBoxGUI, self).__init__(*args, static_file_path={'my_res':res_path})
-
-        #self.dbClient= influx_init(config_influx)
 
     def idle(self):
         #idle function called every update cycle (e.g. update_interval=0.1 argument in 'start' function)
@@ -1110,29 +1105,10 @@ class ColdBoxGUI(App):
 
 #===========================================================================
 if __name__ == "__main__":
-    timestr = time.strftime("%Y%m%d-%H%M%S")
-    logFile_name = 'log/'+timestr+'_ColdJigGUI.log'
 
-    logging.basicConfig(level=logging.INFO,
-                        format="%(asctime)s:%(levelname)s:%(name)s:%(funcName)s:%(threadName)s::%(message)s",
-                        datefmt="%Y-%m-%d %H:%M:%S",
-                        filename=logFile_name,
-                        filemode='w')
-    logging.captureWarnings(True)
-
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s: %(name)-12s: %(levelname)-8s %(message)s')
-    console.setFormatter(formatter)
-    logging.getLogger().addHandler(console)
-
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-
-    logger.info("Starting ColdJig GUI")
-    verbose = False # set to Fals if you dont want to print debugging info
     config = conf.ConfigParser()
     configfile = 'default'
+    verbose = False # set to Fals if you dont want to print debugging info
 
     try:
         options, remainder = getopt.getopt(
@@ -1144,7 +1120,8 @@ if __name__ == "__main__":
          'help'
          ])
     except getopt.GetoptError as err:
-        logger.error('option requires argument.\n Usage: blah -c configFile \n Process terminated.')
+        #logger.error('option requires argument.\n Usage: blah -c configFile \n Process terminated.')
+        print('option requires argument.\n Usage: blah -c configFile \n Process terminated.')
         sys.exit(1)
 
     for opt, arg in options:
@@ -1157,18 +1134,30 @@ if __name__ == "__main__":
             verbose = True
 
     if not any('-c' in sublist for sublist in options):
-        #logger.error(bcolors.FAIL + "Attempt to start the GUI without user config.\n Process terminated." + bcolors.ENDC)
-        logger.error("Attempt to start the GUI without user config.\n Process terminated.")
+        #logger.error("Attempt to start the GUI without user config.\n Process terminated.")
+        print("Attempt to start the GUI without user config.\n Process terminated.")
         sys.exit(1)
 
     else:
         if os.path.isfile(configfile):
             config.read(configfile)
         else:
-            #logger.error(bcolors.FAIL +'Config file does not exist. Process terminated.' +bcolors.ENDC)
-            logger.error('Config file does not exist.\n Process terminated.')
+            #logger.error('Config file does not exist.\n Process terminated.')
+            print('Config file does not exist.\n Process terminated.')
             sys.exit(1)
 
+
+    # set up logging from logging ini file
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+    logFile_name = 'log/'+timestr+'_ColdJigGUI.log'
+
+    LOG_INI_FILE = config['COLDBOX']['LOG_INI_FILE']
+    #logging.config.fileConfig(LOG_INI_FILE)
+    logging.config.fileConfig(LOG_INI_FILE, defaults={'logfilename': logFile_name})
+
+    logger = logging.getLogger('GUIlogger')
+
+    logger.info("Starting ColdJig GUI")
     logger.info('Reading config file: '+configfile)
 
     #--- reading config values
@@ -1237,11 +1226,6 @@ if __name__ == "__main__":
 
     #-- use this for debugging purpose. The app will exit after loading the configs
     #exit()
-
-
-    if not verbose:
-        stdout_string_io = StringIO()
-        sys.stdout = sys.stderr = stdout_string_io
 
 
     #--starts the webserver / optional parameters

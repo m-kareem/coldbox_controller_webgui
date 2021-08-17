@@ -1,4 +1,7 @@
 from remi import gui
+import logging
+
+logger = logging.getLogger('GUIlogger')
 
 class LabelForInputs(gui.Widget, gui._MixinTextualWidget):
     """ Non editable text label widget. Specifically designed to be used in conjunction with checkboxes and radiobuttons

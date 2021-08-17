@@ -1,11 +1,9 @@
 from influxdb import InfluxDBClient
 import datetime, time, statistics
 import json
-import GUIlogging
-import GUIcoloredlogging
 
-logging = GUIlogging.init_logger(__name__)
-#logging = GUIcoloredlogging.init_logger(__name__)
+import logging
+logger = logging.getLogger('GUIlogger')
 
 def influx_init(config_influx):
     dbClient = InfluxDBClient(
@@ -50,7 +48,7 @@ def get_measurement_range(dbClient, dbName, my_device, my_measurement, my_field,
     except:
         print("ERROR! Time needs to given in format %Y-%m-%dT%H:%M:%S.%fZ")
         exit()
-    
+
     # make sure the minimum time is the minimum time
     if timeMin > timeMax:
         print("ERROR! Minimum time greater than maximum time!")
@@ -109,9 +107,9 @@ def get_measurement_range(dbClient, dbName, my_device, my_measurement, my_field,
     # store to file
     if JSONOut:
         with open(JSONOut, 'w') as fp:
-            json.dump(points, fp, indent=4)    
+            json.dump(points, fp, indent=4)
         with open(JSONOut.replace('.json', '_average' + str(averageRangeSeconds) + '.json'), 'w') as fpA:
-            json.dump(averageTimeList, fpA, indent=4)    
+            json.dump(averageTimeList, fpA, indent=4)
 
     return averageTimeList
 

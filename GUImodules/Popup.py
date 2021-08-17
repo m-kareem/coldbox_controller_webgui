@@ -1,4 +1,7 @@
 import remi.gui as gui
+import logging
+
+logger = logging.getLogger('GUIlogger')
 
 class PopupAlert(gui.VBox):
     def __init__(self, title, message, titleColor='#85C1E9', *args, **kwargs):

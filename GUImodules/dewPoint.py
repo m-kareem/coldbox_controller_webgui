@@ -4,16 +4,8 @@ import sys
 import math as np
 #from meteocalc import Temp, dew_point
 
-import GUIlogging
-import GUIcoloredlogging
-
-logging = GUIlogging.init_logger(__name__)
-#logging = GUIcoloredlogging.init_logger(__name__)
-
-# sys.argv[0] is program name
-#T=float(sys.argv[1])
-#RH=float(sys.argv[2])
-
+import logging
+logger = logging.getLogger('GUIlogger')
 
 def get_dewpoint(T,RH):
     # approximation valid for
