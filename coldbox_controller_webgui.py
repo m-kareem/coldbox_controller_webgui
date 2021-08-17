@@ -684,9 +684,6 @@ class ColdBoxGUI(App):
         horizontalContainer_grafana_dash.append(self.grafana_dash)
 
 
-        horizontalContainer_grafana_dash.append(self.grafana_dash)
-
-
         #=========================== Appending TabBox and Grafana plots to a vertical main container ======================
 
         self.main_container = gui.VBox(width ='100%', hight='100%', style={'align-items':'flex-start', 'justify-content':'flex-start'})
