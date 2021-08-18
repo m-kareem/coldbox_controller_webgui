@@ -787,7 +787,7 @@ class ColdBoxGUI(App):
                                                     float(self.textinput_TCHot.get_text()),
                                                     float(self.textinput_TCCold.get_text()),
                                                     float(self.textinput_TCWarmup.get_text()),
-                                                    self.ncycle)):
+                                                    int(self.ncycle))):
                 logger.info("Thermocycling started!")
                 self.statusBox.set_text(userOpt_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling started\n")
 
@@ -1226,6 +1226,7 @@ if __name__ == "__main__":
 
     #-- use this for debugging purpose. The app will exit after loading the configs
     #exit()
+    #-----------
 
 
     #--starts the webserver / optional parameters
