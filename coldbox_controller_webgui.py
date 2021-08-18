@@ -792,7 +792,7 @@ class ColdBoxGUI(App):
                                                     float(self.textinput_TCHot.get_text()),
                                                     float(self.textinput_TCCold.get_text()),
                                                     float(self.textinput_TCWarmup.get_text()),
-                                                    self.ncycle)):
+                                                    int(self.ncycle))):
                 logger.info("Thermocycling started!")
                 self.statusBox.set_text(userOpt_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling started\n")
 
