@@ -81,8 +81,6 @@ class ColdBoxGUI(App):
         else:
             self.stdout_LogBox.set_text(" Run without verbose option (-v) to redirect the terminal outputs here.")
 
-
-
     def main(self):
         return ColdBoxGUI.construct_ui(self)
 
@@ -94,7 +92,6 @@ class ColdBoxGUI(App):
         verticalContainer_tb2 = gui.VBox(width = "100%", height=450)
         verticalContainer_tb3 = gui.VBox(width = "100%", height=450)
 
-        #horizontalContainer_logo = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
         horizontalContainer_logo = gui.HBox(width='100%', margin='10px')
         horizontalContainer_logo.style['justify-content'] ='space-between'
         horizontalContainer_logo.style['align-items'] = 'flex-start'
@@ -126,10 +123,8 @@ class ColdBoxGUI(App):
         self.img_heartbeat_dead = gui.Image('/my_res:dead.png', width=70, height=70, style={'margin':'10px'})
         self.img_heartbeat_dead.attributes['title']='ColdjigLib hearbeat'
 
-
-        self.lbl_ColdBoxType = gui.Label('ColdBox type: '+coldbox_type , width=200, height=20, margin='20px',style={'font-size': '16px', 'font-weight': 'bold','color': 'red'})
+        self.lbl_ColdBoxType = gui.Label('ColdBox type: '+coldbox_type , width=400, height=20, margin='20px',style={'font-size': '16px', 'font-weight': 'bold','color': 'red'})
         horizontalContainer_logo.append([self.img_logo,self.lbl_ColdBoxType, self.img_heartbeat_live,self.img_heartbeat_live2,self.img_heartbeat_dead])
-
 
         #============================================= Tab 1 =============================================
         #-------------------------- Left Container ---------------------
@@ -317,7 +312,31 @@ class ColdBoxGUI(App):
         '''
 
         #===================================== TAB 2 =================================================
+        # Grab reference ColdJigLib's data_dict
         self.data_dict = coldjigcontroller.data_dict
+
+        if coldbox_type.find('virtual'):
+            # As we're expecting to run with empty-HW ini file, will need to
+            # add some keys to data_dict for the interlock
+            #
+            # Interlock expects a thermometer, Dew Point and gas flow to be defined
+            # (in future update, can think about making interlock tolerant to any missing hardware)
+
+            # add the missing data_dict entries
+            self.data_dict['thermometer.C1'] = 20.0  # Interlock expects
+                                                     # at least 1 thermometer
+                                                     # Create one and keep it at +20C
+            self.data_dict['DP.1'] = -35.0           # Interlock expects at
+                                                     # least 1 Dew Point defined.
+                                                     # Create one and keep it at -35C
+            self.data_dict['gas_flow'] = 6.0         # Interlock expects a dry-air/N2 flow measurement.
+                                                     # Create one and keep it at 6 LPM
+
+            # NB: THIS IS THE MINIMAL SET REQUIRED JUST TO START COLDJIGLIB
+            # IF THE CODE ATTEMPTS TO READ A MISSING data_dict KEY, IT WILL CRASH.
+            # FOR EXAMPLE, WARWICK THERMAL CYCLING EXPECTS OTHER KEYS TO BE DEFINED
+
+        #---------------------------------
         subContainerADV = gui.GridBox(width = "100%",hight = "100%", style={'margin':'20px auto','align-items':'flex-start', 'justify-content':'flex-start'})
 
         #------------TC controls-----------
@@ -355,7 +374,7 @@ class ColdBoxGUI(App):
                                     'TCWarmup':self.lbl_textinput_TCWarmup,'textinput_TCWarmup': self.textinput_TCWarmup,
                                     })
 
-        if coldbox_type == 'BNL':
+        if coldbox_type == 'BNL' or coldbox_type=='BNL_virtual':
             #------------HV controls-----------
             subContainerADV_HV = gui.GridBox(width = "40%", hight = "100%", style={'margin':'20px','align-items':'flex-start', 'justify-content':'flex-start'})
             subContainerADV_HV.style['border-left'] = '3px solid rgba(0,0,0,.12)'
@@ -556,7 +575,7 @@ class ColdBoxGUI(App):
                                         })
 
             #------------------------------------------
-        elif coldbox_type=='UK':
+        elif coldbox_type=='UK' or coldbox_type=='UK_virtual':
             #------------Peltiers controls-----------
             subContainerADV_plt = gui.GridBox(width = "55%", hight = "100%", style={'margin':'20px','align-items':'flex-start', 'justify-content':'flex-start'})
             subContainerADV_plt.style['border-left'] = '3px solid rgba(0,0,0,.12)'
@@ -677,7 +696,6 @@ class ColdBoxGUI(App):
 
         #===================================== TAB 3 =================================================
         self.lbl_swName = gui.Label('ColdBox Controller V 0.9', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
-        #self.lbl_coldbox_type = gui.Label('ColdBox type: '+coldbox_type , width=200, height=30, margin='5px')
         verticalContainer_tb3.append([horizontalContainer_logo, self.lbl_swName, self.lbl_ColdBoxType])
 
         #===================================== Wrapping all tabs together =================================================
@@ -804,7 +822,6 @@ class ColdBoxGUI(App):
             currentDT = datetime.datetime.now()
             current_text= self.statusBox.get_text()
 
-            #if(coldjigcontroller.start_thermal_cycle(self.availavle_chucks,40.0,-35.0,20.0,self.ncycle)):
             if(coldjigcontroller.start_thermal_cycle(self.availavle_chucks,
                                                     float(self.textinput_TCHot.get_text()),
                                                     float(self.textinput_TCCold.get_text()),
@@ -813,7 +830,8 @@ class ColdBoxGUI(App):
                 logger.info("Thermocycling started!")
                 self.statusBox.set_text(userOpt_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Thermocycling started\n")
 
-                #-- this is to prevent the user from changing the values when the TC is running
+                #-- this is to prevent the user from changing the values when TC is running
+                #-- it is not recommended in R&D phase since TC is done manually
                 '''
                 for textinput in self.list_textinput_HV:
                     textinput.attributes["disabled"] = ""
@@ -1090,7 +1108,7 @@ class ColdBoxGUI(App):
     def check_heartbeat(self):
         while self.heartbeat_check:
             if self.t_heartbeat>0:
-                t_delay = time.time() - self.t_heartbeat
+                t_delay = round(time.time() - self.t_heartbeat,2)
                 logger.debug(">>> Heartbeat delay: %s", str(t_delay))
 
                 if t_delay > 5*controller_RATE and t_delay < 10*controller_RATE:
@@ -1172,12 +1190,9 @@ class ColdBoxGUI(App):
     def gui_heartbeat(self,message="NOT DEFINED") :
         self.t_heartbeat = float(message)
 
-    #=== for testing pubsub only
+    #--- for testing pubsub only
     def start_pubsub_test(self):
         coldjig_pubsub_test.start()
-
-        #start a separate thread to listen to the subscribed messages
-        #thread_pubsub = threading.Thread(target=start_pubsub_test).start()
 #===========================================================================
 if __name__ == "__main__":
 
@@ -1299,12 +1314,10 @@ if __name__ == "__main__":
     coldjigcontroller.interlock_action_module = INTERLOCK_ACTION
     coldjigcontroller.thermal_cycle_module = THERMAL_CYCLE_MODULE
     coldjigcontroller.RATE = controller_RATE
-    #-----------
 
     #-- use this for debugging purpose. The app will exit after loading the configs
     #exit()
     #-----------
-
 
     #--starts the webserver / optional parameters
     #start(ColdBoxGUI, update_interval=0.5, debug=gui_debug, address=gui_server, port=gui_server_port, start_browser=gui_start_browser, multiple_instance=gui_multiple_instance, enable_file_cache=gui_enable_file_cache)
