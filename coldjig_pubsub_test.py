@@ -18,6 +18,7 @@ def start() :
     print("this fake coldjiglib is just sending out messages. Does not know who will receive them")
     print("wait 10s then send message")
 
+    '''
     time.sleep(10)
     pub.sendMessage('alert',message="fake coldjiglib started")
 
@@ -35,3 +36,24 @@ def start() :
 
     time.sleep(10)
     pub.sendMessage('alert',message='finished..')
+    '''
+
+    '''
+    _rate = 1.0
+    while True:
+        ctime = time.time()
+        time.sleep(2*_rate)
+        pub.sendMessage('heartbeat',message= ctime)
+    '''
+
+    for i in range(10):
+        #ctime = time.time()
+        pub.sendMessage('heartbeat',message= time.time())
+        time.sleep(1.0)
+
+    time.sleep(15.0)
+
+    for i in range(10):
+        #ctime = time.time()
+        pub.sendMessage('heartbeat',message= time.time())
+        time.sleep(1.0)

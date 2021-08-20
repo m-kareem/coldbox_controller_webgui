@@ -33,7 +33,6 @@ import importlib
 
 from io import StringIO ## for Python 3
 stdout_string_io = StringIO()
-sys.stderr = sys.stdout= stdout_string_io
 
 import time,datetime
 
@@ -47,10 +46,10 @@ import threading
 from pubsub import pub
 
 #-- For pubsub testing only
-#testPubSub = True
 testPubSub = False
-if testPubSub:
-    import coldjig_pubsub
+#testPubSub = True
+
+import coldjig_pubsub_test
 
 #--- HTML color codes:
 col_blue  = '#2563C8'
@@ -58,6 +57,10 @@ col_lblue  = '#259CC8'
 col_red   = '#C82525'
 col_green = '#34B63B'
 col_darkBlue = '#21618C'
+
+col_WARNING=  '#F7AB3B'
+col_ERROR= '#BF33AD'
+col_DANGER = '#B10D03'
 #--------------------------------------------------------------
 class ColdBoxGUI(App):
     def __init__(self, *args):
@@ -73,9 +76,11 @@ class ColdBoxGUI(App):
             stdout_string_io.seek(0)
             lines = stdout_string_io.readlines()
             lines.reverse()
-            self.stdout_LogBox.set_text("".join(lines))
+            #self.stdout_LogBox.set_text("".join('>>').join(lines))
+            self.stdout_LogBox.set_text(">>".join(lines))
         else:
             self.stdout_LogBox.set_text(" Run without verbose option (-v) to redirect the terminal outputs here.")
+
 
 
     def main(self):
@@ -89,8 +94,11 @@ class ColdBoxGUI(App):
         verticalContainer_tb2 = gui.VBox(width = "100%", height=450)
         verticalContainer_tb3 = gui.VBox(width = "100%", height=450)
 
-        horizontalContainer_logo = gui.Container(width='40%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
-        #horizontalContainer = gui.HBox(width = "95%",style={'align-items':'flex-start', 'justify-content':'space-around'})
+        #horizontalContainer_logo = gui.Container(width='100%', layout_orientation=gui.Container.LAYOUT_HORIZONTAL, margin='10px', style={'display': 'block', 'overflow': 'auto'})
+        horizontalContainer_logo = gui.HBox(width='100%', margin='10px')
+        horizontalContainer_logo.style['justify-content'] ='space-between'
+        horizontalContainer_logo.style['align-items'] = 'flex-start'
+
         horizontalContainer = gui.HBox(width = "95%",style={'align-items':'stretch', 'justify-content':'center'})
 
         horizontalContainer_grafana_dash = gui.HBox(width = "100%")
@@ -107,9 +115,20 @@ class ColdBoxGUI(App):
 
         #--------logo Container ---------------
         self.img_logo = gui.Image('/my_res:ITKlogo.png', width=200, height=67)
-        self.lbl_ColdBoxType = gui.Label('ColdBox type: '+coldbox_type , width=200, height=20, margin='20px',style={'font-size': '14px', 'font-weight': 'bold','color': 'red'})
-        #horizontalContainer_logo.append(self.img_logo)
-        horizontalContainer_logo.append([self.img_logo,self.lbl_ColdBoxType])
+        self.img_heartbeat_live = gui.Image('/my_res:live.gif', width=60, height=60, style={'margin':'15px'})
+        self.img_heartbeat_live.attributes['title']='ColdjigLib hearbeat'
+        self.img_heartbeat_live.attributes['hidden'] = 'hidden'
+
+        self.img_heartbeat_live2 = gui.Image('/my_res:live2.gif', width=60, height=60, style={'margin':'15px'})
+        self.img_heartbeat_live2.attributes['title']='ColdjigLib hearbeat'
+        self.img_heartbeat_live2.attributes['hidden'] = 'hidden'
+
+        self.img_heartbeat_dead = gui.Image('/my_res:dead.png', width=70, height=70, style={'margin':'10px'})
+        self.img_heartbeat_dead.attributes['title']='ColdjigLib hearbeat'
+
+
+        self.lbl_ColdBoxType = gui.Label('ColdBox type: '+coldbox_type , width=200, height=20, margin='20px',style={'font-size': '16px', 'font-weight': 'bold','color': 'red'})
+        horizontalContainer_logo.append([self.img_logo,self.lbl_ColdBoxType, self.img_heartbeat_live,self.img_heartbeat_live2,self.img_heartbeat_dead])
 
 
         #============================================= Tab 1 =============================================
@@ -657,7 +676,7 @@ class ColdBoxGUI(App):
 
 
         #===================================== TAB 3 =================================================
-        self.lbl_swName = gui.Label('ColdBox Controller V 0.8', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.lbl_swName = gui.Label('ColdBox Controller V 0.9', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
         #self.lbl_coldbox_type = gui.Label('ColdBox type: '+coldbox_type , width=200, height=30, margin='5px')
         verticalContainer_tb3.append([horizontalContainer_logo, self.lbl_swName, self.lbl_ColdBoxType])
 
@@ -695,20 +714,16 @@ class ColdBoxGUI(App):
         pub.subscribe(self.gui_error,'error')
         pub.subscribe(self.gui_alert,'alert')
         pub.subscribe(self.gui_danger,'danger')
-
-
-        #=== for testing pubsub only
-        if testPubSub:
-            def start_pubsub():
-                coldjig_pubsub.start()
-
-            #start a separate thread to listen to the subscribed messages
-            th_pubsub = threading.Thread(target=start_pubsub).start()
+        pub.subscribe(self.gui_heartbeat,'heartbeat')
 
         #-------------------------Global GUI variables
         self.availavle_chucks=[]
         self.test_type=''
         self.selected_tests=[]
+        self.heartbeat_check = False
+        self.heartbeat_userconf = True
+        self.t_heartbeat = -1
+
 
 
         # returning the root widget
@@ -750,6 +765,13 @@ class ColdBoxGUI(App):
             del self.btStartTC.attributes["disabled"]
             logger.info("Coldbox Controller is up!")
             self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Coldbox Controller is up!\n")
+
+            if testPubSub:
+                thread_pubsub = threading.Thread(target=self.start_pubsub_test).start()
+
+            self.heartbeat_check = True
+            self.thread_chech_heartbeat = threading.Thread(target=self.check_heartbeat)
+            self.thread_chech_heartbeat.start()
 
         else:
             logger.error("Starting the coldjiglib failed!")
@@ -980,6 +1002,8 @@ class ColdBoxGUI(App):
             current_text= self.statusBox.get_text()
             self.statusBox.set_text(current_text+"["+currentDT.strftime("%H:%M:%S")+"] -- Coldbox Controller is down!\n")
 
+            self.heartbeat_check = False
+
             #-- Close the browser and terminate the webserver
             self.execute_javascript("window.close();")
             self.close()
@@ -1062,7 +1086,49 @@ class ColdBoxGUI(App):
             user_options = 'User options set:\n'+'-Cycles:'+ str(self.ncycle) +'\n-Available_chucks:'+str(self.availavle_chucks)+'\n-Selected_test(s): standard\n------\n'
         return user_options
 
-    #------ Listener functions
+
+    def check_heartbeat(self):
+        while self.heartbeat_check:
+            if self.t_heartbeat>0:
+                t_delay = time.time() - self.t_heartbeat
+                logger.debug(">>> Heartbeat delay: %s", str(t_delay))
+
+                if t_delay > 5*controller_RATE and t_delay < 10*controller_RATE:
+                    logger.warning("ColdJigLib heartbeat is slow!")
+                    self.img_heartbeat_dead.attributes['hidden']='hidden'
+                    self.img_heartbeat_live.attributes['hidden']='hidden'
+                    del self.img_heartbeat_live2.attributes['hidden']
+
+                elif t_delay > 10*controller_RATE:
+                    logger.warning("ColdJigLib lost heartbeat!")
+                    self.img_heartbeat_live.attributes['hidden']='hidden'
+                    self.img_heartbeat_live2.attributes['hidden']='hidden'
+                    del self.img_heartbeat_dead.attributes['hidden']
+
+                    if self.heartbeat_userconf==True:
+                        self.popup_warning = Popup.PopupAlert("WARNING", "ColdJigLib lost heartbeat!", col_WARNING)
+                        self.randomMargin(self.popup_warning, 600, 250, 20)
+                        self.main_container.append(self.popup_warning)
+                        self.popup_warning.show()
+                        self.heartbeat_userconf=False
+                        self.popup_warning.onconfirm.do(self.popup_warning_confirmHandler)
+                else:
+                    self.img_heartbeat_dead.attributes['hidden']='hidden'
+                    self.img_heartbeat_live2.attributes['hidden']='hidden'
+                    del self.img_heartbeat_live.attributes['hidden']
+
+            else:
+                self.img_heartbeat_live.attributes['hidden']='hidden'
+                self.img_heartbeat_live2.attributes['hidden']='hidden'
+                del self.img_heartbeat_dead.attributes['hidden']
+
+            time.sleep(controller_RATE)
+
+
+    def popup_warning_confirmHandler(self,widget):
+        self.heartbeat_userconf = True
+
+    #------ pubsub Listener functions
     def randomMargin(self, obj, lmarg, tmarg, randInterval):
         n1 = random.randint(-1*randInterval,randInterval)
         n2 = random.randint(-1*randInterval,randInterval)
@@ -1074,7 +1140,7 @@ class ColdBoxGUI(App):
     def gui_warning(self, message="NOT DEFINED") :
         logger.debug(">>> Received warning message")
         logger.warning(message)
-        self.popup_warning = Popup.PopupAlert("WARNING", message, '#F7AB3B')
+        self.popup_warning = Popup.PopupAlert("WARNING", message, col_WARNING)
         self.randomMargin(self.popup_warning, 600, 250, 20)
         self.main_container.append(self.popup_warning)
         self.popup_warning.show()
@@ -1082,7 +1148,7 @@ class ColdBoxGUI(App):
     def gui_error(self,message="NOT DEFINED") :
         logger.debug(">>> Received error message")
         logger.error(message)
-        self.popup_error = Popup.PopupAlert("ERROR", message, '#BF33AD')
+        self.popup_error = Popup.PopupAlert("ERROR", message, col_ERROR)
         self.randomMargin(self.popup_error, 600, 250, 20)
         self.main_container.append(self.popup_error)
         self.popup_error.show()
@@ -1098,11 +1164,20 @@ class ColdBoxGUI(App):
     def gui_danger(self,message="NOT DEFINED") :
         logger.debug(">>> Received danger message")
         logger.warning("DANGER: "+message)
-        self.popup_danger = Popup.PopupAlert("DANGER", message, '#B10D03')
+        self.popup_danger = Popup.PopupAlert("DANGER", message, col_DANGER)
         self.randomMargin(self.popup_danger, 600, 250, 20)
         self.main_container.append(self.popup_danger)
         self.popup_danger.show()
 
+    def gui_heartbeat(self,message="NOT DEFINED") :
+        self.t_heartbeat = float(message)
+
+    #=== for testing pubsub only
+    def start_pubsub_test(self):
+        coldjig_pubsub_test.start()
+
+        #start a separate thread to listen to the subscribed messages
+        #thread_pubsub = threading.Thread(target=start_pubsub_test).start()
 #===========================================================================
 if __name__ == "__main__":
 
@@ -1132,6 +1207,8 @@ if __name__ == "__main__":
             configfile = arg
         elif opt in ('-v', '--verbose'):
             verbose = True
+        if verbose == False:
+            sys.stderr = sys.stdout= stdout_string_io
 
     if not any('-c' in sublist for sublist in options):
         #logger.error("Attempt to start the GUI without user config.\n Process terminated.")
