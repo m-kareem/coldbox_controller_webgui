@@ -264,8 +264,8 @@ class ColdBoxGUI(App):
         self.btStopTC.attributes['title']='Stop Thermocycling'
         self.TC_term_popup_confirm = Popup.PopupConfirm("ColdBoxGUI", "Are you sure you want to terminate the Thermocycling?")
         self.TC_term_popup_alert = Popup.PopupAlert("ColdBoxGUI", "Thermocycling terminated!")
-        self.TC_NoCh_popup_alert = Popup.PopupAlert("ERROR", 'No chuck selected!', '#BF33AD')
-        self.TC_NoCusTest_popup_alert = Popup.PopupAlert("ERROR", 'No custom test selected!', '#BF33AD')
+        self.TC_NoCh_popup_alert = Popup.PopupAlert("ERROR", 'No chuck selected!', col_ERROR)
+        self.TC_NoCusTest_popup_alert = Popup.PopupAlert("ERROR", 'No custom test selected!', col_ERROR)
 
         self.lbl_spin = gui.Label('# of cycles', width="100%", height=30)
         self.spin = gui.SpinBox(10, 1, 100, width="100%", height=30, style={'font-size': '15px', 'font-weight': 'bold'})
@@ -742,7 +742,24 @@ class ColdBoxGUI(App):
         self.heartbeat_userconf = True
         self.t_heartbeat = -1
 
+        #-------- loading custom lost connection container ------------
+        #creating a new loading widget
+        self.custom_loading = gui.HBox(width = "100%", style={'background-color':'gray', 'opacity':'0.90'})
+        self.custom_loading.style['display'] = 'none'
+        self.custom_loading.identifier = "loading"
 
+        self.connection_alert = Popup.PopupAlert("ERROR", 'Connection lost with server!', col_ERROR)
+        self.randomMargin(self.connection_alert, 600, 250, 20)
+        self.custom_loading.append(self.connection_alert)
+        self.connection_alert.show()
+
+        #replacing the standard remi loading animation
+        for k, v in self.page.children['body'].children.items():
+            #the standard loading widget is a child of the App-->body widget
+            if v.identifier == 'loading':
+                self.page.children['body'].append(self.custom_loading, k)
+
+        #--------------------------------------------------------------
 
         # returning the root widget
         return self.ultimate_container
