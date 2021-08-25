@@ -133,40 +133,40 @@ class ColdBoxGUI(App):
         self.lbl_mod = gui.Label('Module Flv..', width="100%", height=20, style={'font-size': '15px', 'font-weight': 'bold','color': col_darkBlue})
         self.lbl_ser = gui.Label('Serial #', width="100%", height=20, style={'font-size': '15px', 'font-weight': 'bold','color': col_darkBlue})
 
+        self.checkBox_ch0 = gui.CheckBoxLabel('Chuck 0', False, width="100%", height=25)
         self.checkBox_ch1 = gui.CheckBoxLabel('Chuck 1', False, width="100%", height=25)
         self.checkBox_ch2 = gui.CheckBoxLabel('Chuck 2', False, width="100%", height=25)
         self.checkBox_ch3 = gui.CheckBoxLabel('Chuck 3', False, width="100%", height=25)
-        self.checkBox_ch4 = gui.CheckBoxLabel('Chuck 4', False, width="100%", height=25)
-        self.list_checkBox_ch = [self.checkBox_ch1,self.checkBox_ch2,self.checkBox_ch3,self.checkBox_ch4]
+        self.list_checkBox_ch = [self.checkBox_ch0,self.checkBox_ch1,self.checkBox_ch2,self.checkBox_ch3]
         if n_chucks ==5:
-            self.checkBox_ch5 = gui.CheckBoxLabel('Chuck 5', False, width="100%", height=25)
-            self.list_checkBox_ch.append(self.checkBox_ch5)
+            self.checkBox_ch4 = gui.CheckBoxLabel('Chuck 4', False, width="100%", height=25)
+            self.list_checkBox_ch.append(self.checkBox_ch4)
 
         for checkBox in self.list_checkBox_ch:
             checkBox.onchange.do(self.onchange_checkbox_ch)
 
+        self.dropDown_ch0 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width="100%", height=25)
         self.dropDown_ch1 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width="100%", height=25)
         self.dropDown_ch2 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width="100%", height=25)
         self.dropDown_ch3 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width="100%", height=25)
-        self.dropDown_ch4 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width="100%", height=25)
-        self.list_dropDown_ch = [self.dropDown_ch1,self.dropDown_ch2,self.dropDown_ch3,self.dropDown_ch4]
+        self.list_dropDown_ch = [self.dropDown_ch0,self.dropDown_ch1,self.dropDown_ch2,self.dropDown_ch3]
         if n_chucks ==5:
-            self.dropDown_ch5 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width="100%", height=25)
-            self.list_dropDown_ch.append(self.dropDown_ch5)
+            self.dropDown_ch4 = gui.DropDown.new_from_list(('LS','SS','R0','R1','R2','R3','R4','R5'), width="100%", height=25)
+            self.list_dropDown_ch.append(self.dropDown_ch4)
 
         for dropDown in self.list_dropDown_ch:
             dropDown.select_by_value('LS')
             dropDown.attributes["disabled"] = ""
             dropDown.style['opacity'] = '0.4' #this is to give a disabled apparence
 
+        self.textinput_ch0 = gui.TextInput(width="100%", height=25)
         self.textinput_ch1 = gui.TextInput(width="100%", height=25)
         self.textinput_ch2 = gui.TextInput(width="100%", height=25)
         self.textinput_ch3 = gui.TextInput(width="100%", height=25)
-        self.textinput_ch4 = gui.TextInput(width="100%", height=25)
-        self.list_textinput_ch = [self.textinput_ch1,self.textinput_ch2,self.textinput_ch3,self.textinput_ch4]
+        self.list_textinput_ch = [self.textinput_ch0,self.textinput_ch1,self.textinput_ch2,self.textinput_ch3]
         if n_chucks ==5:
-            self.textinput_ch5 = gui.TextInput(width="100%", height=25)
-            self.list_textinput_ch.append(self.textinput_ch5)
+            self.textinput_ch4 = gui.TextInput(width="100%", height=25)
+            self.list_textinput_ch.append(self.textinput_ch4)
 
         for textinput in self.list_textinput_ch:
             textinput.set_value('20UXXYY#######')
@@ -175,29 +175,29 @@ class ColdBoxGUI(App):
         if n_chucks ==5:
             subContainerLeft.set_from_asciiart("""
                 |lbl_ava      |lbl_mod      | lbl_ser      |
+                |checkBox_ch0 |dropDown_ch0 |textinput_ch0 |
                 |checkBox_ch1 |dropDown_ch1 |textinput_ch1 |
                 |checkBox_ch2 |dropDown_ch2 |textinput_ch2 |
                 |checkBox_ch3 |dropDown_ch3 |textinput_ch3 |
                 |checkBox_ch4 |dropDown_ch4 |textinput_ch4 |
-                |checkBox_ch5 |dropDown_ch5 |textinput_ch5 |
                 """, 2, 10)
         else:
             subContainerLeft.set_from_asciiart("""
                 |lbl_ava      |lbl_mod      | lbl_ser      |
+                |checkBox_ch0 |dropDown_ch0 |textinput_ch0 |
                 |checkBox_ch1 |dropDown_ch1 |textinput_ch1 |
                 |checkBox_ch2 |dropDown_ch2 |textinput_ch2 |
                 |checkBox_ch3 |dropDown_ch3 |textinput_ch3 |
-                |checkBox_ch4 |dropDown_ch4 |textinput_ch4 |
                 """, 2, 10)
 
         subContainerLeft.append({'lbl_ava':self.lbl_ava, 'lbl_mod':self.lbl_mod,'lbl_ser':self.lbl_ser,
+                                 'checkBox_ch0':self.checkBox_ch0, 'dropDown_ch0':self.dropDown_ch0 , 'textinput_ch0':self.textinput_ch0,
                                  'checkBox_ch1':self.checkBox_ch1, 'dropDown_ch1':self.dropDown_ch1 , 'textinput_ch1':self.textinput_ch1,
                                  'checkBox_ch2':self.checkBox_ch2, 'dropDown_ch2':self.dropDown_ch2 , 'textinput_ch2':self.textinput_ch2,
                                  'checkBox_ch3':self.checkBox_ch3, 'dropDown_ch3':self.dropDown_ch3 , 'textinput_ch3':self.textinput_ch3,
-                                 'checkBox_ch4':self.checkBox_ch4, 'dropDown_ch4':self.dropDown_ch4 , 'textinput_ch4':self.textinput_ch4,
                                 })
         if n_chucks ==5:
-            subContainerLeft.append({'checkBox_ch5':self.checkBox_ch5, 'dropDown_ch5':self.dropDown_ch5 , 'textinput_ch5':self.textinput_ch5 })
+            subContainerLeft.append({'checkBox_ch4':self.checkBox_ch4, 'dropDown_ch4':self.dropDown_ch4 , 'textinput_ch4':self.textinput_ch4 })
 
 
         subContainerLeft.style.update({'grid-template-columns':'25% 25% 30%', 'grid-template-rows':'30% 30% 30% 30% 30% 30%'})
@@ -1096,7 +1096,7 @@ class ColdBoxGUI(App):
 
         for idx, val in enumerate(availavle_chucks_tmp):
             if val ==1:
-                self.availavle_chucks.append(idx+1)
+                self.availavle_chucks.append(idx)
 
         logger.debug('availavle_chucks: '+str(self.availavle_chucks))
         logger.debug('total_selected_chucks: '+str(len(self.availavle_chucks)))
