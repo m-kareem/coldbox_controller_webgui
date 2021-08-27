@@ -30,6 +30,7 @@ import numpy as np
 import random
 import os, sys, getopt
 import importlib
+import re
 
 from io import StringIO ## for Python 3
 stdout_string_io = StringIO()
@@ -316,6 +317,7 @@ class ColdBoxGUI(App):
         self.data_dict = coldjigcontroller.data_dict
 
         if coldbox_type.find('virtual'):
+            logger.info("A virtual box is set with empty hardwares for GUI testing")
             # As we're expecting to run with empty-HW ini file, will need to
             # add some keys to data_dict for the interlock
             #
@@ -348,17 +350,14 @@ class ColdBoxGUI(App):
         self.lbl_textinput_TCHot = gui.Label('Hot temperature [C]', width=200, height=20, margin='5px',style={'font-size': '14px'})
         self.textinput_TCHot = gui.TextInput(width=50, height=20,margin='5px')
         self.textinput_TCHot.set_value('40')
-        #self.btTCHotset = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
 
         self.lbl_textinput_TCCold = gui.Label('Cold temperature [C]', width=200, height=20, margin='5px',style={'font-size': '14px'})
         self.textinput_TCCold = gui.TextInput(width=50, height=20,margin='5px')
         self.textinput_TCCold.set_value('-35')
-        #self.btTCColdset = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
 
         self.lbl_textinput_TCWarmup = gui.Label('Warm-up temperature [C]', width=200, height=20, margin='5px',style={'font-size': '14px'})
         self.textinput_TCWarmup = gui.TextInput(width=50, height=20,margin='5px')
         self.textinput_TCWarmup.set_value('20')
-        #self.btTCWarmupset = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
 
         subContainerADV_TC.set_from_asciiart("""
             |TC_label    |TC_label    |                    |
@@ -558,11 +557,6 @@ class ColdBoxGUI(App):
             self.btChillerOff.onclick.do(self.on_btChiller_sw_pressed, 'off')
             self.btChilTset.onclick.do(self.on_btChil_T_set_pressed)
 
-            '''
-            #------------Setting the values -----------
-            self.btAdvSet = gui.Button('SET', width="20%", height=30, margin='15px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_blue})
-            self.btAdvSet.onclick.do(self.on_btAdvSet_pressed)
-            '''
             #- Wrapping the subcontainers
             subContainerADV.set_from_asciiart("""
                 |TC      |HV |HV  | LV1  |  |
@@ -575,7 +569,7 @@ class ColdBoxGUI(App):
                                         })
 
             #------------------------------------------
-        elif coldbox_type=='UK' or coldbox_type=='UK_virtual':
+        elif re.search('uk', coldbox_type, flags=re.IGNORECASE) or re.search('endcap', coldbox_type, flags=re.IGNORECASE):
             #------------Peltiers controls-----------
             subContainerADV_plt = gui.GridBox(width = "55%", hight = "100%", style={'margin':'20px','align-items':'flex-start', 'justify-content':'flex-start'})
             subContainerADV_plt.style['border-left'] = '3px solid rgba(0,0,0,.12)'
@@ -586,29 +580,37 @@ class ColdBoxGUI(App):
             self.btPLT_heat = gui.Button('HEAT', width=75, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_red})
             self.btPLT_cool = gui.Button('COOL', width=75, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_blue})
 
-            self.lbl_textinput_plt0 = gui.Label('Plt_1', width=50, height=20, margin='5px',style={'font-size': '14px'})
-            self.lbl_textinput_plt1 = gui.Label('Plt_2', width=50, height=20, margin='5px',style={'font-size': '14px'})
-            self.lbl_textinput_plt2 = gui.Label('Plt_3', width=50, height=20, margin='5px',style={'font-size': '14px'})
-            self.lbl_textinput_plt3 = gui.Label('Plt_4', width=50, height=20, margin='5px',style={'font-size': '14px'})
-            self.lbl_textinput_plt4 = gui.Label('Plt_5', width=50, height=20, margin='5px',style={'font-size': '14px'})
+            self.lbl_textinput_plt0 = gui.Label('Plt_0', width=50, height=20, margin='5px',style={'font-size': '14px'})
+            self.lbl_textinput_plt1 = gui.Label('Plt_1', width=50, height=20, margin='5px',style={'font-size': '14px'})
+            self.lbl_textinput_plt2 = gui.Label('Plt_2', width=50, height=20, margin='5px',style={'font-size': '14px'})
+            self.lbl_textinput_plt3 = gui.Label('Plt_3', width=50, height=20, margin='5px',style={'font-size': '14px'})
+            if re.search('uk', coldbox_type, flags=re.IGNORECASE):
+                self.lbl_textinput_plt4 = gui.Label('Plt_4', width=50, height=20, margin='5px',style={'font-size': '14px'})
 
             self.textinput_curr_plt0 = gui.TextInput(width=50, height=20,margin='5px')
             self.textinput_curr_plt1 = gui.TextInput(width=50, height=20,margin='5px')
             self.textinput_curr_plt2 = gui.TextInput(width=50, height=20,margin='5px')
             self.textinput_curr_plt3 = gui.TextInput(width=50, height=20,margin='5px')
-            self.textinput_curr_plt4 = gui.TextInput(width=50, height=20,margin='5px')
-            self.list_textinput_curr= [self.textinput_curr_plt0,self.textinput_curr_plt1,self.textinput_curr_plt2,self.textinput_curr_plt3,self.textinput_curr_plt4]
+            if re.search('uk', coldbox_type, flags=re.IGNORECASE):
+                self.textinput_curr_plt4 = gui.TextInput(width=50, height=20,margin='5px')
+                self.list_textinput_curr= [self.textinput_curr_plt0,self.textinput_curr_plt1,self.textinput_curr_plt2,self.textinput_curr_plt3,self.textinput_curr_plt4]
+            else:
+                self.list_textinput_curr= [self.textinput_curr_plt0,self.textinput_curr_plt1,self.textinput_curr_plt2,self.textinput_curr_plt3]
 
 
             self.textinput_vol_plt0 = gui.TextInput(width=50, height=20,margin='5px')
             self.textinput_vol_plt1 = gui.TextInput(width=50, height=20,margin='5px')
             self.textinput_vol_plt2 = gui.TextInput(width=50, height=20,margin='5px')
             self.textinput_vol_plt3 = gui.TextInput(width=50, height=20,margin='5px')
-            self.textinput_vol_plt4 = gui.TextInput(width=50, height=20,margin='5px')
-            self.list_textinput_vol= [self.textinput_vol_plt0,self.textinput_vol_plt1,self.textinput_vol_plt2,self.textinput_vol_plt3,self.textinput_vol_plt4]
-
-            self.list_textinput_plt = [self.textinput_curr_plt0, self.textinput_curr_plt1,self.textinput_curr_plt2,self.textinput_curr_plt3,self.textinput_curr_plt4,
-                                       self.textinput_vol_plt0, self.textinput_vol_plt1,self.textinput_vol_plt2,self.textinput_vol_plt3,self.textinput_vol_plt4]
+            if re.search('uk', coldbox_type, flags=re.IGNORECASE):
+                self.textinput_vol_plt4 = gui.TextInput(width=50, height=20,margin='5px')
+                self.list_textinput_vol= [self.textinput_vol_plt0,self.textinput_vol_plt1,self.textinput_vol_plt2,self.textinput_vol_plt3,self.textinput_vol_plt4]
+                self.list_textinput_plt = [self.textinput_curr_plt0, self.textinput_curr_plt1,self.textinput_curr_plt2,self.textinput_curr_plt3,self.textinput_curr_plt4,
+                                           self.textinput_vol_plt0, self.textinput_vol_plt1,self.textinput_vol_plt2,self.textinput_vol_plt3,self.textinput_vol_plt4]
+            else:
+                self.list_textinput_vol= [self.textinput_vol_plt0,self.textinput_vol_plt1,self.textinput_vol_plt2,self.textinput_vol_plt3]
+                self.list_textinput_plt = [self.textinput_curr_plt0, self.textinput_curr_plt1,self.textinput_curr_plt2,self.textinput_curr_plt3,
+                                       self.textinput_vol_plt0, self.textinput_vol_plt1,self.textinput_vol_plt2,self.textinput_vol_plt3]
             for textinput in self.list_textinput_plt:
                 textinput.set_value('0.00')
 
@@ -616,27 +618,49 @@ class ColdBoxGUI(App):
             self.bt_PLTset_1 = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
             self.bt_PLTset_2 = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
             self.bt_PLTset_3 = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
-            self.bt_PLTset_4 = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
-            self.list_bt_PLTset = [self.bt_PLTset_0,self.bt_PLTset_1,self.bt_PLTset_2,self.bt_PLTset_3,self.bt_PLTset_4]
+            if re.search('uk', coldbox_type, flags=re.IGNORECASE):
+                self.bt_PLTset_4 = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
+                self.list_bt_PLTset = [self.bt_PLTset_0,self.bt_PLTset_1,self.bt_PLTset_2,self.bt_PLTset_3,self.bt_PLTset_4]
+            else:
+                self.list_bt_PLTset = [self.bt_PLTset_0,self.bt_PLTset_1,self.bt_PLTset_2,self.bt_PLTset_3]
 
-            subContainerADV_plt.set_from_asciiart("""
-                |PLT_label | PLT_bt_HEAT  | PLT_bt_COOL |             |
-                |          | PLT_current  | PTL_vol     |             |
-                | plt0     | plt_curr0    | plt_vol0    | plt_set0    |
-                | plt1     | plt_curr1    | plt_vol1    | plt_set1    |
-                | plt2     | plt_curr2    | plt_vol2    | plt_set2    |
-                | plt3     | plt_curr3    | plt_vol3    | plt_set3    |
-                | plt4     | plt_curr4    | plt_vol4    | plt_set4    |
-                """, 10, 10)
 
-            subContainerADV_plt.append({'PLT_label':self.lbl_plt, 'PLT_bt_HEAT':self.btPLT_heat,'PLT_bt_COOL':self.btPLT_cool,
+            if re.search('uk', coldbox_type, flags=re.IGNORECASE):
+                subContainerADV_plt.set_from_asciiart("""
+                    |PLT_label | PLT_bt_HEAT  | PLT_bt_COOL |             |
+                    |          | PLT_current  | PTL_vol     |             |
+                    | plt0     | plt_curr0    | plt_vol0    | plt_set0    |
+                    | plt1     | plt_curr1    | plt_vol1    | plt_set1    |
+                    | plt2     | plt_curr2    | plt_vol2    | plt_set2    |
+                    | plt3     | plt_curr3    | plt_vol3    | plt_set3    |
+                    | plt4     | plt_curr4    | plt_vol4    | plt_set4    |
+                    """, 10, 10)
+
+                subContainerADV_plt.append({'PLT_label':self.lbl_plt, 'PLT_bt_HEAT':self.btPLT_heat,'PLT_bt_COOL':self.btPLT_cool,
                                         'PLT_current':self.lbl_plt_curr ,'PTL_vol':self.lbl_plt_vol,
                                         'plt0':self.lbl_textinput_plt0, 'plt_curr0':self.list_textinput_curr[0] , 'plt_vol0':self.list_textinput_vol[0], 'plt_set0':self.bt_PLTset_0 ,
                                         'plt1':self.lbl_textinput_plt1, 'plt_curr1':self.list_textinput_curr[1] , 'plt_vol1':self.list_textinput_vol[1], 'plt_set1':self.bt_PLTset_1 ,
                                         'plt2':self.lbl_textinput_plt2, 'plt_curr2':self.list_textinput_curr[2] , 'plt_vol2':self.list_textinput_vol[2], 'plt_set2':self.bt_PLTset_2 ,
                                         'plt3':self.lbl_textinput_plt3, 'plt_curr3':self.list_textinput_curr[3] , 'plt_vol3':self.list_textinput_vol[3], 'plt_set3':self.bt_PLTset_3 ,
                                         'plt4':self.lbl_textinput_plt4, 'plt_curr4':self.list_textinput_curr[4] , 'plt_vol4':self.list_textinput_vol[4], 'plt_set4':self.bt_PLTset_4
-            })
+                                        })
+            else:
+                subContainerADV_plt.set_from_asciiart("""
+                    |PLT_label | PLT_bt_HEAT  | PLT_bt_COOL |             |
+                    |          | PLT_current  | PTL_vol     |             |
+                    | plt0     | plt_curr0    | plt_vol0    | plt_set0    |
+                    | plt1     | plt_curr1    | plt_vol1    | plt_set1    |
+                    | plt2     | plt_curr2    | plt_vol2    | plt_set2    |
+                    | plt3     | plt_curr3    | plt_vol3    | plt_set3    |
+                    """, 10, 10)
+
+                subContainerADV_plt.append({'PLT_label':self.lbl_plt, 'PLT_bt_HEAT':self.btPLT_heat,'PLT_bt_COOL':self.btPLT_cool,
+                                        'PLT_current':self.lbl_plt_curr ,'PTL_vol':self.lbl_plt_vol,
+                                        'plt0':self.lbl_textinput_plt0, 'plt_curr0':self.list_textinput_curr[0] , 'plt_vol0':self.list_textinput_vol[0], 'plt_set0':self.bt_PLTset_0 ,
+                                        'plt1':self.lbl_textinput_plt1, 'plt_curr1':self.list_textinput_curr[1] , 'plt_vol1':self.list_textinput_vol[1], 'plt_set1':self.bt_PLTset_1 ,
+                                        'plt2':self.lbl_textinput_plt2, 'plt_curr2':self.list_textinput_curr[2] , 'plt_vol2':self.list_textinput_vol[2], 'plt_set2':self.bt_PLTset_2 ,
+                                        'plt3':self.lbl_textinput_plt3, 'plt_curr3':self.list_textinput_curr[3] , 'plt_vol3':self.list_textinput_vol[3], 'plt_set3':self.bt_PLTset_3 ,
+                                        })
 
 
             self.btPLT_heat.onclick.do(self.on_btPLT_sw_pressed,'heat')
@@ -661,18 +685,30 @@ class ColdBoxGUI(App):
             self.textinput_Chil_pumpS.set_value('0.00')
             self.btChil_pumpS_set = gui.Button('SET', width=50, height=20, margin='5px', style={'font-size': '16px', 'font-weight': 'bold','background-color': col_lblue})
 
-            subContainerADV_Chiller_UK.set_from_asciiart("""
-                |Chil_label | Chil_label  |                |                   |
-                |Chil_T     |Chil_T       | textinput_ChilT      | set_ChilT      |
-                |Chil_pumpS |Chil_pumpS   | textinput_Chil_pumpS | set_Chil_pumpS |
-                """, 10, 10)
+            if re.search('uk', coldbox_type, flags=re.IGNORECASE):
+                subContainerADV_Chiller_UK.set_from_asciiart("""
+                    |Chil_label | Chil_label  |                |                   |
+                    |Chil_T     |Chil_T       | textinput_ChilT      | set_ChilT      |
+                    |Chil_pumpS |Chil_pumpS   | textinput_Chil_pumpS | set_Chil_pumpS |
+                    """, 10, 10)
 
-            subContainerADV_Chiller_UK.append({'Chil_label':self.lbl_Chiller,
+                subContainerADV_Chiller_UK.append({'Chil_label':self.lbl_Chiller,
                                         'Chil_T':self.lbl_textinput_ChilT,'textinput_ChilT': self.textinput_ChilT,'set_ChilT':self.btChilTset,
                                         'Chil_pumpS':self.lbl_textinput_Chil_pumpS,'textinput_Chil_pumpS': self.textinput_Chil_pumpS,'set_Chil_pumpS':self.btChil_pumpS_set,
                                         })
+                self.btChil_pumpS_set.onclick.do(self.on_btChil_pumpS_set_pressed)
+            else:
+                subContainerADV_Chiller_UK.set_from_asciiart("""
+                    |Chil_label | Chil_label  |                |                   |
+                    |Chil_T     |Chil_T       | textinput_ChilT      | set_ChilT      |
+                    """, 10, 10)
+
+                subContainerADV_Chiller_UK.append({'Chil_label':self.lbl_Chiller,
+                                        'Chil_T':self.lbl_textinput_ChilT,'textinput_ChilT': self.textinput_ChilT,'set_ChilT':self.btChilTset,
+                                        })
+
             self.btChilTset.onclick.do(self.on_btChil_T_set_pressed)
-            self.btChil_pumpS_set.onclick.do(self.on_btChil_pumpS_set_pressed)
+
 
 
             #- Wrapping the subcontainers
@@ -695,7 +731,7 @@ class ColdBoxGUI(App):
 
 
         #===================================== TAB 3 =================================================
-        self.lbl_swName = gui.Label('ColdBox Controller V 0.9', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
+        self.lbl_swName = gui.Label('ColdBox Controller V 1.0', width=200, height=30, margin='5px',style={'font-size': '15px', 'font-weight': 'bold'})
         verticalContainer_tb3.append([horizontalContainer_logo, self.lbl_swName, self.lbl_ColdBoxType])
 
         #===================================== Wrapping all tabs together =================================================
